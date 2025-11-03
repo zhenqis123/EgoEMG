@@ -1,21 +1,24 @@
 defaults:
   - _self_
-  - datamodule: default
+  - datamodule: cached
   - optimizer: adam
+  - lr_scheduler: cosine
   - data_split: full_split
   - transforms: rotation_augmentation
-  - experiment: tracking_vemg2pose
+  - experiment: regression_vemg2pose
 
-data_location: ~/emg2pose_data
+data_location: /home/xiziheng/develop/emg2pose/data/emg2pose_data
 
 seed: 42
 
-batch_size: 64
-num_workers: 0  # Number of workers for dataloading
+batch_size: 32
+num_workers: 4  # Number of workers for dataloading
 
 train: True  # Whether to run training
 eval: True  # Whether to run evaluation on validation and test splits
-checkpoint: null  # Optional path to checkpoint file
+# checkpoint: /home/xiziheng/develop/emg2pose/logs/2025-10-31/22-39-59/lightning_logs/version_0/checkpoints/last.ckpt  # Optional path to checkpoint file
+# checkpoint: /home/xiziheng/develop/emg2pose/emg2pose_model_checkpoints/regression_vemg2pose.ckpt
+checkpoint: null
 
 monitor_metric: val_loss
 monitor_mode: min
@@ -25,17 +28,17 @@ loss_weights:
   fingertip_distance: 0.01
 
 trainer:
-  max_epochs: 500
+  max_epochs: 200
+  devices: [5]
+  log_every_n_steps: 20
 
 # By default: static learning rate
-lr_scheduler:
-  null
-
 callbacks:
   - _target_: pytorch_lightning.callbacks.LearningRateMonitor
   - _target_: pytorch_lightning.callbacks.ModelCheckpoint
     monitor: ${monitor_metric}
     mode: ${monitor_mode}
+    save_top_k: 3
     save_last: True
     verbose: True
   - _target_: pytorch_lightning.callbacks.EarlyStopping

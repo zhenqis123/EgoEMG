@@ -59,6 +59,21 @@ class ChannelDownsampling:
 
 
 @dataclass
+class ChannelSelect:
+    """Select a fixed subset of EMG channels by index."""
+
+    indices: Sequence[int]
+
+    def __post_init__(self):
+        if len(self.indices) == 0:
+            raise ValueError("indices must contain at least one channel index.")
+        self._indices = list(self.indices)
+
+    def __call__(self, data: torch.Tensor) -> torch.Tensor:
+        return data[..., self._indices]
+
+
+@dataclass
 class Compose:
     """Compose a chain of transforms.
 

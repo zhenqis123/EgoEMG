@@ -10,6 +10,8 @@ import logging
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import pytorch_lightning as pl
 import torch
 
@@ -20,7 +22,7 @@ from emg2pose.pose_modules import BasePoseModule
 from hydra.utils import instantiate
 
 from omegaconf import DictConfig
-from torch.utils.data import ConcatDataset, DataLoader
+from torch.utils.data import ConcatDataset, DataLoader, Dataset
 
 
 log = logging.getLogger(__name__)
@@ -124,6 +126,170 @@ class WindowedEmgDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             pin_memory=True,
             shuffle=False,
+        )
+
+
+class CachedWindowDataset(Dataset):
+    def __init__(self, cache_dir: Path, transform=None) -> None:
+        super().__init__()
+        manifest_path = cache_dir.joinpath("manifest.csv")
+        if not manifest_path.exists():
+            raise FileNotFoundError(f"Missing manifest file at {manifest_path}")
+
+        self.manifest = pd.read_csv(manifest_path)
+        if self.manifest.empty:
+            raise ValueError(f"Manifest {manifest_path} is empty.")
+
+        self.cache_dir = cache_dir
+        self.transform = transform
+
+        self.effective_length = int(self.manifest["effective_length"].iloc[0])
+        self.window_length = int(self.manifest["window_length"].iloc[0])
+        self.emg_channels = int(self.manifest["emg_channels"].iloc[0])
+        self.joint_dims = int(self.manifest["joint_dims"].iloc[0])
+        self._window_start_idx = self.manifest["window_start_idx"].to_numpy(np.int64)
+        self._window_end_idx = self.manifest["window_end_idx"].to_numpy(np.int64)
+
+        num_windows = len(self.manifest)
+        emg_path = cache_dir.joinpath("emg.f32")
+        angles_path = cache_dir.joinpath("joint_angles.f32")
+        mask_path = cache_dir.joinpath("no_ik_mask.u1")
+        if not emg_path.exists() or not angles_path.exists() or not mask_path.exists():
+            raise FileNotFoundError(
+                f"Expected cache files emg.f32, joint_angles.f32, and no_ik_mask.u1 in {cache_dir}"
+            )
+        self.emg = np.memmap(
+            emg_path,
+            mode="r+",
+            dtype=np.float32,
+            shape=(num_windows, self.effective_length, self.emg_channels),
+        )
+        self.joint_angles = np.memmap(
+            angles_path,
+            mode="r+",
+            dtype=np.float32,
+            shape=(num_windows, self.effective_length, self.joint_dims),
+        )
+        self.mask = np.memmap(
+            mask_path,
+            mode="r+",
+            dtype=np.uint8,
+            shape=(num_windows, self.effective_length),
+        )
+
+    def __len__(self) -> int:
+        return len(self.manifest)
+
+    def __getitem__(self, idx: int) -> Mapping[str, torch.Tensor]:
+        emg_tensor = torch.from_numpy(self.emg[idx])
+        emg_input = {"emg": emg_tensor}
+        if self.transform is not None:
+            try:
+                emg_tensor = self.transform(emg_input)
+            except Exception as exc:
+                raise RuntimeError(
+                    "CachedWindowDataset transform failed. "
+                    "Ensure transforms expect a torch.Tensor EMG window."
+                ) from exc
+        emg_window = emg_tensor.transpose(0, 1).contiguous()
+
+        joint_angles = torch.from_numpy(self.joint_angles[idx]).transpose(0, 1).contiguous()
+        mask = torch.from_numpy(self.mask[idx].astype(np.bool_, copy=False))
+
+        return {
+            "emg": emg_window,
+            "joint_angles": joint_angles,
+            "no_ik_failure": mask,
+            "window_start_idx": int(self._window_start_idx[idx]),
+            "window_end_idx": int(self._window_end_idx[idx]),
+        }
+
+
+class CachedWindowDataModule(pl.LightningDataModule):
+    def __init__(
+        self,
+        cache_root: str | Path,
+        batch_size: int,
+        num_workers: int,
+        train_sessions: Sequence[Path] | None = None,
+        val_sessions: Sequence[Path] | None = None,
+        test_sessions: Sequence[Path] | None = None,
+        skip_ik_failures: bool = False,
+        allow_missing_splits: bool = False,
+        window_length: int | None = None,
+        val_test_window_length: int | None = None,
+    ) -> None:
+        super().__init__()
+        self.cache_root = Path(cache_root).expanduser()
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.allow_missing_splits = allow_missing_splits
+
+        self.train_transforms = None
+        self.val_transforms = None
+        self.test_transforms = None
+        self._datasets: dict[str, Dataset | None] = {
+            "train": None,
+            "val": None,
+            "test": None,
+        }
+
+    def _build_dataset(self, split: str, transform):
+        split_dir = self.cache_root.joinpath(split)
+        if not split_dir.exists():
+            if self.allow_missing_splits:
+                return None
+            raise FileNotFoundError(
+                f"Unable to find cached split '{split}' at {split_dir}. "
+                "Run scripts/cache_windows.py first or enable allow_missing_splits."
+            )
+        return CachedWindowDataset(split_dir, transform=transform)
+
+    def setup(self, stage: str | None = None) -> None:
+        if stage in (None, "fit"):
+            self._datasets["train"] = self._build_dataset("train", self.train_transforms)
+            self._datasets["val"] = self._build_dataset("val", self.val_transforms)
+        if stage in (None, "test"):
+            self._datasets["test"] = self._build_dataset("test", self.test_transforms)
+
+    def train_dataloader(self) -> DataLoader:
+        dataset = self._datasets.get("train")
+        if dataset is None:
+            raise RuntimeError("Training dataset is not available. Check cached data.")
+        return DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            pin_memory=True,
+            shuffle=False,
+            persistent_workers=True,
+            prefetch_factor=2
+        )
+
+    def val_dataloader(self) -> DataLoader:
+        dataset = self._datasets.get("val")
+        if dataset is None:
+            return None
+        return DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            pin_memory=True,
+            shuffle=False,
+            persistent_workers=True,
+        )
+
+    def test_dataloader(self) -> DataLoader:
+        dataset = self._datasets.get("test")
+        if dataset is None:
+            return None
+        return DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            pin_memory=True,
+            shuffle=False,
+            persistent_workers=True,
         )
 
 

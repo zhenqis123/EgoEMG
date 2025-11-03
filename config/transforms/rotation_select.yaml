@@ -1,0 +1,26 @@
+# @package _global_
+selected_channels:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+
+to_tensor:
+  _target_: emg2pose.transforms.ExtractToTensor
+  field: emg
+
+transforms:
+  train:
+    - ${to_tensor}
+    - _target_: emg2pose.transforms.RotationAugmentation
+    - _target_: emg2pose.transforms.ChannelSelect
+      indices: ${selected_channels}
+  val:
+    - ${to_tensor}
+    - _target_: emg2pose.transforms.ChannelSelect
+      indices: ${selected_channels}
+  test: ${transforms.val}

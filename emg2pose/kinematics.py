@@ -40,7 +40,7 @@ def load_hand_model_from_json(file_path: str) -> HandModel:
 
 
 class TorchNamedTuple(nn.Module):
-    def __init__(self, named_tuple: NamedTuple | Any, requires_grad: bool = True):
+    def __init__(self, named_tuple: NamedTuple, requires_grad: bool = True):
         """Represent a NamedTuple as a nn.Module (collection of nn.Parameters)
 
         A note on the type signature: type checking for NamedTuples is pretty

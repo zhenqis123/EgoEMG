@@ -164,3 +164,4 @@ cython_debug/
 # EMG2Pose Specific
 logs/
 data/
+emg2pose_model_checkpoints/

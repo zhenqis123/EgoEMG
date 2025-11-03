@@ -1,0 +1,6 @@
+# @package _global_
+transforms:
+  train:
+    - _target_: emg2pose.transforms.RotationAugmentation
+  val: []
+  test: ${transforms.val}
