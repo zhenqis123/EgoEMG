@@ -11,7 +11,7 @@ pose_module:
 
 # Hyperparameters
 optimizer:
-  lr: .001
+  lr: .0005
 datamodule:
   # Adding 1790 samples, which is the left_context of the tds network
   window_length: 11_790

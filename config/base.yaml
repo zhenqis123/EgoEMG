@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - datamodule: cached
+  - datamodule: default
   - optimizer: adam
   - lr_scheduler: cosine
   - data_split: full_split
@@ -11,8 +11,8 @@ data_location: /home/xiziheng/develop/emg2pose/data/emg2pose_data
 
 seed: 42
 
-batch_size: 32
-num_workers: 4  # Number of workers for dataloading
+batch_size: 512
+num_workers: 12  # Number of workers for dataloading
 
 train: True  # Whether to run training
 eval: True  # Whether to run evaluation on validation and test splits
@@ -28,8 +28,8 @@ loss_weights:
   fingertip_distance: 0.01
 
 trainer:
-  max_epochs: 200
-  devices: [5]
+  max_epochs: 100
+  devices: [0]
   log_every_n_steps: 20
 
 # By default: static learning rate

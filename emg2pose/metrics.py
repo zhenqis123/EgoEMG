@@ -46,7 +46,7 @@ class AnglularDerivatives(Metric):
         self,
         pred: torch.Tensor,
         target: torch.Tensor,
-        mask: bool,
+        mask: torch.Tensor,
         stage: str,
     ) -> dict[str, torch.Tensor]:
 
@@ -61,10 +61,15 @@ class AnglularDerivatives(Metric):
 
         # vel, acc, and jerk are in (radians / sample), so we multiply by the emg sample
         # rate to get (radians / second). Also take absolute value.
+        def safe_mean(tensor, mask_tensor):
+            if mask_tensor.sum() == 0:
+                return torch.tensor(0.0, device=tensor.device)
+            return tensor[mask_tensor].abs().mean() * EMG_SAMPLE_RATE
+
         return {
-            f"{stage}_vel": vel[mask_vel].abs().mean() * EMG_SAMPLE_RATE,
-            f"{stage}_acc": acc[mask_acc].abs().mean() * EMG_SAMPLE_RATE,
-            f"{stage}_jerk": jerk[mask_jerk].abs().mean() * EMG_SAMPLE_RATE,
+            f"{stage}_vel": safe_mean(vel, mask_vel),
+            f"{stage}_acc": safe_mean(acc, mask_acc),
+            f"{stage}_jerk": safe_mean(jerk, mask_jerk),
         }
 
     def adjust_mask(self, mask: torch.tensor):
@@ -80,10 +85,12 @@ class AngleMAE(Metric):
         self,
         pred: torch.Tensor,
         target: torch.Tensor,
-        no_ik_failure: bool,
+        no_ik_failure: torch.Tensor,
         stage: str,
     ) -> dict[str, torch.Tensor]:
         mask = no_ik_failure.unsqueeze(1).expand(-1, NUM_JOINTS, -1)
+        if mask.sum() == 0:
+            return {f"{stage}_mae": torch.tensor(0.0, device=pred.device)}
         return {f"{stage}_mae": torch.nn.L1Loss()(pred[mask], target[mask])}
 
 
@@ -94,7 +101,7 @@ class PerFingerAngleMAE(Metric):
         self,
         pred: torch.Tensor,
         target: torch.Tensor,
-        mask: bool,
+        mask: torch.Tensor,
         stage: str,
     ) -> dict[str, torch.Tensor]:
 
@@ -109,6 +116,8 @@ class PerFingerAngleMAE(Metric):
     def get_error_for_finger(pred, target, mask, finger: str):
         idxs = [j.index for j in JOINTS if finger in j.groups]
         mask = mask.unsqueeze(1).expand(-1, len(idxs), -1)
+        if mask.sum() == 0:
+            return torch.tensor(0.0, device=pred.device)
         return torch.nn.L1Loss()(pred[:, idxs][mask], target[:, idxs][mask])
 
 
@@ -119,7 +128,7 @@ class PDAngleMAE(Metric):
         self,
         pred: torch.Tensor,
         target: torch.Tensor,
-        mask: bool,
+        mask: torch.Tensor,
         stage: str,
     ) -> dict[str, torch.Tensor]:
 
@@ -132,6 +141,8 @@ class PDAngleMAE(Metric):
     def get_error_for_group(pred, target, mask, group: str):
         idxs = [j.index for j in JOINTS if group in j.groups]
         mask = mask.unsqueeze(1).expand(-1, len(idxs), -1)
+        if mask.sum() == 0:
+            return torch.tensor(0.0, device=pred.device)
         return torch.nn.L1Loss()(pred[:, idxs][mask], target[:, idxs][mask])
 
 
@@ -146,7 +157,7 @@ class LandmarkDistances(Metric):
         self,
         pred: torch.Tensor,
         target: torch.Tensor,
-        mask: bool,
+        mask: torch.Tensor,
         stage: str,
     ) -> dict[str, torch.Tensor]:
 
@@ -188,9 +199,10 @@ class LandmarkDistances(Metric):
         Mean distance for given landmark idxs. Inputs are (batch, time, landmark, xyz).
         """
         mask = mask[..., None].expand(-1, -1, len(idxs))
-        return torch.linalg.norm(pred[:, :, idxs] - target[:, :, idxs], dim=-1)[
-            mask
-        ].mean()
+        masked = torch.linalg.norm(pred[:, :, idxs] - target[:, :, idxs], dim=-1)[mask]
+        if masked.numel() == 0:
+            return torch.tensor(0.0, device=pred.device)
+        return masked.mean()
 
 
 def get_default_metrics() -> list[Metric]:

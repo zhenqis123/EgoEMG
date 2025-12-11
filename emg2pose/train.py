@@ -48,7 +48,6 @@ def make_data_module(config: DictConfig):
         train_sessions=train_sessions,
         val_sessions=val_sessions,
         test_sessions=test_sessions,
-        skip_ik_failures=config.datamodule.get("skip_ik_failures", False),
     )
 
     # Instantiate transforms
@@ -139,6 +138,7 @@ def train(
         results["test_metrics"] = test_metrics
 
     pprint.pprint(results, sort_dicts=False)
+    return results
 
 
 @hydra.main(config_path="../config", config_name="base", version_base="1.1")

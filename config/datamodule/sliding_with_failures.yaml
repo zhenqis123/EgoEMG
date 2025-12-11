@@ -1,0 +1,9 @@
+# @package _global_
+datamodule:
+  _target_: emg2pose.lightning.SlidingEmgDataModule
+  window_length: 2_000  # default 1s windows @ 2kHz
+  val_test_window_length: 10_000
+  padding: [0, 0]
+  # Do not drop IK failures; rely on mask in loss
+  allow_mask_recompute: False
+  treat_interpolated_as_valid: True

@@ -163,5 +163,8 @@ cython_debug/
 
 # EMG2Pose Specific
 logs/
+lightning_logs/
+optuna.db
 data/
 emg2pose_model_checkpoints/
+vis_dir/

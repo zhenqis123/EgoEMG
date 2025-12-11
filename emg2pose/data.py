@@ -58,6 +58,8 @@ class Emg2PoseSessionData:
     SAMPLE_RATE: ClassVar[str] = "sample_rate"
 
     hdf5_path: Path
+    allow_mask_recompute: bool = True
+    treat_interpolated_as_valid: bool = True
 
     def __post_init__(self) -> None:
         self._file = h5py.File(self.hdf5_path, "r")
@@ -132,9 +134,41 @@ class Emg2PoseSessionData:
     @property
     def no_ik_failure(self):
         if not hasattr(self, "_no_ik_failure"):
-            joint_angles = self.timeseries[self.JOINT_ANGLES]
-            self._no_ik_failure = get_ik_failures_mask(joint_angles)
+            group = self._file[self.HDF5_GROUP]
+            mask: np.ndarray | None = None
+            if "no_ik_failure" in group:
+                mask = group["no_ik_failure"][...]
+            elif "ik_failure_mask" in group:
+                mask = ~group["ik_failure_mask"][...]
+            elif self.allow_mask_recompute:
+                joint_angles = self.timeseries[self.JOINT_ANGLES]
+                mask = get_ik_failures_mask(joint_angles)
+            else:
+                raise RuntimeError(
+                    "no_ik_failure/ik_failure_mask missing and recompute disabled "
+                    f"for session: {self.hdf5_path}"
+                )
+
+            mask = np.asarray(mask, dtype=bool)
+
+            # Optionally treat插值样本为有效（默认启用）
+            if self.treat_interpolated_as_valid and "interpolated_mask" in group:
+                interp = group["interpolated_mask"][...].astype(bool)
+                mask = mask | interp
+
+            self._no_ik_failure = mask
         return self._no_ik_failure
+
+    @property
+    def interpolated_mask(self) -> np.ndarray:
+        if not hasattr(self, "_interpolated_mask"):
+            group = self._file[self.HDF5_GROUP]
+            if "interpolated_mask" in group:
+                mask = group["interpolated_mask"][...]
+            else:
+                mask = np.zeros(len(self.timeseries), dtype=bool)
+            self._interpolated_mask = np.asarray(mask, dtype=bool)
+        return self._interpolated_mask
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__} {self.session_name} ({len(self)} samples)"
@@ -174,6 +208,8 @@ class WindowedEmgDataset(torch.utils.data.Dataset):
         default_factory=transforms.ExtractToTensor
     )
     skip_ik_failures: bool = False
+    allow_mask_recompute: bool = True
+    treat_interpolated_as_valid: bool = True
 
     def __post_init__(
         self,
@@ -209,7 +245,11 @@ class WindowedEmgDataset(torch.utils.data.Dataset):
     @property
     def session(self):
         if not hasattr(self, "_session"):
-            self._session = Emg2PoseSessionData(self.hdf5_path)
+            self._session = Emg2PoseSessionData(
+                self.hdf5_path,
+                allow_mask_recompute=self.allow_mask_recompute,
+                treat_interpolated_as_valid=self.treat_interpolated_as_valid,
+            )
         return self._session
 
     @property
@@ -274,10 +314,14 @@ class WindowedEmgDataset(torch.utils.data.Dataset):
         no_ik_failure = torch.as_tensor(
             self.session.no_ik_failure[window_start:window_end]
         )
+        interpolated_mask = torch.as_tensor(
+            self.session.interpolated_mask[window_start:window_end]
+        )
         return {
             "emg": emg.T,  # CT
             "joint_angles": joint_angles.T,  # CT
             "no_ik_failure": no_ik_failure,  # T
+            "interpolated_mask": interpolated_mask,  # T
             "window_start_idx": window_start,
             "window_end_idx": window_end,
         }

@@ -23,7 +23,7 @@ from hydra.utils import instantiate
 
 from omegaconf import DictConfig
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
-
+from tqdm import tqdm
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +40,8 @@ class WindowedEmgDataModule(pl.LightningDataModule):
         test_sessions: Sequence[Path],
         val_test_window_length: int | None = None,
         skip_ik_failures: bool = False,
+        allow_mask_recompute: bool = False,
+        treat_interpolated_as_valid: bool = True,
     ) -> None:
         super().__init__()
 
@@ -59,47 +61,169 @@ class WindowedEmgDataModule(pl.LightningDataModule):
         self.test_transforms = None
 
         self.skip_ik_failures = skip_ik_failures
+        self.allow_mask_recompute = allow_mask_recompute
+        self.treat_interpolated_as_valid = treat_interpolated_as_valid
 
     def setup(self, stage: str | None = None) -> None:
-        self.train_dataset = ConcatDataset(
-            [
-                WindowedEmgDataset(
-                    hdf5_path,
-                    transform=self.train_transforms,
-                    window_length=self.window_length,
-                    padding=self.padding,
-                    jitter=True,
-                    skip_ik_failures=self.skip_ik_failures,
-                )
-                for hdf5_path in self.train_sessions
-            ]
+        # train
+        self.train_dataset = ConcatDataset([
+            WindowedEmgDataset(
+                hdf5_path,
+                transform=self.train_transforms,
+                window_length=self.window_length,
+                padding=self.padding,
+                jitter=True,
+                skip_ik_failures=self.skip_ik_failures,
+                allow_mask_recompute=self.allow_mask_recompute,
+                treat_interpolated_as_valid=self.treat_interpolated_as_valid,
+            )
+            for hdf5_path in tqdm(self.train_sessions, desc="Building train datasets")
+        ])
+
+        # val
+        self.val_dataset = ConcatDataset([
+            WindowedEmgDataset(
+                hdf5_path,
+                transform=self.val_transforms,
+                window_length=self.val_test_window_length,
+                padding=self.padding,
+                jitter=False,
+                skip_ik_failures=self.skip_ik_failures,
+                allow_mask_recompute=self.allow_mask_recompute,
+                treat_interpolated_as_valid=self.treat_interpolated_as_valid,
+            )
+            for hdf5_path in tqdm(self.val_sessions, desc="Building val datasets")
+        ])
+
+        # test
+        self.test_dataset = ConcatDataset([
+            WindowedEmgDataset(
+                hdf5_path,
+                transform=self.test_transforms,
+                window_length=self.val_test_window_length,
+                padding=(0, 0),
+                jitter=False,
+                skip_ik_failures=self.skip_ik_failures,
+                allow_mask_recompute=self.allow_mask_recompute,
+                treat_interpolated_as_valid=self.treat_interpolated_as_valid,
+            )
+            for hdf5_path in tqdm(self.test_sessions, desc="Building test datasets")
+        ])
+
+
+    def train_dataloader(self) -> DataLoader:
+        return DataLoader(
+            self.train_dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            pin_memory=True,
+            shuffle=True,
         )
-        self.val_dataset = ConcatDataset(
-            [
-                WindowedEmgDataset(
-                    hdf5_path,
-                    transform=self.val_transforms,
-                    window_length=self.val_test_window_length,
-                    padding=self.padding,
-                    jitter=False,
-                    skip_ik_failures=self.skip_ik_failures,
-                )
-                for hdf5_path in self.val_sessions
-            ]
+
+    def val_dataloader(self) -> DataLoader:
+        return DataLoader(
+            self.val_dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            pin_memory=True,
+            shuffle=False,
         )
-        self.test_dataset = ConcatDataset(
-            [
-                WindowedEmgDataset(
-                    hdf5_path,
-                    transform=self.test_transforms,
-                    window_length=self.val_test_window_length,
-                    padding=(0, 0),
-                    jitter=False,
-                    skip_ik_failures=self.skip_ik_failures,
-                )
-                for hdf5_path in self.test_sessions
-            ]
+
+    def test_dataloader(self) -> DataLoader:
+        return DataLoader(
+            self.test_dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            pin_memory=True,
+            shuffle=False,
         )
+
+
+class SlidingEmgDataModule(pl.LightningDataModule):
+    """Slide windows sequentially without excluding IK failures.
+
+    Loss functions should use the provided `no_ik_failure` (and optionally
+    `interpolated_mask`) to mask invalid labels instead of dropping windows.
+    """
+
+    def __init__(
+        self,
+        window_length: int,
+        padding: tuple[int, int],
+        batch_size: int,
+        num_workers: int,
+        train_sessions: Sequence[Path],
+        val_sessions: Sequence[Path],
+        test_sessions: Sequence[Path],
+        val_test_window_length: int | None = None,
+        allow_mask_recompute: bool = False,
+        treat_interpolated_as_valid: bool = True,
+    ) -> None:
+        super().__init__()
+
+        self.window_length = window_length
+        self.val_test_window_length = val_test_window_length or window_length
+        self.padding = padding
+
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+
+        self.train_sessions = train_sessions
+        self.val_sessions = val_sessions
+        self.test_sessions = test_sessions
+
+        self.train_transforms = None
+        self.val_transforms = None
+        self.test_transforms = None
+
+        self.allow_mask_recompute = allow_mask_recompute
+        self.treat_interpolated_as_valid = treat_interpolated_as_valid
+
+    def setup(self, stage: str | None = None) -> None:
+        # train
+        self.train_dataset = ConcatDataset([
+            WindowedEmgDataset(
+                hdf5_path,
+                transform=self.train_transforms,
+                window_length=self.window_length,
+                padding=self.padding,
+                jitter=True,
+                skip_ik_failures=False,
+                allow_mask_recompute=self.allow_mask_recompute,
+                treat_interpolated_as_valid=self.treat_interpolated_as_valid,
+            )
+            for hdf5_path in tqdm(self.train_sessions, desc="Building train datasets")
+        ])
+
+        # val
+        self.val_dataset = ConcatDataset([
+            WindowedEmgDataset(
+                hdf5_path,
+                transform=self.val_transforms,
+                window_length=self.val_test_window_length,
+                padding=self.padding,
+                jitter=False,
+                skip_ik_failures=False,
+                allow_mask_recompute=self.allow_mask_recompute,
+                treat_interpolated_as_valid=self.treat_interpolated_as_valid,
+            )
+            for hdf5_path in tqdm(self.val_sessions, desc="Building val datasets")
+        ])
+
+        # test
+        self.test_dataset = ConcatDataset([
+            WindowedEmgDataset(
+                hdf5_path,
+                transform=self.test_transforms,
+                window_length=self.val_test_window_length,
+                padding=(0, 0),
+                jitter=False,
+                skip_ik_failures=False,
+                allow_mask_recompute=self.allow_mask_recompute,
+                treat_interpolated_as_valid=self.treat_interpolated_as_valid,
+            )
+            for hdf5_path in tqdm(self.test_sessions, desc="Building test datasets")
+        ])
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(
@@ -301,6 +425,7 @@ class Emg2PoseModule(pl.LightningModule):
         lr_scheduler_conf: DictConfig,
         provide_initial_pos: bool = False,
         loss_weights: dict[str, float] | None = None,
+        use_interpolated_as_valid: bool = True,
     ) -> None:
 
         super().__init__()
@@ -308,6 +433,7 @@ class Emg2PoseModule(pl.LightningModule):
         self.model: BasePoseModule = instantiate(network_conf, _convert_="all")
         self.provide_initial_pos = provide_initial_pos
         self.loss_weights = loss_weights or {"mae": 1}
+        self.use_interpolated_as_valid = use_interpolated_as_valid
 
         # TODO: add metrics to Hydra config instead
         self.metrics_list = get_default_metrics()
@@ -325,10 +451,26 @@ class Emg2PoseModule(pl.LightningModule):
         batch["no_ik_failure"] = self.update_ik_failure_mask(batch["no_ik_failure"])
         preds, targets, no_ik_failure = self.forward(batch)
 
+        # Align interpolated mask if provided
+        aligned_interp = None
+        if "interpolated_mask" in batch:
+            interp = batch["interpolated_mask"]
+            start = self.model.left_context
+            stop = None if self.model.right_context == 0 else -self.model.right_context
+            interp = interp[..., slice(start, stop)]
+            aligned_interp = self.model.align_mask(interp, targets.shape[-1])
+
+        # Build final loss/metric mask
+        valid_mask = self.build_valid_mask(
+            base_mask=no_ik_failure,
+            targets=targets,
+            interpolated_mask=aligned_interp,
+        )
+
         # Compute metrics
         metrics = {}
         for metric in self.metrics_list:
-            metrics.update(metric(preds, targets, no_ik_failure, stage))
+            metrics.update(metric(preds, targets, valid_mask, stage))
         self.log_dict(metrics, sync_dist=True)
 
         # Compute loss
@@ -370,5 +512,27 @@ class Emg2PoseModule(pl.LightningModule):
 
         if mask.sum() == 0:
             log.warning("All samples masked out due to missing initial state!")
+
+        return mask
+
+    def build_valid_mask(
+        self,
+        base_mask: torch.Tensor,
+        targets: torch.Tensor,
+        interpolated_mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        """Combine base IK mask, optional interpolated mask, and finite-value check."""
+        mask = base_mask.bool()
+
+        if interpolated_mask is not None and self.use_interpolated_as_valid:
+            mask = mask | interpolated_mask.bool()
+
+        # Drop any timestep containing NaN/Inf in targets across joints
+        finite = torch.isfinite(targets).all(dim=1)
+        mask = mask & finite
+
+        # Warn if everything is masked to avoid empty tensors in losses
+        if mask.sum() == 0:
+            log.warning("All samples masked out after combining IK/interp/finite checks.")
 
         return mask

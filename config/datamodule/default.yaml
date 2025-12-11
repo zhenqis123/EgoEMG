@@ -5,3 +5,6 @@ datamodule:
   val_test_window_length: 10_000  # 20 sec windows for 2kHz EMG
   padding: [0, 0]
   skip_ik_failures: True
+  # 掩码策略：默认只读取预计算掩码，不再重算；插值样本默认视为有效
+  allow_mask_recompute: False
+  treat_interpolated_as_valid: False
