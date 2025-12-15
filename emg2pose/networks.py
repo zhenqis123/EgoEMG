@@ -14,7 +14,6 @@ import torch
 
 from torch import nn
 
-
 ##################
 # TDS FEATURIZER #
 ##################
@@ -540,3 +539,440 @@ class SequentialLSTM(nn.Module):
     def _non_sequential_forward(self, x):
         """Non-sequential forward pass, where x is (batch, time, channel)."""
         return self.mlp_out(self.lstm(x)[0]) * self.scale
+
+
+class CausalTransformerAutoregressiveDecoder(nn.Module):
+    """Decoder-only causal Transformer (GPT-style) for autoregressive rollout.
+
+    This module is designed to be a drop-in replacement for `SequentialLSTM` in
+    `VEMG2PoseWithInitialState`-like loops:
+
+    - Input: a single-step token `(B, token_dim)` (e.g. [emg_feature_t, prev_joint_pred])
+    - Output: `(B, out_channels)` for that step
+    - Keeps internal KV-cache via `reset_state()` + `use_cache=True`
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        n_embd: int = 256,
+        n_layer: int = 6,
+        n_head: int = 8,
+        n_positions: int = 1024,
+        embd_pdrop: float = 0.1,
+        resid_pdrop: float = 0.1,
+        attn_pdrop: float = 0.1,
+        layer_norm_epsilon: float = 1e-5,
+        output_scale: float = 1.0,
+        use_cache: bool = True,
+    ) -> None:
+        super().__init__()
+        GPT2Config, GPT2Model = _require_transformers()
+
+        if in_channels <= 0:
+            raise ValueError(f"in_channels must be positive, got {in_channels}")
+
+        self.out_channels = out_channels
+        self.output_scale = output_scale
+        self.use_cache = use_cache
+
+        self.in_proj = nn.Linear(in_channels, n_embd)
+        self.model = GPT2Model(
+            GPT2Config(
+                # We always pass `inputs_embeds`, so the token embedding table (wte)
+                # is never used. Keep it tiny to avoid wasting memory.
+                vocab_size=1,
+                n_embd=n_embd,
+                n_layer=n_layer,
+                n_head=n_head,
+                n_positions=n_positions,
+                n_ctx=n_positions,
+                embd_pdrop=embd_pdrop,
+                resid_pdrop=resid_pdrop,
+                attn_pdrop=attn_pdrop,
+                layer_norm_epsilon=layer_norm_epsilon,
+                use_cache=use_cache,
+            )
+        )
+        # With `inputs_embeds`, GPT2Model will not touch `wte`, so freeze it to avoid
+        # DDP "unused parameter" errors.
+        if hasattr(self.model, "wte"):
+            self.model.wte.requires_grad_(False)
+        self.out_proj = nn.Linear(n_embd, out_channels)
+
+        self._past_key_values = None
+
+    def reset_state(self) -> None:
+        self._past_key_values = None
+
+    def forward(self, token: torch.Tensor) -> torch.Tensor:
+        if token.ndim == 2:
+            inputs_embeds = self.in_proj(token).unsqueeze(1)  # (B, 1, H)
+            outputs = self.model(
+                inputs_embeds=inputs_embeds,
+                past_key_values=self._past_key_values,
+                use_cache=self.use_cache,
+            )
+            if self.use_cache:
+                self._past_key_values = outputs.past_key_values
+
+            hidden = outputs.last_hidden_state[:, 0, :]  # (B, H)
+            return self.out_proj(hidden) * self.output_scale
+
+        if token.ndim == 3:
+            # Teacher-forcing / full-sequence forward. We disable caching because it
+            # increases memory usage and provides no benefit in parallel decoding.
+            inputs_embeds = self.in_proj(token)  # (B, T, H)
+            outputs = self.model(inputs_embeds=inputs_embeds, use_cache=False)
+            hidden = outputs.last_hidden_state  # (B, T, H)
+            return self.out_proj(hidden) * self.output_scale  # (B, T, out)
+
+        raise ValueError(
+            "Expected token with shape (B, token_dim) or (B, T, token_dim), "
+            f"got {tuple(token.shape)}"
+        )
+
+
+class RotaryCausalTransformerAutoregressiveDecoder(nn.Module):
+    """Decoder-only causal Transformer using RoPE (rotary position embeddings).
+
+    Implemented via `transformers.GPTNeoXModel` which applies rotary embeddings in
+    attention, avoiding learned absolute position embeddings.
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        hidden_size: int = 256,
+        intermediate_size: int | None = None,
+        num_hidden_layers: int = 6,
+        num_attention_heads: int = 8,
+        max_position_embeddings: int = 2048,
+        rotary_pct: float = 1.0,
+        rotary_emb_base: int = 10_000,
+        hidden_dropout: float = 0.1,
+        attention_dropout: float = 0.1,
+        layer_norm_eps: float = 1e-5,
+        output_scale: float = 1.0,
+        use_cache: bool = True,
+    ) -> None:
+        super().__init__()
+        GPTNeoXConfig, GPTNeoXModel = _require_transformers_rope()
+
+        if in_channels <= 0:
+            raise ValueError(f"in_channels must be positive, got {in_channels}")
+        if intermediate_size is None:
+            intermediate_size = 4 * hidden_size
+
+        self.out_channels = out_channels
+        self.output_scale = output_scale
+        self.use_cache = use_cache
+
+        self.in_proj = nn.Linear(in_channels, hidden_size)
+        self.model = GPTNeoXModel(
+            GPTNeoXConfig(
+                # We always pass `inputs_embeds`, so token embeddings are unused.
+                vocab_size=1,
+                hidden_size=hidden_size,
+                intermediate_size=intermediate_size,
+                num_hidden_layers=num_hidden_layers,
+                num_attention_heads=num_attention_heads,
+                max_position_embeddings=max_position_embeddings,
+                rotary_pct=rotary_pct,
+                rotary_emb_base=rotary_emb_base,
+                hidden_dropout=hidden_dropout,
+                attention_dropout=attention_dropout,
+                layer_norm_eps=layer_norm_eps,
+                use_cache=use_cache,
+            )
+        )
+        # With `inputs_embeds`, GPTNeoXModel will not touch token embeddings.
+        if hasattr(self.model, "embed_in"):
+            self.model.embed_in.requires_grad_(False)
+
+        self.out_proj = nn.Linear(hidden_size, out_channels)
+        self._past_key_values = None
+
+    def reset_state(self) -> None:
+        self._past_key_values = None
+
+    def forward(self, token: torch.Tensor) -> torch.Tensor:
+        if token.ndim == 2:
+            inputs_embeds = self.in_proj(token).unsqueeze(1)  # (B, 1, H)
+            outputs = self.model(
+                inputs_embeds=inputs_embeds,
+                past_key_values=self._past_key_values,
+                use_cache=self.use_cache,
+            )
+            if self.use_cache:
+                self._past_key_values = outputs.past_key_values
+            hidden = outputs.last_hidden_state[:, 0, :]  # (B, H)
+            return self.out_proj(hidden) * self.output_scale
+
+        if token.ndim == 3:
+            inputs_embeds = self.in_proj(token)  # (B, T, H)
+            outputs = self.model(inputs_embeds=inputs_embeds, use_cache=False)
+            hidden = outputs.last_hidden_state  # (B, T, H)
+            return self.out_proj(hidden) * self.output_scale  # (B, T, out)
+
+        raise ValueError(
+            "Expected token with shape (B, token_dim) or (B, T, token_dim), "
+            f"got {tuple(token.shape)}"
+        )
+
+
+class WindowTransformerCrossAttnLastStepDecoder(nn.Module):
+    """Legacy last-step cross-attention decoder (kept for backward compatibility)."""
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int = 20,
+        hidden_size: int = 256,
+        intermediate_size: int = 1024,
+        encoder_layers: int = 4,
+        decoder_layers: int = 2,
+        num_attention_heads: int = 8,
+        max_position_embeddings: int = 2048,
+        hidden_dropout_prob: float = 0.1,
+        attention_probs_dropout_prob: float = 0.1,
+        layer_norm_eps: float = 1e-5,
+        query_token_dim: int = 20,
+        num_query_tokens: int = 20,
+        variant: str | None = None,
+        presets: dict | None = None,
+    ) -> None:
+        super().__init__()
+        BertConfig, BertModel = _require_transformers_bert()
+
+        if in_channels <= 0:
+            raise ValueError(f"in_channels must be positive, got {in_channels}")
+        if out_channels <= 0:
+            raise ValueError(f"out_channels must be positive, got {out_channels}")
+        if hidden_size <= 0:
+            raise ValueError(f"hidden_size must be positive, got {hidden_size}")
+        if hidden_size % num_attention_heads != 0:
+            raise ValueError(
+                "hidden_size must be divisible by num_attention_heads, got "
+                f"{hidden_size} and {num_attention_heads}"
+            )
+        if query_token_dim <= 0:
+            raise ValueError(f"query_token_dim must be positive, got {query_token_dim}")
+        if num_query_tokens <= 0:
+            raise ValueError(f"num_query_tokens must be positive, got {num_query_tokens}")
+        if out_channels != num_query_tokens:
+            raise ValueError(
+                f"out_channels ({out_channels}) must equal num_query_tokens ({num_query_tokens}) "
+                "to map one query to one angle."
+            )
+
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.num_query_tokens = num_query_tokens
+
+        self.in_proj = nn.Linear(in_channels, hidden_size)
+
+        enc_cfg = BertConfig(
+            vocab_size=1,
+            hidden_size=hidden_size,
+            intermediate_size=intermediate_size,
+            num_hidden_layers=encoder_layers,
+            num_attention_heads=num_attention_heads,
+            max_position_embeddings=max_position_embeddings,
+            hidden_dropout_prob=hidden_dropout_prob,
+            attention_probs_dropout_prob=attention_probs_dropout_prob,
+            layer_norm_eps=layer_norm_eps,
+            is_decoder=False,
+            add_cross_attention=False,
+        )
+        self.encoder = BertModel(enc_cfg)
+
+        dec_cfg = BertConfig(
+            vocab_size=1,
+            hidden_size=hidden_size,
+            intermediate_size=intermediate_size,
+            num_hidden_layers=decoder_layers,
+            num_attention_heads=num_attention_heads,
+            max_position_embeddings=max_position_embeddings,
+            hidden_dropout_prob=hidden_dropout_prob,
+            attention_probs_dropout_prob=attention_probs_dropout_prob,
+            layer_norm_eps=layer_norm_eps,
+            is_decoder=True,
+            add_cross_attention=True,
+        )
+        self.decoder = BertModel(dec_cfg)
+
+        # We always pass `inputs_embeds`, so word embeddings are unused; freeze them
+        # to avoid DDP "unused parameter" errors.
+        self.encoder.embeddings.word_embeddings.requires_grad_(False)
+        self.decoder.embeddings.word_embeddings.requires_grad_(False)
+
+        # Learnable queries: initialize with small normal noise (BERT-style ~N(0, 0.02))
+        self.query_tokens = nn.Parameter(torch.empty(num_query_tokens, query_token_dim))
+        nn.init.normal_(self.query_tokens, mean=0.0, std=0.02)
+        self.query_proj = nn.Linear(query_token_dim, hidden_size)
+        self.out_proj = nn.Linear(hidden_size, 1)
+
+    def forward(self, features: torch.Tensor) -> torch.Tensor:
+        if features.ndim != 3:
+            raise ValueError(
+                f"Expected features with shape (B, C, T), got {tuple(features.shape)}"
+            )
+        batch_size, channels, time = features.shape
+        if channels != self.in_channels:
+            raise ValueError(
+                f"Expected features C={self.in_channels}, got C={channels}"
+            )
+        if time <= 0:
+            raise ValueError(f"Expected T>0, got T={time}")
+
+        x = features.swapaxes(-1, -2)
+        x = self.in_proj(x)  # (B, T, H)
+        attn_mask = torch.ones(batch_size, time, device=features.device, dtype=torch.long)
+        memory = self.encoder(inputs_embeds=x, attention_mask=attn_mask).last_hidden_state
+
+        query = self.query_proj(self.query_tokens).unsqueeze(0).expand(
+            batch_size, self.num_query_tokens, -1
+        )
+        query_mask = torch.ones(
+            batch_size, self.num_query_tokens, device=features.device, dtype=torch.long
+        )
+        dec_out = self.decoder(
+            inputs_embeds=query,
+            attention_mask=query_mask,
+            encoder_hidden_states=memory,
+            encoder_attention_mask=attn_mask,
+        ).last_hidden_state  # (B, num_queries, H)
+
+        return self.out_proj(dec_out).squeeze(-1)  # (B, num_queries)
+
+
+class Emg2PoseFormerDecoder(nn.Module):
+    """Unified Transformer decoder with selectable supervision modes.
+
+    - prediction_mode="last": encoder + cross-attn readout tokens -> (B, out_channels)
+    - prediction_mode="full": per-timestep outputs -> (B, out_channels, T); optional causal self-attn.
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int = 20,
+        hidden_size: int = 256,
+        intermediate_size: int = 1024,
+        encoder_layers: int = 4,
+        decoder_layers: int = 2,
+        num_attention_heads: int = 8,
+        max_position_embeddings: int = 2048,
+        hidden_dropout_prob: float = 0.1,
+        attention_probs_dropout_prob: float = 0.1,
+        layer_norm_eps: float = 1e-5,
+        query_token_dim: int = 128,
+        num_query_tokens: int = 20,
+        prediction_mode: str = "last",
+        causal_self_attention: bool = False,
+    ) -> None:
+        super().__init__()
+        BertConfig, BertModel = _require_transformers_bert()
+
+        if prediction_mode not in ("last", "full"):
+            raise ValueError(f"prediction_mode must be 'last' or 'full', got {prediction_mode}")
+        self.prediction_mode = prediction_mode
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.num_query_tokens = num_query_tokens
+        self.causal_self_attention = causal_self_attention
+
+        self.in_proj = nn.Linear(in_channels, hidden_size)
+
+        enc_cfg = BertConfig(
+            vocab_size=1,
+            hidden_size=hidden_size,
+            intermediate_size=intermediate_size,
+            num_hidden_layers=encoder_layers,
+            num_attention_heads=num_attention_heads,
+            max_position_embeddings=max_position_embeddings,
+            hidden_dropout_prob=hidden_dropout_prob,
+            attention_probs_dropout_prob=attention_probs_dropout_prob,
+            layer_norm_eps=layer_norm_eps,
+            is_decoder=False,
+            add_cross_attention=False,
+        )
+
+        dec_cfg = BertConfig(
+            vocab_size=1,
+            hidden_size=hidden_size,
+            intermediate_size=intermediate_size,
+            num_attention_heads=num_attention_heads,
+            num_hidden_layers=decoder_layers,
+            max_position_embeddings=max_position_embeddings,
+            hidden_dropout_prob=hidden_dropout_prob,
+            attention_probs_dropout_prob=attention_probs_dropout_prob,
+            layer_norm_eps=layer_norm_eps,
+            is_decoder=True,
+            add_cross_attention=True,
+        )
+
+        full_dec_cfg = BertConfig(
+            vocab_size=1,
+            hidden_size=hidden_size,
+            intermediate_size=intermediate_size,
+            num_attention_heads=num_attention_heads,
+            num_hidden_layers=encoder_layers,
+            max_position_embeddings=max_position_embeddings,
+            hidden_dropout_prob=hidden_dropout_prob,
+            attention_probs_dropout_prob=attention_probs_dropout_prob,
+            layer_norm_eps=layer_norm_eps,
+            is_decoder=True,
+            add_cross_attention=False,
+        )
+
+        self.encoder = BertModel(enc_cfg)
+        self.decoder = BertModel(dec_cfg)
+        self.full_decoder = BertModel(full_dec_cfg)
+
+        for mdl in (self.encoder, self.decoder, self.full_decoder):
+            mdl.embeddings.word_embeddings.requires_grad_(False)
+
+        self.query_tokens = nn.Parameter(torch.empty(num_query_tokens, query_token_dim))
+        nn.init.normal_(self.query_tokens, mean=0.0, std=0.02)
+        self.query_proj = nn.Linear(query_token_dim, hidden_size)
+        self.out_proj_last = nn.Linear(hidden_size, 1)
+        self.out_proj_full = nn.Linear(hidden_size, out_channels)
+
+    def forward(self, features: torch.Tensor) -> torch.Tensor:
+        if features.ndim != 3:
+            raise ValueError(f"Expected features with shape (B, C, T), got {tuple(features.shape)}")
+        batch_size, channels, time = features.shape
+        if channels != self.in_channels:
+            raise ValueError(f"Expected features C={self.in_channels}, got C={channels}")
+
+        x = self.in_proj(features.swapaxes(-1, -2))  # (B, T, H)
+        attn_mask = torch.ones(batch_size, time, device=features.device, dtype=torch.long)
+
+        if self.prediction_mode == "last":
+            memory = self.encoder(inputs_embeds=x, attention_mask=attn_mask).last_hidden_state
+            query = self.query_proj(self.query_tokens).unsqueeze(0).expand(
+                batch_size, self.num_query_tokens, -1
+            )
+            query_mask = torch.ones(
+                batch_size, self.num_query_tokens, device=features.device, dtype=torch.long
+            )
+            dec_out = self.decoder(
+                inputs_embeds=query,
+                attention_mask=query_mask,
+                encoder_hidden_states=memory,
+                encoder_attention_mask=attn_mask,
+            ).last_hidden_state
+            return self.out_proj_last(dec_out).squeeze(-1)  # (B, num_queries)
+
+        # prediction_mode == "full"
+        if self.causal_self_attention:
+            seq_out = self.full_decoder(inputs_embeds=x, attention_mask=attn_mask).last_hidden_state
+        else:
+            seq_out = self.encoder(inputs_embeds=x, attention_mask=attn_mask).last_hidden_state
+
+        out = self.out_proj_full(seq_out)  # (B, T, out_channels)
+        return out.swapaxes(-1, -2)  # (B, out_channels, T)

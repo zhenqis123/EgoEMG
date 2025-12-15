@@ -8,6 +8,7 @@
 import logging
 
 from collections.abc import Mapping, Sequence
+import os
 from pathlib import Path
 
 import numpy as np
@@ -16,9 +17,9 @@ import pytorch_lightning as pl
 import torch
 
 from emg2pose import utils
-from emg2pose.data import WindowedEmgDataset
-from emg2pose.metrics import get_default_metrics
-from emg2pose.pose_modules import BasePoseModule
+from emg2pose.data import LastStepValidMultiSessionWindowDataset, WindowedEmgDataset
+from emg2pose.metrics import LandmarkDistances, get_default_metrics
+from emg2pose.modules import BaseModule
 from hydra.utils import instantiate
 
 from omegaconf import DictConfig
@@ -32,6 +33,7 @@ class WindowedEmgDataModule(pl.LightningDataModule):
     def __init__(
         self,
         window_length: int,
+        stride: int | None,
         padding: tuple[int, int],
         batch_size: int,
         num_workers: int,
@@ -39,18 +41,27 @@ class WindowedEmgDataModule(pl.LightningDataModule):
         val_sessions: Sequence[Path],
         test_sessions: Sequence[Path],
         val_test_window_length: int | None = None,
+        val_test_stride: int | None = None,
         skip_ik_failures: bool = False,
         allow_mask_recompute: bool = False,
         treat_interpolated_as_valid: bool = True,
+        pin_memory: bool = True,
+        persistent_workers: bool = True,
+        prefetch_factor: int = 2,
     ) -> None:
         super().__init__()
 
         self.window_length = window_length
         self.val_test_window_length = val_test_window_length or window_length
+        self.stride = stride
+        self.val_test_stride = val_test_stride if val_test_stride is not None else stride
         self.padding = padding
 
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.pin_memory = pin_memory
+        self.persistent_workers = persistent_workers
+        self.prefetch_factor = prefetch_factor
 
         self.train_sessions = train_sessions
         self.val_sessions = val_sessions
@@ -71,6 +82,7 @@ class WindowedEmgDataModule(pl.LightningDataModule):
                 hdf5_path,
                 transform=self.train_transforms,
                 window_length=self.window_length,
+                stride=self.stride,
                 padding=self.padding,
                 jitter=True,
                 skip_ik_failures=self.skip_ik_failures,
@@ -86,6 +98,7 @@ class WindowedEmgDataModule(pl.LightningDataModule):
                 hdf5_path,
                 transform=self.val_transforms,
                 window_length=self.val_test_window_length,
+                stride=self.val_test_stride,
                 padding=self.padding,
                 jitter=False,
                 skip_ik_failures=self.skip_ik_failures,
@@ -101,6 +114,7 @@ class WindowedEmgDataModule(pl.LightningDataModule):
                 hdf5_path,
                 transform=self.test_transforms,
                 window_length=self.val_test_window_length,
+                stride=self.val_test_stride,
                 padding=(0, 0),
                 jitter=False,
                 skip_ik_failures=self.skip_ik_failures,
@@ -112,145 +126,175 @@ class WindowedEmgDataModule(pl.LightningDataModule):
 
 
     def train_dataloader(self) -> DataLoader:
-        return DataLoader(
-            self.train_dataset,
+        kwargs = dict(
+            dataset=self.train_dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            pin_memory=True,
+            pin_memory=self.pin_memory,
             shuffle=True,
         )
+        if self.num_workers > 0:
+            kwargs["persistent_workers"] = self.persistent_workers
+            kwargs["prefetch_factor"] = self.prefetch_factor
+        return DataLoader(**kwargs)
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(
-            self.val_dataset,
+        kwargs = dict(
+            dataset=self.val_dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            pin_memory=True,
+            pin_memory=self.pin_memory,
             shuffle=False,
         )
+        if self.num_workers > 0:
+            kwargs["persistent_workers"] = self.persistent_workers
+            kwargs["prefetch_factor"] = self.prefetch_factor
+        return DataLoader(**kwargs)
 
     def test_dataloader(self) -> DataLoader:
-        return DataLoader(
-            self.test_dataset,
+        kwargs = dict(
+            dataset=self.test_dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
-            pin_memory=True,
+            pin_memory=self.pin_memory,
             shuffle=False,
         )
+        if self.num_workers > 0:
+            kwargs["persistent_workers"] = self.persistent_workers
+            kwargs["prefetch_factor"] = self.prefetch_factor
+        return DataLoader(**kwargs)
 
 
-class SlidingEmgDataModule(pl.LightningDataModule):
-    """Slide windows sequentially without excluding IK failures.
+class LastStepValidWindowedEmgDataModule(pl.LightningDataModule):
+    """Windowed datamodule that filters out windows whose last target is invalid.
 
-    Loss functions should use the provided `no_ik_failure` (and optionally
-    `interpolated_mask`) to mask invalid labels instead of dropping windows.
+    Intended for last-step supervision. Uses a single multi-session Dataset to avoid
+    creating one Dataset (and often one open HDF5 handle) per session.
     """
 
     def __init__(
         self,
         window_length: int,
         padding: tuple[int, int],
+        stride: int | None,
         batch_size: int,
         num_workers: int,
         train_sessions: Sequence[Path],
         val_sessions: Sequence[Path],
         test_sessions: Sequence[Path],
         val_test_window_length: int | None = None,
+        val_test_stride: int | None = None,
+        require_last_step_valid: bool = True,
+        require_finite_last_step: bool = True,
         allow_mask_recompute: bool = False,
-        treat_interpolated_as_valid: bool = True,
+        treat_interpolated_as_valid: bool = False,
+        max_open_sessions: int = 8,
+        show_progress: bool = True,
+        pin_memory: bool = True,
+        persistent_workers: bool = True,
+        prefetch_factor: int = 2,
     ) -> None:
         super().__init__()
-
-        self.window_length = window_length
-        self.val_test_window_length = val_test_window_length or window_length
+        self.window_length = int(window_length)
+        self.val_test_window_length = int(val_test_window_length or window_length)
+        self.stride = stride
+        self.val_test_stride = val_test_stride if val_test_stride is not None else stride
         self.padding = padding
 
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.pin_memory = pin_memory
+        self.persistent_workers = persistent_workers
+        self.prefetch_factor = prefetch_factor
 
-        self.train_sessions = train_sessions
-        self.val_sessions = val_sessions
-        self.test_sessions = test_sessions
+        self.train_sessions = list(train_sessions)
+        self.val_sessions = list(val_sessions)
+        self.test_sessions = list(test_sessions)
 
         self.train_transforms = None
         self.val_transforms = None
         self.test_transforms = None
 
+        self.require_last_step_valid = require_last_step_valid
+        self.require_finite_last_step = require_finite_last_step
         self.allow_mask_recompute = allow_mask_recompute
         self.treat_interpolated_as_valid = treat_interpolated_as_valid
+        self.max_open_sessions = max_open_sessions
+        self.show_progress = show_progress
 
     def setup(self, stage: str | None = None) -> None:
-        # train
-        self.train_dataset = ConcatDataset([
-            WindowedEmgDataset(
-                hdf5_path,
-                transform=self.train_transforms,
+        # Avoid multiple tqdm bars in DDP by default.
+        is_global_rank_zero = int(os.environ.get("RANK", "0")) == 0
+        show_progress = bool(self.show_progress and is_global_rank_zero)
+        if stage in (None, "fit"):
+            self.train_dataset = LastStepValidMultiSessionWindowDataset(
+                hdf5_paths=self.train_sessions,
                 window_length=self.window_length,
+                stride=self.stride,
                 padding=self.padding,
                 jitter=True,
-                skip_ik_failures=False,
+                transform=self.train_transforms,
                 allow_mask_recompute=self.allow_mask_recompute,
                 treat_interpolated_as_valid=self.treat_interpolated_as_valid,
+                require_last_step_valid=self.require_last_step_valid,
+                require_finite_last_step=self.require_finite_last_step,
+                max_open_sessions=self.max_open_sessions,
+                show_progress=show_progress,
+                progress_desc="Indexing train windows",
             )
-            for hdf5_path in tqdm(self.train_sessions, desc="Building train datasets")
-        ])
-
-        # val
-        self.val_dataset = ConcatDataset([
-            WindowedEmgDataset(
-                hdf5_path,
-                transform=self.val_transforms,
+            self.val_dataset = LastStepValidMultiSessionWindowDataset(
+                hdf5_paths=self.val_sessions,
                 window_length=self.val_test_window_length,
+                stride=self.val_test_stride,
                 padding=self.padding,
                 jitter=False,
-                skip_ik_failures=False,
+                transform=self.val_transforms,
                 allow_mask_recompute=self.allow_mask_recompute,
                 treat_interpolated_as_valid=self.treat_interpolated_as_valid,
+                require_last_step_valid=self.require_last_step_valid,
+                require_finite_last_step=self.require_finite_last_step,
+                max_open_sessions=self.max_open_sessions,
+                show_progress=show_progress,
+                progress_desc="Indexing val windows",
             )
-            for hdf5_path in tqdm(self.val_sessions, desc="Building val datasets")
-        ])
-
-        # test
-        self.test_dataset = ConcatDataset([
-            WindowedEmgDataset(
-                hdf5_path,
-                transform=self.test_transforms,
+        if stage in (None, "test"):
+            self.test_dataset = LastStepValidMultiSessionWindowDataset(
+                hdf5_paths=self.test_sessions,
                 window_length=self.val_test_window_length,
+                stride=self.val_test_stride,
                 padding=(0, 0),
                 jitter=False,
-                skip_ik_failures=False,
+                transform=self.test_transforms,
                 allow_mask_recompute=self.allow_mask_recompute,
                 treat_interpolated_as_valid=self.treat_interpolated_as_valid,
+                require_last_step_valid=self.require_last_step_valid,
+                require_finite_last_step=self.require_finite_last_step,
+                max_open_sessions=self.max_open_sessions,
+                show_progress=show_progress,
+                progress_desc="Indexing test windows",
             )
-            for hdf5_path in tqdm(self.test_sessions, desc="Building test datasets")
-        ])
+
+    def _dataloader(self, dataset, shuffle: bool) -> DataLoader:
+        kwargs = dict(
+            dataset=dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            pin_memory=self.pin_memory,
+            shuffle=shuffle,
+        )
+        if self.num_workers > 0:
+            kwargs["persistent_workers"] = self.persistent_workers
+            kwargs["prefetch_factor"] = self.prefetch_factor
+        return DataLoader(**kwargs)
 
     def train_dataloader(self) -> DataLoader:
-        return DataLoader(
-            self.train_dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            pin_memory=True,
-            shuffle=True,
-        )
+        return self._dataloader(self.train_dataset, shuffle=True)
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(
-            self.val_dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            pin_memory=True,
-            shuffle=False,
-        )
+        return self._dataloader(self.val_dataset, shuffle=False)
 
     def test_dataloader(self) -> DataLoader:
-        return DataLoader(
-            self.test_dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            pin_memory=True,
-            shuffle=False,
-        )
+        return self._dataloader(self.test_dataset, shuffle=False)
 
 
 class CachedWindowDataset(Dataset):
@@ -417,23 +461,27 @@ class CachedWindowDataModule(pl.LightningDataModule):
         )
 
 
-class Emg2PoseModule(pl.LightningModule):
+class EmgPredictionModule(pl.LightningModule):
     def __init__(
         self,
         network_conf: DictConfig,
         optimizer_conf: DictConfig,
         lr_scheduler_conf: DictConfig,
-        provide_initial_pos: bool = False,
         loss_weights: dict[str, float] | None = None,
         use_interpolated_as_valid: bool = True,
+        landmark_use_interpolated_as_valid: bool = False,
+        eval_last_only: bool = False,
     ) -> None:
 
         super().__init__()
         self.save_hyperparameters()
-        self.model: BasePoseModule = instantiate(network_conf, _convert_="all")
-        self.provide_initial_pos = provide_initial_pos
+        self.model: BaseModule = instantiate(network_conf, _convert_="all")
+        self.provide_initial_pos = bool(getattr(self.model, "provide_initial_pos", False))
         self.loss_weights = loss_weights or {"mae": 1}
         self.use_interpolated_as_valid = use_interpolated_as_valid
+        self.landmark_use_interpolated_as_valid = landmark_use_interpolated_as_valid
+        self.eval_last_only = eval_last_only
+        self._warned_emg_nan = False
 
         # TODO: add metrics to Hydra config instead
         self.metrics_list = get_default_metrics()
@@ -460,17 +508,32 @@ class Emg2PoseModule(pl.LightningModule):
             interp = interp[..., slice(start, stop)]
             aligned_interp = self.model.align_mask(interp, targets.shape[-1])
 
+        # Optional: evaluate only the last timestep (useful for last-step models
+        # when comparing against multi-step models).
+        if self.eval_last_only:
+            preds = preds[..., -1:]
+            targets = targets[..., -1:]
+            no_ik_failure = no_ik_failure[..., -1:]
+            if aligned_interp is not None:
+                aligned_interp = aligned_interp[..., -1:]
+
         # Build final loss/metric mask
         valid_mask = self.build_valid_mask(
             base_mask=no_ik_failure,
             targets=targets,
             interpolated_mask=aligned_interp,
         )
-
+        # Landmark distances应完全排除所有 IK failure（含插值）
+        landmark_mask = self.build_valid_mask(
+            base_mask=no_ik_failure,
+            targets=targets,
+            interpolated_mask=None,  # 不合并插值，严格使用原始无-failure 掩码
+        )
         # Compute metrics
         metrics = {}
         for metric in self.metrics_list:
-            metrics.update(metric(preds, targets, valid_mask, stage))
+            mask_to_use = landmark_mask if isinstance(metric, LandmarkDistances) else valid_mask
+            metrics.update(metric(preds, targets, mask_to_use, stage))
         self.log_dict(metrics, sync_dist=True)
 
         # Compute loss
@@ -480,9 +543,10 @@ class Emg2PoseModule(pl.LightningModule):
         self.log(f"{stage}_loss", loss, sync_dist=True)
 
         return loss
-
+        
     def training_step(self, batch, batch_idx) -> torch.Tensor:
-        return self._step(batch, stage="train")
+        result = self._step(batch, stage="train")
+        return result
 
     def validation_step(self, batch, batch_idx) -> torch.Tensor:
         return self._step(batch, stage="val")
@@ -508,7 +572,14 @@ class Emg2PoseModule(pl.LightningModule):
         mask = no_ik_failure.clone()
 
         if self.provide_initial_pos:
-            mask[~mask[:, self.model.left_context]] = False
+            if mask.ndim < 2 or mask.shape[1] <= self.model.left_context:
+                log.warning(
+                    "provide_initial_pos=True but no_ik_failure has insufficient time length "
+                    f"(shape={tuple(mask.shape)}; left_context={self.model.left_context}); "
+                    "skipping initial-state masking."
+                )
+            else:
+                mask[~mask[:, self.model.left_context]] = False
 
         if mask.sum() == 0:
             log.warning("All samples masked out due to missing initial state!")

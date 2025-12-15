@@ -118,6 +118,10 @@ def compute_total_windows(
             padding=padding,
             jitter=False,
             skip_ik_failures=skip_ik_failures,
+            allow_mask_recompute=bool(datamodule_cfg.get("allow_mask_recompute", True)),
+            treat_interpolated_as_valid=bool(
+                datamodule_cfg.get("treat_interpolated_as_valid", True)
+            ),
         )
         count = len(dataset)
         counts.append(count)

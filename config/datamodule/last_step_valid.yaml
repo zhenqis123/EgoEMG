@@ -1,0 +1,21 @@
+# @package _global_
+datamodule:
+  _target_: emg2pose.lightning.LastStepValidWindowedEmgDataModule
+  window_length: 9_790
+  val_test_window_length: 9_790
+  stride: 1_000
+  val_test_stride: 1_000
+  padding: [0, 0]
+
+  # Filtering policy: only keep windows whose *last* supervised timestep is valid.
+  require_last_step_valid: True
+  require_finite_last_step: True
+  allow_mask_recompute: False
+  treat_interpolated_as_valid: False
+
+  # IO / memory knobs
+  max_open_sessions: 120
+  show_progress: true
+  pin_memory: true
+  persistent_workers: true
+  prefetch_factor: 1

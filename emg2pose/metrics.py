@@ -63,7 +63,9 @@ class AnglularDerivatives(Metric):
         # rate to get (radians / second). Also take absolute value.
         def safe_mean(tensor, mask_tensor):
             if mask_tensor.sum() == 0:
-                return torch.tensor(0.0, device=tensor.device)
+                # Keep graph connectivity to avoid DDP unused-parameter errors when
+                # an entire batch is masked out.
+                return tensor.sum() * 0.0
             return tensor[mask_tensor].abs().mean() * EMG_SAMPLE_RATE
 
         return {
@@ -72,9 +74,15 @@ class AnglularDerivatives(Metric):
             f"{stage}_jerk": safe_mean(jerk, mask_jerk),
         }
 
-    def adjust_mask(self, mask: torch.tensor):
-        # Adjust mask to eliminate boundaries between IK failures
-        # Note that this operation reduces the length of time by 1
+    def adjust_mask(self, mask: torch.Tensor) -> torch.Tensor:
+        """Adjust mask to eliminate boundaries between IK failures.
+
+        This operation reduces the time length by 1 (to match `torch.diff`).
+        For very short sequences (T < 2), return an empty mask to avoid pooling
+        errors and to indicate that derivatives are undefined.
+        """
+        if mask.shape[-1] < 2:
+            return mask[..., :0]
         return ~F.max_pool1d((~mask).float(), kernel_size=2, stride=1).to(bool)
 
 
@@ -90,7 +98,7 @@ class AngleMAE(Metric):
     ) -> dict[str, torch.Tensor]:
         mask = no_ik_failure.unsqueeze(1).expand(-1, NUM_JOINTS, -1)
         if mask.sum() == 0:
-            return {f"{stage}_mae": torch.tensor(0.0, device=pred.device)}
+            return {f"{stage}_mae": pred.sum() * 0.0}
         return {f"{stage}_mae": torch.nn.L1Loss()(pred[mask], target[mask])}
 
 
@@ -117,7 +125,7 @@ class PerFingerAngleMAE(Metric):
         idxs = [j.index for j in JOINTS if finger in j.groups]
         mask = mask.unsqueeze(1).expand(-1, len(idxs), -1)
         if mask.sum() == 0:
-            return torch.tensor(0.0, device=pred.device)
+            return pred.sum() * 0.0
         return torch.nn.L1Loss()(pred[:, idxs][mask], target[:, idxs][mask])
 
 
@@ -142,7 +150,7 @@ class PDAngleMAE(Metric):
         idxs = [j.index for j in JOINTS if group in j.groups]
         mask = mask.unsqueeze(1).expand(-1, len(idxs), -1)
         if mask.sum() == 0:
-            return torch.tensor(0.0, device=pred.device)
+            return pred.sum() * 0.0
         return torch.nn.L1Loss()(pred[:, idxs][mask], target[:, idxs][mask])
 
 
@@ -163,6 +171,14 @@ class LandmarkDistances(Metric):
 
         if self.hand_model.device != pred.device:
             self.hand_model.to(pred.device)
+
+        # If everything is masked out, return graph-connected zeros and skip FK.
+        if mask.sum() == 0:
+            z = pred.sum() * 0.0
+            return {
+                f"{stage}_fingertip_distance": z,
+                f"{stage}_landmark_distance": z,
+            }
 
         # Convert angles to 3D positions
         # We downsample in time to avoid OOM in forward_kinematics
@@ -201,9 +217,8 @@ class LandmarkDistances(Metric):
         mask = mask[..., None].expand(-1, -1, len(idxs))
         masked = torch.linalg.norm(pred[:, :, idxs] - target[:, :, idxs], dim=-1)[mask]
         if masked.numel() == 0:
-            return torch.tensor(0.0, device=pred.device)
+            return pred.sum() * 0.0
         return masked.mean()
-
 
 def get_default_metrics() -> list[Metric]:
     return [

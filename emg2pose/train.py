@@ -16,10 +16,11 @@ import hydra
 import pytorch_lightning as pl
 from emg2pose import transforms
 
-from emg2pose.lightning import Emg2PoseModule
+from emg2pose.lightning import EmgPredictionModule
 from emg2pose.transforms import Transform
 from hydra.utils import instantiate
 from omegaconf import DictConfig, ListConfig, OmegaConf
+import torch
 
 
 log = logging.getLogger(__name__)
@@ -48,6 +49,7 @@ def make_data_module(config: DictConfig):
         train_sessions=train_sessions,
         val_sessions=val_sessions,
         test_sessions=test_sessions,
+        
     )
 
     # Instantiate transforms
@@ -63,12 +65,14 @@ def make_data_module(config: DictConfig):
 
 def make_lightning_module(config: DictConfig):
     """Create lightning module from experiment config."""
-    return Emg2PoseModule(
-        network_conf=config.pose_module,
+    return EmgPredictionModule(
+        network_conf=config.module,
         optimizer_conf=config.optimizer,
         lr_scheduler_conf=config.lr_scheduler,
-        provide_initial_pos=config.provide_initial_pos,
         loss_weights=config.loss_weights,
+        use_interpolated_as_valid=config.datamodule.get("treat_interpolated_as_valid", True),
+        landmark_use_interpolated_as_valid=False,
+        eval_last_only=config.get("eval_last_only", False),
     )
 
 
@@ -76,6 +80,9 @@ def train(
     config: DictConfig,
     extra_callbacks: Sequence[Callable] | None = None,
 ):
+    # import torch
+    # torch.autograd.set_detect_anomaly(True)
+    
     log.info(f"\nConfig:\n{OmegaConf.to_yaml(config)}")
 
     # Seed for determinism. This seeds torch, numpy and python random modules
@@ -85,16 +92,27 @@ def train(
     # (see `pl_worker_init_fn()`).
     pl.seed_everything(config.seed, workers=True)
 
+    matmul_precision = config.get("matmul_precision")
+    if matmul_precision is not None:
+        torch.set_float32_matmul_precision(str(matmul_precision))
+
     if config.checkpoint is not None:
         log.info(f"Loading from checkpoint {config.checkpoint}")
-        module = Emg2PoseModule.load_from_checkpoint(
+        module = EmgPredictionModule.load_from_checkpoint(
             config.checkpoint,
-            network=config.network,
-            optimizer=config.optimizer,
-            lr_scheduler=config.lr_scheduler,
+            network_conf=config.module,
+            optimizer_conf=config.optimizer,
+            lr_scheduler_conf=config.lr_scheduler,
+            provide_initial_pos=config.module.get("provide_initial_pos", False),
+            loss_weights=config.loss_weights,
+            use_interpolated_as_valid=config.datamodule.get(
+                "treat_interpolated_as_valid", True
+            ),
+            landmark_use_interpolated_as_valid=False,
+            eval_last_only=config.get("eval_last_only", False),
         )
     else:
-        log.info(f"Instantiating LightningModule {Emg2PoseModule}")
+        log.info(f"Instantiating LightningModule {EmgPredictionModule}")
         module = make_lightning_module(config)
 
     log.info(f"Instantiating LightningDataModule {config.datamodule}")
@@ -109,7 +127,7 @@ def train(
 
     trainer = pl.Trainer(
         **config.trainer,
-        callbacks=callbacks,
+        callbacks=callbacks
     )
 
     results = {}

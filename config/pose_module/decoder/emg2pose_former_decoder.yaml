@@ -1,0 +1,61 @@
+_target_: emg2pose.networks.Emg2PoseFormerDecoder
+
+# Select preset to scale model size with a single field.
+# Options: small (default), medium, large, xlarge.
+variant: small
+
+presets:
+  small:
+    hidden_size: 256
+    intermediate_size: 1024
+    encoder_layers: 4
+    decoder_layers: 2
+    num_attention_heads: 8
+    query_token_dim: 128
+  medium:
+    hidden_size: 384
+    intermediate_size: 1536
+    encoder_layers: 6
+    decoder_layers: 3
+    num_attention_heads: 12
+    query_token_dim: 128
+  large:
+    hidden_size: 512
+    intermediate_size: 2048
+    encoder_layers: 8
+    decoder_layers: 4
+    num_attention_heads: 16
+    query_token_dim: 128
+  xlarge:
+    hidden_size: 640
+    intermediate_size: 2560
+    encoder_layers: 12
+    decoder_layers: 6
+    num_attention_heads: 20
+    query_token_dim: 128
+
+# Feature channels produced by `${network}`. For default TDS it is 64.
+in_channels: 64
+
+out_channels: 20
+
+hidden_size: ${.presets.${.variant}.hidden_size}
+intermediate_size: ${.presets.${.variant}.intermediate_size}
+encoder_layers: ${.presets.${.variant}.encoder_layers}
+decoder_layers: ${.presets.${.variant}.decoder_layers}
+num_attention_heads: ${.presets.${.variant}.num_attention_heads}
+max_position_embeddings: 2048
+hidden_dropout_prob: 0.1
+attention_probs_dropout_prob: 0.1
+layer_norm_eps: 1e-5
+
+prediction_mode: ${..prediction_mode}
+
+# Learnable query token dimension.
+query_token_dim: ${.presets.${.variant}.query_token_dim}
+
+# Number of learnable queries (one-to-one with joints / output dims).
+num_query_tokens: 20
+
+# For full-mode only: enable causal self-attention (decoder-only stack).
+causal_self_attention: false

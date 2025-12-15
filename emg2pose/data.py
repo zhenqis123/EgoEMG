@@ -20,6 +20,7 @@ import torch
 from emg2pose import transforms
 from emg2pose.transforms import Transform
 from emg2pose.utils import get_contiguous_ones, get_ik_failures_mask
+from tqdm import tqdm
 
 
 @dataclass
@@ -257,10 +258,13 @@ class WindowedEmgDataset(torch.utils.data.Dataset):
         """List of (start, end) times to be included in the dataset."""
 
         if not hasattr(self, "_blocks"):
-
+            
             # Include all time
             if not self.skip_ik_failures:
-                self._blocks = [(0, len(self.session))]
+                if len(self.session) < self.window_length:
+                    self._blocks = []
+                else:
+                    self._blocks = [(0, len(self.session))]
 
             # Include only time without IK failures
             else:
@@ -278,7 +282,6 @@ class WindowedEmgDataset(torch.utils.data.Dataset):
         """For each dataset idx, precompute the EMG start and times."""
         windows = []
         cumsum = np.cumsum([0] + [self._get_block_len(b) for b in self.blocks])
-
         for idx in range(len(self)):
             block_idx = np.searchsorted(cumsum, idx, "right") - 1
             start_idx, end_idx = self.blocks[block_idx]
@@ -310,6 +313,11 @@ class WindowedEmgDataset(torch.utils.data.Dataset):
         joint_angles = window[Emg2PoseSessionData.JOINT_ANGLES]
         joint_angles = torch.as_tensor(joint_angles)
 
+        # Sanitize joint_angles: replace non-finite with 0 and mark invalid in masks
+        finite_mask = torch.isfinite(joint_angles).all(dim=1)  # T
+        if not finite_mask.all():
+            joint_angles = torch.nan_to_num(joint_angles, nan=0.0, posinf=0.0, neginf=0.0)
+
         # Mask of samples without IK failures
         no_ik_failure = torch.as_tensor(
             self.session.no_ik_failure[window_start:window_end]
@@ -317,11 +325,280 @@ class WindowedEmgDataset(torch.utils.data.Dataset):
         interpolated_mask = torch.as_tensor(
             self.session.interpolated_mask[window_start:window_end]
         )
+
+        # Any non-finite targets are treated as invalid (masked out of loss)
+        no_ik_failure = no_ik_failure & finite_mask
+        interpolated_mask = interpolated_mask & finite_mask
         return {
             "emg": emg.T,  # CT
             "joint_angles": joint_angles.T,  # CT
             "no_ik_failure": no_ik_failure,  # T
             "interpolated_mask": interpolated_mask,  # T
+            "window_start_idx": window_start,
+            "window_end_idx": window_end,
+        }
+
+
+class LastStepValidMultiSessionWindowDataset(torch.utils.data.Dataset):
+    """Multi-session window dataset that only keeps windows whose *last* target is valid.
+
+    This is intended for "last-step supervision" experiments where we only train on a
+    single timestamp per window. It avoids wasting steps on windows where that last
+    timestamp is invalid (e.g. IK failure / non-finite).
+
+    Notes:
+    - Builds a compact global index: two int32 arrays (session_id, offset).
+    - Does not cache full-session masks in RAM; masks are sliced directly from HDF5.
+    - Keeps a small LRU of open HDF5 files per worker for throughput.
+    """
+
+    def __init__(
+        self,
+        hdf5_paths: list[Path],
+        window_length: int,
+        stride: int | None,
+        padding: tuple[int, int] = (0, 0),
+        jitter: bool = False,
+        transform: Transform[np.ndarray, torch.Tensor] = transforms.ExtractToTensor(),
+        allow_mask_recompute: bool = False,
+        treat_interpolated_as_valid: bool = False,
+        require_last_step_valid: bool = True,
+        require_finite_last_step: bool = True,
+        max_open_sessions: int = 8,
+        show_progress: bool = False,
+        progress_desc: str = "Indexing windows",
+    ) -> None:
+        super().__init__()
+        self.hdf5_paths = [Path(p) for p in hdf5_paths]
+        self.window_length = int(window_length)
+        self.stride = int(stride) if stride is not None else int(window_length)
+        self.left_padding, self.right_padding = (int(padding[0]), int(padding[1]))
+        self.jitter = bool(jitter)
+        self.transform = transform
+        self.allow_mask_recompute = bool(allow_mask_recompute)
+        self.treat_interpolated_as_valid = bool(treat_interpolated_as_valid)
+        self.require_last_step_valid = bool(require_last_step_valid)
+        self.require_finite_last_step = bool(require_finite_last_step)
+        self.max_open_sessions = int(max_open_sessions)
+        self.show_progress = bool(show_progress)
+        self.progress_desc = str(progress_desc)
+
+        if self.window_length <= 0 or self.stride <= 0:
+            raise ValueError("window_length and stride must be positive.")
+        if self.left_padding < 0 or self.right_padding < 0:
+            raise ValueError("padding values must be non-negative.")
+        if self.max_open_sessions <= 0:
+            raise ValueError("max_open_sessions must be positive.")
+
+        # Build global index of valid windows: (session_id, offset).
+        session_ids: list[np.ndarray] = []
+        offsets: list[np.ndarray] = []
+        iterator = enumerate(self.hdf5_paths)
+        if self.show_progress:
+            iterator = tqdm(
+                iterator,
+                total=len(self.hdf5_paths),
+                desc=self.progress_desc,
+                unit="session",
+            )
+
+        for session_id, path in iterator:
+            sid, off = self._build_session_index(session_id=session_id, hdf5_path=path)
+            if sid.size == 0:
+                continue
+            session_ids.append(sid)
+            offsets.append(off)
+
+        if session_ids:
+            self._session_ids = np.concatenate(session_ids).astype(np.int32, copy=False)
+            self._offsets = np.concatenate(offsets).astype(np.int32, copy=False)
+        else:
+            self._session_ids = np.zeros((0,), dtype=np.int32)
+            self._offsets = np.zeros((0,), dtype=np.int32)
+
+        # Per-worker HDF5 LRU cache (initialized lazily in worker process).
+        self._open_files: dict[int, h5py.File] = {}
+        self._open_timeseries: dict[int, h5py.Dataset] = {}
+        self._open_groups: dict[int, h5py.Group] = {}
+        self._lru: list[int] = []
+
+    def __len__(self) -> int:
+        return int(self._offsets.shape[0])
+
+    def _open_session(self, session_id: int) -> tuple[h5py.File, h5py.Group, h5py.Dataset]:
+        if session_id in self._open_files:
+            if session_id in self._lru:
+                self._lru.remove(session_id)
+            self._lru.append(session_id)
+            return (
+                self._open_files[session_id],
+                self._open_groups[session_id],
+                self._open_timeseries[session_id],
+            )
+
+        while len(self._lru) >= self.max_open_sessions:
+            evict = self._lru.pop(0)
+            f = self._open_files.pop(evict, None)
+            self._open_groups.pop(evict, None)
+            self._open_timeseries.pop(evict, None)
+            if f is not None:
+                try:
+                    f.close()
+                except Exception:
+                    pass
+
+        path = self.hdf5_paths[session_id]
+        f = h5py.File(path, "r")
+        group = f[Emg2PoseSessionData.HDF5_GROUP]
+        timeseries = group[Emg2PoseSessionData.TIMESERIES]
+        self._open_files[session_id] = f
+        self._open_groups[session_id] = group
+        self._open_timeseries[session_id] = timeseries
+        self._lru.append(session_id)
+        return f, group, timeseries
+
+    def _build_session_index(self, session_id: int, hdf5_path: Path) -> tuple[np.ndarray, np.ndarray]:
+        with h5py.File(hdf5_path, "r") as f:
+            group = f[Emg2PoseSessionData.HDF5_GROUP]
+            timeseries = group[Emg2PoseSessionData.TIMESERIES]
+            session_len = int(len(timeseries))
+
+            # `offset` is the start of the *central* window (excluding left padding).
+            # We always return fixed-length windows [offset-left_pad : offset+window_len+right_pad].
+            min_offset = self.left_padding
+            max_offset = session_len - (self.window_length + self.right_padding)
+            if max_offset < min_offset:
+                return np.zeros((0,), dtype=np.int32), np.zeros((0,), dtype=np.int32)
+
+            offsets = np.arange(min_offset, max_offset + 1, self.stride, dtype=np.int64)
+            if offsets.size == 0:
+                return np.zeros((0,), dtype=np.int32), np.zeros((0,), dtype=np.int32)
+
+            # Last supervised timestep is the last sample of the returned window.
+            last_idx = offsets + self.window_length + self.right_padding - 1
+
+            valid = np.ones((offsets.size,), dtype=bool)
+            if self.require_last_step_valid:
+                no_mask = None
+                if "no_ik_failure" in group and len(group["no_ik_failure"]) == session_len:
+                    no_mask = group["no_ik_failure"][...].astype(bool, copy=False)
+                elif "ik_failure_mask" in group and len(group["ik_failure_mask"]) == session_len:
+                    no_mask = ~group["ik_failure_mask"][...].astype(bool, copy=False)
+                elif self.allow_mask_recompute:
+                    ja = timeseries[Emg2PoseSessionData.JOINT_ANGLES]
+                    no_mask = get_ik_failures_mask(ja).astype(bool, copy=False)
+                else:
+                    return np.zeros((0,), dtype=np.int32), np.zeros((0,), dtype=np.int32)
+
+                valid = valid & no_mask[last_idx]
+                if self.treat_interpolated_as_valid and "interpolated_mask" in group:
+                    interp = group["interpolated_mask"][...].astype(bool, copy=False)
+                    valid = valid | interp[last_idx]
+
+            if self.require_finite_last_step:
+                # Pull joint angles at the last timestep to filter NaN/Inf targets.
+                # This is light-weight: only (num_offsets, joint_dim).
+                ja_last = timeseries[Emg2PoseSessionData.JOINT_ANGLES][last_idx]
+                finite = np.isfinite(ja_last).all(axis=-1)
+                valid = valid & finite
+
+            offsets = offsets[valid].astype(np.int32, copy=False)
+            session_ids = np.full((offsets.shape[0],), session_id, dtype=np.int32)
+            return session_ids, offsets
+
+    def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
+        session_id = int(self._session_ids[idx])
+        base_offset = int(self._offsets[idx])
+        offset = base_offset
+
+        _, group, timeseries = self._open_session(session_id)
+
+        # Jitter within stride for training randomness (kept optional).
+        if self.jitter and self.stride > 1:
+            session_len = int(len(timeseries))
+            max_offset = session_len - (self.window_length + self.right_padding)
+            max_jitter = min(self.stride - 1, max(0, max_offset - offset))
+            if max_jitter > 0:
+                offset = offset + int(np.random.randint(0, max_jitter + 1))
+
+        window_start = offset - self.left_padding
+        window_end = offset + self.window_length + self.right_padding
+        last_idx = window_end - 1
+
+        # Read only the EMG field for the whole window to keep RAM usage low.
+        emg_window = timeseries.fields([Emg2PoseSessionData.EMG])[window_start:window_end]
+        emg = self.transform(emg_window)
+        assert torch.is_tensor(emg)
+
+        # Read only the last-step joint angles (supervision target).
+        ja_last = timeseries.fields([Emg2PoseSessionData.JOINT_ANGLES])[last_idx][
+            Emg2PoseSessionData.JOINT_ANGLES
+        ]
+        ja_last_t = torch.as_tensor(ja_last, dtype=torch.float32)
+        finite_last = bool(torch.isfinite(ja_last_t).all().item())
+        if not finite_last:
+            ja_last_t = torch.nan_to_num(
+                ja_last_t, nan=0.0, posinf=0.0, neginf=0.0
+            )
+
+        # Slice mask(s) at last_idx directly from HDF5 to avoid caching whole-session masks.
+        if "no_ik_failure" in group:
+            no_last = bool(group["no_ik_failure"][last_idx])
+        elif "ik_failure_mask" in group:
+            no_last = not bool(group["ik_failure_mask"][last_idx])
+        elif self.allow_mask_recompute:
+            no_last = bool(get_ik_failures_mask(np.asarray(ja_last)[None, ...])[0])
+        else:
+            raise RuntimeError(
+                f"Missing no_ik_failure/ik_failure_mask in {self.hdf5_paths[session_id]}"
+            )
+
+        if self.treat_interpolated_as_valid and "interpolated_mask" in group:
+            no_last = bool(no_last or bool(group["interpolated_mask"][last_idx]))
+
+        # Any non-finite target is treated as invalid (masked out of loss/metrics).
+        no_last = bool(no_last and finite_last)
+
+        # If jitter produced an invalid last step (can happen because the index is built
+        # on the non-jittered offsets), fall back to the original valid offset.
+        if self.jitter and self.require_last_step_valid and not no_last:
+            offset = base_offset
+            window_start = offset - self.left_padding
+            window_end = offset + self.window_length + self.right_padding
+            last_idx = window_end - 1
+
+            emg_window = timeseries.fields([Emg2PoseSessionData.EMG])[window_start:window_end]
+            emg = self.transform(emg_window)
+            assert torch.is_tensor(emg)
+
+            ja_last = timeseries.fields([Emg2PoseSessionData.JOINT_ANGLES])[last_idx][
+                Emg2PoseSessionData.JOINT_ANGLES
+            ]
+            ja_last_t = torch.as_tensor(ja_last, dtype=torch.float32)
+            finite_last = bool(torch.isfinite(ja_last_t).all().item())
+            if not finite_last:
+                ja_last_t = torch.nan_to_num(
+                    ja_last_t, nan=0.0, posinf=0.0, neginf=0.0
+                )
+
+            if "no_ik_failure" in group:
+                no_last = bool(group["no_ik_failure"][last_idx])
+            elif "ik_failure_mask" in group:
+                no_last = not bool(group["ik_failure_mask"][last_idx])
+            elif self.allow_mask_recompute:
+                no_last = bool(get_ik_failures_mask(np.asarray(ja_last)[None, ...])[0])
+            else:
+                raise RuntimeError(
+                    f"Missing no_ik_failure/ik_failure_mask in {self.hdf5_paths[session_id]}"
+                )
+            if self.treat_interpolated_as_valid and "interpolated_mask" in group:
+                no_last = bool(no_last or bool(group["interpolated_mask"][last_idx]))
+            no_last = bool(no_last and finite_last)
+
+        return {
+            "emg": emg.T.contiguous(),  # CT
+            "joint_angles": ja_last_t[:, None].contiguous(),  # C1 (last-step only)
+            "no_ik_failure": torch.as_tensor([no_last], dtype=torch.bool),  # 1 (last-step only)
             "window_start_idx": window_start,
             "window_end_idx": window_end,
         }

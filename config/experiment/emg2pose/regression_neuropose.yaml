@@ -1,12 +1,12 @@
 # @package _global_
 defaults:
-  - /pose_module: pose
+  - /module: pose
   - /network: neuropose
   - _self_
 
 # Algorithm settings
 provide_initial_pos: False
-pose_module:
+module:
   predict_vel: False
 
 # Hyperparameters

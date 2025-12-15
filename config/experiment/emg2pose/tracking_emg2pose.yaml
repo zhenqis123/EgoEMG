@@ -1,20 +1,22 @@
 # @package _global_
 defaults:
-  - /pose_module: vemg_with_initial_state
+  - /module: pose_stateful
+  - /module/decoder: mlp
   - /network: tds
   - _self_
 
 # Algorithm settings
-provide_initial_pos: False
-pose_module:
+provide_initial_pos: True
+module:
+  predict_vel: False
   state_condition: True
 
 # Hyperparameters
 optimizer:
-  lr: .0005
+  lr: .001
 datamodule:
   # Adding 1790 samples, which is the left_context of the tds network
-  window_length: 11_790
+  window_length: 5790
   val_test_window_length: 11_790
 trainer:
-  gradient_clip_val: 0
+  gradient_clip_val: 1

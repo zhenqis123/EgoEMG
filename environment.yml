@@ -36,3 +36,4 @@ dependencies:
     - mediapy==1.2.2
     - joblib==1.4.2
     - nbformat==5.10.4
+    - transformers==4.45.2

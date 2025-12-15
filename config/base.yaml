@@ -1,23 +1,22 @@
 defaults:
   - _self_
   - datamodule: default
-  - optimizer: adam
+  - optimizer: adamw
   - lr_scheduler: cosine
   - data_split: full_split
   - transforms: rotation_augmentation
-  - experiment: regression_vemg2pose
+  - experiment: last_step_xattn/small
 
 data_location: /home/xiziheng/develop/emg2pose/data/emg2pose_data
 
 seed: 42
+matmul_precision: null  # one of: highest, high, medium
 
-batch_size: 512
-num_workers: 12  # Number of workers for dataloading
+batch_size: 320
+num_workers: 16  # Number of workers for dataloading
 
 train: True  # Whether to run training
 eval: True  # Whether to run evaluation on validation and test splits
-# checkpoint: /home/xiziheng/develop/emg2pose/logs/2025-10-31/22-39-59/lightning_logs/version_0/checkpoints/last.ckpt  # Optional path to checkpoint file
-# checkpoint: /home/xiziheng/develop/emg2pose/emg2pose_model_checkpoints/regression_vemg2pose.ckpt
 checkpoint: null
 
 monitor_metric: val_loss
@@ -28,9 +27,15 @@ loss_weights:
   fingertip_distance: 0.01
 
 trainer:
-  max_epochs: 100
+  max_epochs: 200
   devices: [0]
-  log_every_n_steps: 20
+  log_every_n_steps: 1
+  strategy: ddp_find_unused_parameters_true
+  precision: 32
+
+# Evaluation-time option: slice preds/targets/masks to last timestep (for fair
+# comparison with last-step models). Default False.
+eval_last_only: true
 
 # By default: static learning rate
 callbacks:
@@ -41,10 +46,11 @@ callbacks:
     save_top_k: 3
     save_last: True
     verbose: True
+    filename: "best-{monitor_metric:.4f}"
   - _target_: pytorch_lightning.callbacks.EarlyStopping
     monitor: ${monitor_metric}
     mode: ${monitor_mode}
-    patience: 50
+    patience: 100
     check_on_train_epoch_end: False
     verbose: True
 

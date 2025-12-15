@@ -1,0 +1,11 @@
+defaults:
+  - decoder: emg2pose_former_decoder
+  - _self_
+
+_target_: emg2pose.modules.Emg2PoseFormer
+
+featurizer: ${network}
+out_channels: 20
+
+# Supervision/output mode: "last" (only last timestep) or "full" (per timestep).
+prediction_mode: last
