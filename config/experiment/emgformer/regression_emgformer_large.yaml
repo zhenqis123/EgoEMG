@@ -25,5 +25,8 @@ datamodule:
 trainer:
   gradient_clip_val: 1
   devices: [0,1,2]
+  precision: bf16-mixed
+  max_epochs: 100
 
-batch_size: 640
+batch_size: 480
+matmul_precision: high
