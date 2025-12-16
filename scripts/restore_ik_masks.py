@@ -13,7 +13,7 @@ import h5py
 import numpy as np
 from tqdm import tqdm
 
-from emg2pose.data import Emg2PoseSessionData
+from emg2pose.datasets.emg2pose_dataset import Emg2PoseSessionData
 from emg2pose.utils import get_ik_failures_mask
 
 

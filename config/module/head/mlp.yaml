@@ -1,0 +1,7 @@
+_target_: emg2pose.models.heads.mlp.MLPHead
+
+in_channels: 128  # match decoder output dim; override as needed
+out_channels: 20
+hidden_sizes: [512]
+activation: relu
+dropout: 0.1

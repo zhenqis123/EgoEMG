@@ -66,13 +66,10 @@ def make_data_module(config: DictConfig):
 def make_lightning_module(config: DictConfig):
     """Create lightning module from experiment config."""
     return EmgPredictionModule(
-        network_conf=config.module,
+        module_conf=config.module,
         optimizer_conf=config.optimizer,
         lr_scheduler_conf=config.lr_scheduler,
         loss_weights=config.loss_weights,
-        use_interpolated_as_valid=config.datamodule.get("treat_interpolated_as_valid", True),
-        landmark_use_interpolated_as_valid=False,
-        eval_last_only=config.get("eval_last_only", False),
     )
 
 
@@ -100,16 +97,10 @@ def train(
         log.info(f"Loading from checkpoint {config.checkpoint}")
         module = EmgPredictionModule.load_from_checkpoint(
             config.checkpoint,
-            network_conf=config.module,
+            module_conf=config.module,
             optimizer_conf=config.optimizer,
             lr_scheduler_conf=config.lr_scheduler,
-            provide_initial_pos=config.module.get("provide_initial_pos", False),
             loss_weights=config.loss_weights,
-            use_interpolated_as_valid=config.datamodule.get(
-                "treat_interpolated_as_valid", True
-            ),
-            landmark_use_interpolated_as_valid=False,
-            eval_last_only=config.get("eval_last_only", False),
         )
     else:
         log.info(f"Instantiating LightningModule {EmgPredictionModule}")

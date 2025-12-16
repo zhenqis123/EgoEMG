@@ -93,10 +93,10 @@ class AngleMAE(Metric):
         self,
         pred: torch.Tensor,
         target: torch.Tensor,
-        no_ik_failure: torch.Tensor,
+        mask: torch.Tensor,
         stage: str,
     ) -> dict[str, torch.Tensor]:
-        mask = no_ik_failure.unsqueeze(1).expand(-1, NUM_JOINTS, -1)
+        mask = mask.unsqueeze(1).expand(-1, NUM_JOINTS, -1)
         if mask.sum() == 0:
             return {f"{stage}_mae": pred.sum() * 0.0}
         return {f"{stage}_mae": torch.nn.L1Loss()(pred[mask], target[mask])}

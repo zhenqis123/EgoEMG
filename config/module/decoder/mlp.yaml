@@ -1,0 +1,6 @@
+_target_: emg2pose.models.decoders.mlp.MLP
+in_channels: 84  # 64 features dimensions + 20 state dimensions
+layer_sizes: [512, 512]
+out_channels: 20
+layer_norm: True
+scale: .01

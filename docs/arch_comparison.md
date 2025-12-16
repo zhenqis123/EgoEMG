@@ -19,7 +19,7 @@
 - **FairEMG**：通常为 CTC/分类/回归头（Linear/MLP/Pooled MLP），对全序列帧输出 logits；蒸馏时还可有特征/Logit distill heads。无专门 “last-step only” 机制。
 
 ## 监督与掩码策略
-- **Emg2Pose**：Last-step 数据集预先过滤末帧 IK failure；batch 仅含末帧标签 (C×1)。训练时只在末帧计算 MAE/末端距离等，支持 `eval_last_only` 切多步模型最后一帧评估。
+- **Emg2Pose**：Last-step 数据集预先过滤末帧 IK failure；batch 仅含末帧标签 (C×1)。训练时只在末帧计算 MAE/末端距离等。
 - **FairEMG**：标准 CTC/分类序列监督，按帧或 CTC 时间步计算损失；掩码主要用于数据增广（时间/特征掩码）和可选的下游屏蔽。
 
 ## 数据管线与窗口

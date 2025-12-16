@@ -1,0 +1,6 @@
+_target_: emg2pose.models.decoders.lstm.SequentialLSTM
+in_channels: 84  # 64 features dimensions + 20 state dimensions
+out_channels: 20
+hidden_size: 512
+num_layers: 2
+scale: .01

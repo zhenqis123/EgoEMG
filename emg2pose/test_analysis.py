@@ -10,7 +10,7 @@ from dataclasses import dataclass
 import hydra
 import pandas as pd
 import pytorch_lightning as pl
-from emg2pose.data import WindowedEmgDataset
+from emg2pose.datasets.emg2pose_dataset import WindowedEmgDataset
 
 from emg2pose.train import make_lightning_module
 from emg2pose.transforms import Compose
@@ -64,17 +64,10 @@ class EMG2PoseEvaluation:
         module = make_lightning_module(self.config)
         module = module.__class__.load_from_checkpoint(
             self.config.checkpoint,
-            network_conf=self.config.module,
+            module_conf=self.config.module,
             optimizer_conf=self.config.optimizer,
             lr_scheduler_conf=self.config.lr_scheduler,
-            provide_initial_pos=self.config.provide_initial_pos,
             loss_weights=self.config.loss_weights,
-            use_interpolated_as_valid=self.config.datamodule.get(
-                "treat_interpolated_as_valid", True
-            ),
-            # Keep parity with `make_lightning_module()`
-            landmark_use_interpolated_as_valid=False,
-            eval_last_only=self.config.get("eval_last_only", False),
         )
         module.eval()
         return module
@@ -106,12 +99,6 @@ class EMG2PoseEvaluation:
                         stride=stride,
                         jitter=False,
                         skip_ik_failures=self.skip_ik_failures,
-                        allow_mask_recompute=self.config.datamodule.get(
-                            "allow_mask_recompute", True
-                        ),
-                        treat_interpolated_as_valid=self.config.datamodule.get(
-                            "treat_interpolated_as_valid", True
-                        ),
                     )
                     for hdf5_path in df_.filename + ".hdf5"
                 ]

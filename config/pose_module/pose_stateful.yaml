@@ -1,5 +1,0 @@
-_target_: emg2pose.modules.StatePoseModule
-predict_vel: False
-state_condition: True
-
-featurizer: ${network}

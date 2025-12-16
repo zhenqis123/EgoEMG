@@ -25,7 +25,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from emg2pose.data import Emg2PoseSessionData
+from emg2pose.datasets.emg2pose_dataset import Emg2PoseSessionData
 from emg2pose.utils import get_ik_failures_mask, get_contiguous_ones
 
 

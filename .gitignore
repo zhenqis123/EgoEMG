@@ -169,3 +169,4 @@ data/
 emg2pose_model_checkpoints/
 vis_dir/
 image.png
+vis_ik_failure_dir/

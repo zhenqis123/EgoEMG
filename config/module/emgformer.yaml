@@ -1,0 +1,16 @@
+defaults:
+  - featurizer: tds
+  - decoder: transformer/preset/small
+  - head: mlp
+  - _self_
+
+_target_: emg2pose.models.modules.emgformer.Emg2PoseFormer
+
+# Common settings
+out_channels: 20
+decoder:
+  causal: true
+  activation: relu
+  norm_first: true
+  pos_encoding: sinusoidal
+  out_proj: true

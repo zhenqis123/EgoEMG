@@ -10,7 +10,7 @@ A dataset of Surface electromyography (sEMG) recordings paired with ground-truth
 
 
 ## Data
-The entire dataset has $25,253$ HDF5 files, each consisting of time-aligned, 2kHz sEMG and joint angles for a single hand in a single stage. Each stage is ~1 minute. There are $193$ participants, spanning $370$ hours and $29$ stages. `emg2pose.data.Emg2PoseSessionData` offers a programmatic read-only interface into the HDF5 session files.
+The entire dataset has $25,253$ HDF5 files, each consisting of time-aligned, 2kHz sEMG and joint angles for a single hand in a single stage. Each stage is ~1 minute. There are $193$ participants, spanning $370$ hours and $29$ stages. `emg2pose.datasets.emg2pose_dataset.Emg2PoseSessionData` offers a programmatic read-only interface into the HDF5 session files.
 
 The full dataset statistics are as follows:
 

@@ -1,0 +1,85 @@
+# @package _global_
+dropout_rate: .05
+
+# Pooling and upsampling occurs over [time, channels].
+# Our device has 10x sample rate and 2x spatial resolution,
+# so we increase (decrease) pooling (upsampling) in the
+# encoder (decoder).
+
+network:
+  _target_: emg2pose.models.featurizers.neuropose.NeuroPose
+
+  linear_in_channels: 32
+  out_channels: 20
+
+  encoder_blocks:
+  - _target_: emg2pose.models.featurizers.neuropose.EncoderBlock
+    in_channels: 1
+    out_channels: 32
+    kernel_size: [3, 2]
+    max_pool_size: [10, 2]  # [5, 2] in original paper
+    dropout_rate: ${dropout_rate}
+  - _target_: emg2pose.models.featurizers.neuropose.EncoderBlock
+    in_channels: 32
+    out_channels: 128
+    kernel_size: [3, 2]
+    max_pool_size: [8, 2]  # [4, 2] in original paper
+    dropout_rate: ${dropout_rate}
+  - _target_: emg2pose.models.featurizers.neuropose.EncoderBlock
+    in_channels: 128
+    out_channels: 256
+    kernel_size: [3, 2]
+    max_pool_size: [4, 4]  # [2, 2] in original paper
+    dropout_rate: ${dropout_rate}
+
+  residual_blocks:
+  - _target_: emg2pose.models.featurizers.neuropose.ResidualBlock
+    in_channels: 256
+    out_channels: 256
+    kernel_size: [3, 2]
+    num_convs: 3
+    dropout_rate: ${dropout_rate}
+  - _target_: emg2pose.models.featurizers.neuropose.ResidualBlock
+    in_channels: 256
+    out_channels: 256
+    kernel_size: [3, 2]
+    num_convs: 3
+    dropout_rate: ${dropout_rate}
+  - _target_: emg2pose.models.featurizers.neuropose.ResidualBlock
+    in_channels: 256
+    out_channels: 256
+    kernel_size: [3, 2]
+    num_convs: 3
+    dropout_rate: ${dropout_rate}
+  - _target_: emg2pose.models.featurizers.neuropose.ResidualBlock
+    in_channels: 256
+    out_channels: 256
+    kernel_size: [3, 2]
+    num_convs: 3
+    dropout_rate: ${dropout_rate}
+  - _target_: emg2pose.models.featurizers.neuropose.ResidualBlock
+    in_channels: 256
+    out_channels: 256
+    kernel_size: [3, 2]
+    num_convs: 3
+    dropout_rate: ${dropout_rate}
+
+  decoder_blocks:
+  - _target_: emg2pose.models.featurizers.neuropose.DecoderBlock
+    in_channels: 256
+    out_channels: 128
+    kernel_size: [3, 2]
+    upsampling: [10, 4]  # [5, 4] in original paper
+    dropout_rate: ${dropout_rate}
+  - _target_: emg2pose.models.featurizers.neuropose.DecoderBlock
+    in_channels: 128
+    out_channels: 32
+    kernel_size: [3, 2]
+    upsampling: [8, 4]  # [4, 2] in original paper
+    dropout_rate: ${dropout_rate}
+  - _target_: emg2pose.models.featurizers.neuropose.DecoderBlock
+    in_channels: 32
+    out_channels: 1
+    kernel_size: [3, 2]
+    upsampling: [4, 2]  # [2, 2] in original paper
+    dropout_rate: ${dropout_rate}

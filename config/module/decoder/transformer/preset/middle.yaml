@@ -1,0 +1,8 @@
+_target_: emg2pose.models.decoders.transformer.TransformerDecoder
+
+in_channels: 64
+model_dim: 256
+num_heads: 8
+num_layers: 4
+ffn_dim: 1024
+dropout: 0.1

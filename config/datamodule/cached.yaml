@@ -1,5 +1,0 @@
-# @package _global_
-datamodule:
-  _target_: emg2pose.lightning.CachedWindowDataModule
-  cache_root: /home/xiziheng/develop/emg2pose/data/cache
-  allow_missing_splits: false

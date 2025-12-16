@@ -1,0 +1,29 @@
+# @package _global_
+defaults:
+  - /module: emgformer
+  - override /module/decoder: transformer/preset/large
+  - override /lr_scheduler: warmup_cosine
+  - _self_
+
+# Algorithm settings
+provide_initial_pos: False
+module:
+  decoder:
+    causal: true
+    preset: large
+  head:
+    in_channels: 384
+# Hyperparameters
+optimizer:
+  lr: .0001
+datamodule:
+  # Adding 1790 samples, which is the left_context of the tds network
+  window_length: 11_790
+  val_test_window_length: 11_790
+  stride: 5_000
+
+trainer:
+  gradient_clip_val: 1
+  devices: [0]
+
+batch_size: 640

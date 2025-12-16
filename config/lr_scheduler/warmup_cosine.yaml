@@ -1,0 +1,15 @@
+# @package _global_
+lr_scheduler:
+  scheduler:
+    _target_: torch.optim.lr_scheduler.SequentialLR
+    schedulers:
+      - _target_: torch.optim.lr_scheduler.LinearLR  # linear warmup
+        start_factor: 0.0
+        end_factor: 1.0
+        total_iters: 5
+      - _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+        T_max: ${trainer.max_epochs}
+        eta_min: 1e-5
+    milestones: [5]
+  interval: epoch
+  frequency: 1

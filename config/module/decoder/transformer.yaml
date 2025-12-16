@@ -1,0 +1,12 @@
+defaults:
+  - transformer/preset: middle
+  - _self_
+
+_target_: emg2pose.models.decoders.transformer.TransformerDecoder
+
+# Common settings
+causal: false
+activation: relu
+norm_first: true
+pos_encoding: none  # none | sinusoidal
+out_proj: true

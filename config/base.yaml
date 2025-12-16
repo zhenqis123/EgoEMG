@@ -5,7 +5,7 @@ defaults:
   - lr_scheduler: cosine
   - data_split: full_split
   - transforms: rotation_augmentation
-  - experiment: last_step_xattn/small
+  - experiment: emgformer/regression_emgformer_small
 
 data_location: /home/xiziheng/develop/emg2pose/data/emg2pose_data
 
@@ -32,10 +32,6 @@ trainer:
   log_every_n_steps: 1
   strategy: ddp_find_unused_parameters_true
   precision: 32
-
-# Evaluation-time option: slice preds/targets/masks to last timestep (for fair
-# comparison with last-step models). Default False.
-eval_last_only: true
 
 # By default: static learning rate
 callbacks:

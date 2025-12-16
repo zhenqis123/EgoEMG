@@ -8,9 +8,5 @@ datamodule:
   padding: [0, 0]
   pin_memory: true
   persistent_workers: true
-  prefetch_factor: 2
+  prefetch_factor: 1
   skip_ik_failures: False
-  # 掩码策略：默认只读取预计算掩码，不再重算；插值样本默认视为有效
-  allow_mask_recompute: False
-  treat_interpolated_as_valid: False
-  # datasets: ['']
