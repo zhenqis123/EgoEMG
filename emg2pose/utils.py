@@ -20,6 +20,7 @@ from scipy.interpolate import interp1d
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from torch import nn
+import torch
 from tqdm import tqdm
 
 
@@ -36,6 +37,30 @@ def instantiate_optimizer_and_scheduler(
         lr_scheduler = instantiate(lr_scheduler_config, scheduler=scheduler)
         out["lr_scheduler"] = OmegaConf.to_container(lr_scheduler)
     return out
+
+
+def build_warmup_cosine_scheduler(
+    optimizer: torch.optim.Optimizer,
+    warmup_iters: int,
+    max_epochs: int,
+    eta_min: float = 1e-5,
+    start_factor: float = 1e-3,
+    end_factor: float = 1.0,
+) -> torch.optim.lr_scheduler.SequentialLR:
+    """Helper to build Linear warmup + CosineAnnealing scheduler."""
+    start_factor = max(start_factor, 1e-6)
+    warmup = torch.optim.lr_scheduler.LinearLR(
+        optimizer,
+        start_factor=start_factor,
+        end_factor=end_factor,
+        total_iters=warmup_iters,
+    )
+    cosine = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=max_epochs, eta_min=eta_min
+    )
+    return torch.optim.lr_scheduler.SequentialLR(
+        optimizer, schedulers=[warmup, cosine], milestones=[warmup_iters]
+    )
 
 
 def generate_hydra_config_from_overrides(
