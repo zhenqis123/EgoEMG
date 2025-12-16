@@ -21,6 +21,22 @@ from emg2pose.transforms import Transform
 from emg2pose.utils import get_contiguous_ones, get_ik_failures_mask
 
 
+class _IkMaskView:
+    """Lightweight view that lazily inverts an HDF5 ik_failure_mask dataset."""
+
+    def __init__(self, dataset: h5py.Dataset):
+        self.dataset = dataset
+
+    def __getitem__(self, idx):
+        return np.asarray(~self.dataset[idx], dtype=bool)
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __array__(self):
+        return np.asarray(~self.dataset[...], dtype=bool)
+
+
 @dataclass
 class Emg2PoseSessionData:
     """Read-only interface to a single emg2pose session HDF5 file."""
@@ -95,12 +111,15 @@ class Emg2PoseSessionData:
         if not hasattr(self, "_no_ik_failure"):
             group = self._file[self.HDF5_GROUP]
             if "ik_failure_mask" in group:
-                mask = ~group["ik_failure_mask"][...]
+                mask = _IkMaskView(group["ik_failure_mask"])
             else:
+                # Fallback: compute on the fly to avoid full-session load
                 joint_angles = self.timeseries[self.JOINT_ANGLES]
-                mask = get_ik_failures_mask(joint_angles)
+                computed = get_ik_failures_mask(joint_angles)
+                mask = computed
 
-            self._no_ik_failure = np.asarray(mask, dtype=bool)
+            # Cache only a lightweight reference; defer slicing to callers
+            self._no_ik_failure = mask
         return self._no_ik_failure
 
     def __str__(self) -> str:
@@ -166,7 +185,8 @@ class WindowedEmgDataset(torch.utils.data.Dataset):
                 else:
                     self._blocks = [(0, len(self.session))]
             else:
-                blocks = get_contiguous_ones(self.session.no_ik_failure)
+                mask_full = np.asarray(self.session.no_ik_failure, dtype=bool)
+                blocks = get_contiguous_ones(mask_full)
                 blocks = [
                     (t0, t1 - 1)
                     for (t0, t1) in blocks
@@ -177,19 +197,19 @@ class WindowedEmgDataset(torch.utils.data.Dataset):
         return self._blocks
 
     def precompute_windows(self) -> list[tuple[int, int]]:
-        windows = []
-        cumsum = np.cumsum([0] + [self._get_block_len(b) for b in self.blocks])
-        for idx in range(len(self)):
-            block_idx = np.searchsorted(cumsum, idx, "right") - 1
-            start_idx, end_idx = self.blocks[block_idx]
-            relative_idx = idx - cumsum[block_idx]
-            windows.append((start_idx + relative_idx * self.stride, end_idx))
-
-        return windows
+        # Precompute cumulative counts per block to resolve idx->window on the fly
+        block_lengths = [self._get_block_len(b) for b in self.blocks]
+        self._cumsum_blocks = np.cumsum([0] + block_lengths)
+        return []  # no per-window materialization
 
     def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
 
-        offset, end_idx = self.windows[idx]
+        # Resolve idx -> block and offset without storing all windows
+        block_idx = np.searchsorted(self._cumsum_blocks, idx, "right") - 1
+        start_idx, end_idx = self.blocks[block_idx]
+        relative_idx = idx - self._cumsum_blocks[block_idx]
+        offset = start_idx + relative_idx * self.stride
+
         leftover = end_idx - (offset + self.window_length)
         if leftover < 0:
             raise IndexError(f"Index {idx} out of bounds, leftover {leftover}")

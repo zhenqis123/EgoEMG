@@ -17,13 +17,15 @@ import pytorch_lightning as pl
 import torch
 
 from emg2pose import utils
-from emg2pose.datasets.emg2pose_dataset import WindowedEmgDataset
+from emg2pose.datasets.multisession_emg2pose_dataset import (
+    MultiSessionWindowedEmgDataset,
+)
 from emg2pose.metrics import get_default_metrics
 from emg2pose.models.modules import BaseModule
 from hydra.utils import instantiate
 
 from omegaconf import DictConfig
-from torch.utils.data import ConcatDataset, DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
 log = logging.getLogger(__name__)
@@ -73,46 +75,37 @@ class WindowedEmgDataModule(pl.LightningDataModule):
 
     def setup(self, stage: str | None = None) -> None:
         # train
-        self.train_dataset = ConcatDataset([
-            WindowedEmgDataset(
-                hdf5_path,
-                transform=self.train_transforms,
-                window_length=self.window_length,
-                stride=self.stride,
-                padding=self.padding,
-                jitter=True,
-                skip_ik_failures=self.skip_ik_failures,
-            )
-            for hdf5_path in tqdm(self.train_sessions, desc="Building train datasets")
-        ])
+        self.train_dataset = MultiSessionWindowedEmgDataset(
+            hdf5_paths=list(self.train_sessions),
+            transform=self.train_transforms,
+            window_length=self.window_length,
+            stride=self.stride,
+            padding=self.padding,
+            jitter=True,
+            skip_ik_failures=self.skip_ik_failures,
+        )
 
         # val
-        self.val_dataset = ConcatDataset([
-            WindowedEmgDataset(
-                hdf5_path,
-                transform=self.val_transforms,
-                window_length=self.val_test_window_length,
-                stride=self.val_test_stride,
-                padding=self.padding,
-                jitter=False,
-                skip_ik_failures=self.skip_ik_failures,
-            )
-            for hdf5_path in tqdm(self.val_sessions, desc="Building val datasets")
-        ])
+        self.val_dataset = MultiSessionWindowedEmgDataset(
+            hdf5_paths=list(self.val_sessions),
+            transform=self.val_transforms,
+            window_length=self.val_test_window_length,
+            stride=self.val_test_stride,
+            padding=self.padding,
+            jitter=False,
+            skip_ik_failures=self.skip_ik_failures,
+        )
 
         # test
-        self.test_dataset = ConcatDataset([
-            WindowedEmgDataset(
-                hdf5_path,
-                transform=self.test_transforms,
-                window_length=self.val_test_window_length,
-                stride=self.val_test_stride,
-                padding=(0, 0),
-                jitter=False,
-                skip_ik_failures=self.skip_ik_failures,
-            )
-            for hdf5_path in tqdm(self.test_sessions, desc="Building test datasets")
-        ])
+        self.test_dataset = MultiSessionWindowedEmgDataset(
+            hdf5_paths=list(self.test_sessions),
+            transform=self.test_transforms,
+            window_length=self.val_test_window_length,
+            stride=self.val_test_stride,
+            padding=(0, 0),
+            jitter=False,
+            skip_ik_failures=self.skip_ik_failures,
+        )
 
 
     def train_dataloader(self) -> DataLoader:

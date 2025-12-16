@@ -10,14 +10,16 @@ from dataclasses import dataclass
 import hydra
 import pandas as pd
 import pytorch_lightning as pl
-from emg2pose.datasets.emg2pose_dataset import WindowedEmgDataset
+from emg2pose.datasets.multisession_emg2pose_dataset import (
+    MultiSessionWindowedEmgDataset,
+)
 
 from emg2pose.train import make_lightning_module
 from emg2pose.transforms import Compose
 from hydra.utils import instantiate
 
 from omegaconf import DictConfig
-from torch.utils.data import ConcatDataset, DataLoader
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 DEFAULT_DATA_DIR = "/emg2pose_data/"
@@ -78,32 +80,29 @@ class EMG2PoseEvaluation:
         (e.g., [user, stage]).
         """
 
-        transforms = Compose(
-            instantiate(self.config.transforms[self.split], _convert_="all")
-        )
-        context_length = (
-            self.module.model.left_context + self.module.model.right_context
-        )
+        transforms = Compose(instantiate(self.config.transforms[self.split], _convert_="all"))
+        context_length = self.module.model.left_context + self.module.model.right_context
         effective_window_length = self.window_length + context_length
         stride = self.window_length
 
         print("Creating dataloaders for each condition.")
         dataloaders = []
         for _, df_ in tqdm(self.groupby):
-            dataset: ConcatDataset = ConcatDataset(
-                [
-                    WindowedEmgDataset(
-                        os.path.join(self.data_dir, hdf5_path),
-                        transform=transforms,
-                        window_length=effective_window_length,
-                        stride=stride,
-                        jitter=False,
-                        skip_ik_failures=self.skip_ik_failures,
-                    )
-                    for hdf5_path in df_.filename + ".hdf5"
-                ]
+            session_paths = [
+                os.path.join(self.data_dir, f"{name}.hdf5") for name in df_.filename
+            ]
+            dataset = MultiSessionWindowedEmgDataset(
+                hdf5_paths=session_paths,
+                transform=transforms,
+                window_length=effective_window_length,
+                stride=stride,
+                padding=(0, 0),
+                jitter=False,
+                skip_ik_failures=self.skip_ik_failures,
             )
-            dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=False, num_workers=12, pin_memory=True)
+            dataloader = DataLoader(
+                dataset, batch_size=self.batch_size, shuffle=False, num_workers=12, pin_memory=True
+            )
             dataloaders.append(dataloader)
 
         return dataloaders
