@@ -4,8 +4,6 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-# pyre-unsafe
-
 import logging
 import pprint
 from collections.abc import Callable, Sequence
@@ -14,24 +12,19 @@ from typing import Any
 
 import hydra
 import pytorch_lightning as pl
-from emg2pose import transforms
-
-from emg2pose.lightning import EmgPredictionModule
-from emg2pose.transforms import Transform
+import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig, ListConfig, OmegaConf
-import torch
 
+from emg2pose import transforms
+from emg2pose.lightning_emg2vqvae import EmgToVQVAELightningModule
+from emg2pose.transforms import Transform
 
 log = logging.getLogger(__name__)
 
 
 def make_data_module(config: DictConfig):
-    """Create datamodule from experiment config."""
-
-    # Dataset session paths
     def _full_paths(root: str, dataset: ListConfig) -> list[Path]:
-        # sessions = [session["session"] for session in dataset]
         sessions = dataset
         return [
             Path(root).expanduser().joinpath(f"{session}.hdf5") for session in sessions
@@ -49,10 +42,8 @@ def make_data_module(config: DictConfig):
         train_sessions=train_sessions,
         val_sessions=val_sessions,
         test_sessions=test_sessions,
-        
     )
 
-    # Instantiate transforms
     def _build_transform(configs: Sequence[DictConfig]) -> Transform[Any, Any]:
         return transforms.Compose([instantiate(cfg) for cfg in configs])
 
@@ -64,16 +55,15 @@ def make_data_module(config: DictConfig):
 
 
 def make_lightning_module(config: DictConfig):
-    """Create lightning module from experiment config."""
-    return EmgPredictionModule(
-        module_conf=config.module,
+    return EmgToVQVAELightningModule(
+        model_conf=config.emg2vqvae.model,
+        vqvae_conf=config.emg2vqvae.vqvae,
+        vqvae_checkpoint=config.emg2vqvae.vqvae_checkpoint,
         optimizer_conf=config.optimizer,
         lr_scheduler_conf=config.lr_scheduler,
-        loss_weights=config.loss_weights,
-        task_type=config.get("task_type", "regression"),
-        ignore_index=config.get("ignore_index", -100),
-        label_smoothing=config.get("label_smoothing", 0.0),
-        gumbel_recon=config.get("gumbel_recon"),
+        gumbel_conf=config.emg2vqvae.get("gumbel"),
+        loss_weights=config.emg2vqvae.get("loss_weights"),
+        label_smoothing=config.emg2vqvae.get("label_smoothing", 0.05),
     )
 
 
@@ -81,72 +71,54 @@ def train(
     config: DictConfig,
     extra_callbacks: Sequence[Callable] | None = None,
 ):
-    # import torch
-    # torch.autograd.set_detect_anomaly(True)
-    
     log.info(f"\nConfig:\n{OmegaConf.to_yaml(config)}")
 
-    # Seed for determinism. This seeds torch, numpy and python random modules
-    # taking global rank into account (for multi-process distributed setting).
-    # Additionally, this auto-adds a worker_init_fn to train_dataloader that
-    # initializes the seed taking worker_id into account per dataloading worker
-    # (see `pl_worker_init_fn()`).
     pl.seed_everything(config.seed, workers=True)
-
     matmul_precision = config.get("matmul_precision")
     if matmul_precision is not None:
         torch.set_float32_matmul_precision(str(matmul_precision))
 
     if config.checkpoint is not None:
         log.info(f"Loading from checkpoint {config.checkpoint}")
-        module = EmgPredictionModule.load_from_checkpoint(
+        module = EmgToVQVAELightningModule.load_from_checkpoint(
             config.checkpoint,
-            module_conf=config.module,
+            model_conf=config.emg2vqvae.model,
+            vqvae_conf=config.emg2vqvae.vqvae,
+            vqvae_checkpoint=config.emg2vqvae.vqvae_checkpoint,
             optimizer_conf=config.optimizer,
             lr_scheduler_conf=config.lr_scheduler,
-            loss_weights=config.loss_weights,
+            gumbel_conf=config.emg2vqvae.get("gumbel"),
+            loss_weights=config.emg2vqvae.get("loss_weights"),
+            label_smoothing=config.emg2vqvae.get("label_smoothing", 0.05),
         )
     else:
-        log.info(f"Instantiating LightningModule {EmgPredictionModule}")
+        log.info("Instantiating EMG->VQ-VAE LightningModule")
         module = make_lightning_module(config)
 
     log.info(f"Instantiating LightningDataModule {config.datamodule}")
     datamodule = make_data_module(config)
 
-    # Instantiate callbacks
     callback_configs = config.get("callbacks", [])
     callbacks = [instantiate(cfg) for cfg in callback_configs]
-
     if extra_callbacks is not None:
         callbacks.extend(extra_callbacks)
 
-    trainer = pl.Trainer(
-        **config.trainer,
-        callbacks=callbacks
-    )
+    trainer = pl.Trainer(**config.trainer, callbacks=callbacks)
 
     results = {}
     if config.train:
-
-        # Train
         trainer.fit(module, datamodule)
-
-        # Load the best checkpoint
         checkpoint_callback = trainer.checkpoint_callback
         if checkpoint_callback is None:
             raise RuntimeError("No checkpoint callback found in trainer")
         best_checkpoint_path = checkpoint_callback.best_model_path
         module = module.__class__.load_from_checkpoint(best_checkpoint_path)
-
         results["best_checkpoint"] = best_checkpoint_path
 
     if config.eval:
-
-        # Compute validation and test set metrics
         module.eval()
         val_metrics = trainer.validate(module, datamodule)
         test_metrics = trainer.test(module, datamodule)
-
         results["val_metrics"] = val_metrics
         results["test_metrics"] = test_metrics
 
@@ -154,7 +126,7 @@ def train(
     return results
 
 
-@hydra.main(config_path="../config", config_name="base", version_base="1.1")
+@hydra.main(config_path="../config", config_name="emg2vqvae_base", version_base="1.1")
 def cli(config: DictConfig):
     train(config)
 

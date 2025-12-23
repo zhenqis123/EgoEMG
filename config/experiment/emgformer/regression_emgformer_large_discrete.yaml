@@ -1,40 +1,46 @@
 # @package _global_
 defaults:
   - /module: emgformer
-  - override /module/decoder: transformer/preset/large
+  - override /module/head: vq_discrete
+  - override /module/decoder: transformer/preset/small
   - override /lr_scheduler: warmup_cosine
   - _self_
 
+task_type: discrete
+ignore_index: -100
+loss_weights:
+  cls: 1.0
+num_workers: 8
 # Algorithm settings
 provide_initial_pos: False
 module:
   decoder:
     causal: true
-    preset: large
+    preset: small
   head:
-    in_channels: 384
-# Hyperparameters
+    in_channels: 128
+    embed_dim: 16
+    num_codes: 256
+    num_levels: 20
+    checkpoint: /home/xiziheng/develop/emg2pose/logs/vqvae/2025-12-20/17-41-20/lightning_logs/version_0/checkpoints/last.ckpt
 optimizer:
-  lr: .0003
+  lr: .00001
 datamodule:
-  # Adding 1790 samples, which is the left_context of the tds network
-  window_length: 11_790
-  val_test_window_length: 11_790
+  window_length: 10_000
+  val_test_window_length: 10_000
   norm_mode: batch
-  stride: 5_000
-checkpoint: /home/xiziheng/develop/emg2pose/logs/2025-12-18/10-27-04/lightning_logs/version_0/checkpoints/best.ckpt
+  # stride: 5_000
+  max_open_files: 8
+
 trainer:
   gradient_clip_val: 1
   devices: [0,1,2]
   precision: bf16-mixed
-  max_epochs: 200
+  max_epochs: 300
+  strategy: 'ddp_find_unused_parameters_true'
 
 batch_size: 400
 matmul_precision: high
-
-to_tensor:
-  _target_: emg2pose.transforms.ExtractToTensor
-  field: emg
 
 transforms:
   train:

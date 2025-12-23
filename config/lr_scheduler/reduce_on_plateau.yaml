@@ -1,0 +1,11 @@
+# @package _global_
+lr_scheduler:
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    mode: min
+    factor: 0.5
+    patience: 10
+    min_lr: 1.0e-6
+  interval: epoch
+  frequency: 1
+  monitor: val/loss

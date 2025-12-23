@@ -170,3 +170,7 @@ emg2pose_model_checkpoints/
 vis_dir/
 image.png
 vis_ik_failure_dir/
+assets/test.pth
+task.md
+todo.md
+prompt.txt

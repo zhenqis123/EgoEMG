@@ -1,0 +1,20 @@
+# @package _global_
+to_tensor:
+  _target_: emg2pose.transforms.ExtractToTensor
+  field: emg
+
+random_channel_mask:
+  _target_: emg2pose.transforms.RandomChannelMask
+  mask_prob: 0.1
+  min_masked: 0
+  max_masked: null
+  channel_dim: -1
+  mask_value: 0.0
+
+transforms:
+  train:
+    - ${to_tensor}
+    - ${random_channel_mask}
+  val:
+    - ${to_tensor}
+  test: ${transforms.val}

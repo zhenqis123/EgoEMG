@@ -1,0 +1,64 @@
+defaults:
+  - _self_
+  - datamodule: default
+  - optimizer: adam
+  - lr_scheduler: reduce_on_plateau
+  - data_split: full_split
+  - transforms: basic
+  - experiment: cldm/diffusion
+
+data_location: /home/xiziheng/develop/emg2pose/data/emg2pose_data
+
+seed: 42
+matmul_precision: null
+
+batch_size: 64
+num_workers: 8
+
+train: True
+eval: True
+checkpoint: null
+
+monitor_metric: val/loss
+monitor_mode: min
+
+num_timesteps: 1000
+beta_start: 0.0001
+beta_end: 0.02
+use_vae_mu: false
+
+trainer:
+  max_epochs: 200
+  devices: [0]
+  log_every_n_steps: 10
+  precision: 32
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    save_top_k: 3
+    save_last: True
+    verbose: True
+    filename: "best-{monitor_metric:.4f}"
+  - _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    patience: 20
+    check_on_train_epoch_end: False
+    verbose: True
+
+hydra:
+  run:
+    dir: logs/cldm_diffusion/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${hydra.run.dir}
+    subdir: ${hydra.job.num}_${hydra.job.override_dirname}/seed=${seed}
+  output_subdir: hydra_configs
+  job:
+    name: cldm_diffusion
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed

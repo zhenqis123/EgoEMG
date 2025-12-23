@@ -21,18 +21,16 @@ tds_stages:
   - _target_: emg2pose.models.featurizers.tds.TdsStage
     in_channels: 256
     in_conv_kernel_width: 17
-    in_conv_stride: 4
+    in_conv_stride: 1
     num_blocks: 2
-    # Total channel depth is channels * feature_width
     channels: 16
     feature_width: 16
     kernel_width: 9
   - _target_: emg2pose.models.featurizers.tds.TdsStage
     in_channels: 256
     in_conv_kernel_width: 9
-    in_conv_stride: 2
+    in_conv_stride: 1
     num_blocks: 2
-    # Total channel depth is channels * feature_width
     channels: 16
     feature_width: 16
     kernel_width: 5

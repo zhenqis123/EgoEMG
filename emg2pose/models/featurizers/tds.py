@@ -7,6 +7,34 @@ import torch
 
 from torch import nn
 
+
+class SqueezeExcite(nn.Module):
+    """Causal Channel-wise Squeeze-Excitation over temporal dimension."""
+    def __init__(self, channels: int, reduction: int = 4, residual: bool = True):
+        super().__init__()
+        hidden = max(channels // reduction, 1)
+        self.residual = residual
+        # 1x1 Conv1d <=> per-time-step Linear over channels
+        self.net = nn.Sequential(
+            nn.Conv1d(channels, hidden, kernel_size=1),
+            nn.ReLU(inplace=True),
+            nn.Conv1d(hidden, channels, kernel_size=1),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # x: (B, C, T)
+        B, C, T = x.shape
+
+        # prefix mean: scale_pool[..., t] = mean_{k<=t} x[..., k]
+        cumsum = torch.cumsum(x, dim=-1)  # (B, C, T)
+        denom = torch.arange(1, T + 1, device=x.device, dtype=x.dtype).view(1, 1, T)
+        scale_pool = cumsum / denom  # (B, C, T) strictly causal
+
+        scale = self.net(scale_pool)  # (B, C, T)
+        out = x * scale
+        return out + x if self.residual else out
+
 class Permute(nn.Module):
     """Permute the dimensions of the input tensor.
     For example:
@@ -61,8 +89,10 @@ class Conv1dBlock(nn.Module):
         out_channels: int,
         kernel_size: int,
         stride: int,
+        padding: int = 0,
         norm_type: Literal["layer", "batch", "none"] = "layer",
         dropout: float = 0.0,
+        se: dict | None = None,
     ):
         """A 1D convolution with padding so the input and output lengths match."""
 
@@ -78,7 +108,7 @@ class Conv1dBlock(nn.Module):
             out_channels,
             kernel_size=kernel_size,
             stride=stride,
-            padding=0,
+            padding=padding,
         )
 
         if norm_type == "batch":
@@ -93,11 +123,22 @@ class Conv1dBlock(nn.Module):
 
         if norm_type == "layer":
             self.norm = nn.LayerNorm(normalized_shape=out_channels)
+        self.se = (
+            None
+            if not se
+            else SqueezeExcite(
+                channels=out_channels,
+                reduction=int(se.get("reduction", 4)),
+                residual=bool(se.get("residual", True)),
+            )
+        )
 
     def forward(self, x):
         x = self.conv(x)
         if self.norm_type == "layer":
             x = self.norm(x.swapaxes(-1, -2)).swapaxes(-1, -2)
+        if self.se is not None:
+            x = self.se(x)
         return x
 
 
@@ -115,7 +156,14 @@ class TDSConv2dBlock(nn.Module):
         kernel_width (int): The kernel size of the temporal convolution.
     """
 
-    def __init__(self, channels: int, width: int, kernel_width: int) -> None:
+    def __init__(
+        self,
+        channels: int,
+        width: int,
+        kernel_width: int,
+        time_padding: int = 0,
+        se: dict | None = None,
+    ) -> None:
         super().__init__()
 
         assert kernel_width % 2, "kernel_width must be odd."
@@ -125,7 +173,7 @@ class TDSConv2dBlock(nn.Module):
             kernel_size=(1, kernel_width),
             dilation=(1, 1),
             stride=(1, 1),
-            padding=(0, 0),
+            padding=(0, time_padding),
             groups=1,
             bias=True,
         )
@@ -134,6 +182,15 @@ class TDSConv2dBlock(nn.Module):
 
         self.channels = channels
         self.width = width
+        self.se = (
+            None
+            if not se
+            else SqueezeExcite(
+                channels=channels * width,
+                reduction=int(se.get("reduction", 4)),
+                residual=bool(se.get("residual", True)),
+            )
+        )
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
 
@@ -152,6 +209,8 @@ class TDSConv2dBlock(nn.Module):
         # Layer norm over C
         x = self.layer_norm(x.swapaxes(-1, -2)).swapaxes(-1, -2)
 
+        if self.se is not None:
+            x = self.se(x)
         return x
 
 
@@ -165,7 +224,7 @@ class TDSFullyConnectedBlock(nn.Module):
             (T, N, num_features).
     """
 
-    def __init__(self, num_features: int) -> None:
+    def __init__(self, num_features: int, se: dict | None = None) -> None:
         super().__init__()
 
         self.fc_block = nn.Sequential(
@@ -174,6 +233,15 @@ class TDSFullyConnectedBlock(nn.Module):
             nn.Linear(num_features, num_features),
         )
         self.layer_norm = nn.LayerNorm(num_features)
+        self.se = (
+            None
+            if not se
+            else SqueezeExcite(
+                channels=num_features,
+                reduction=int(se.get("reduction", 4)),
+                residual=bool(se.get("residual", True)),
+            )
+        )
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
 
@@ -186,6 +254,8 @@ class TDSFullyConnectedBlock(nn.Module):
         # Layer norm over C
         x = self.layer_norm(x.swapaxes(-1, -2)).swapaxes(-1, -2)
 
+        if self.se is not None:
+            x = self.se(x)
         return x
 
 
@@ -208,6 +278,8 @@ class TDSConvEncoder(nn.Module):
         num_features: int,
         block_channels: Sequence[int] = (24, 24, 24, 24),
         kernel_width: int = 32,
+        time_padding: int = 0,
+        se: dict | None = None,
     ) -> None:
         super().__init__()
         self.kernel_width = kernel_width
@@ -222,8 +294,14 @@ class TDSConvEncoder(nn.Module):
             ), f"block_channels {channels} must evenly divide num_features {num_features}"
             tds_conv_blocks.extend(
                 [
-                    TDSConv2dBlock(channels, feature_width, kernel_width),
-                    TDSFullyConnectedBlock(num_features),
+                    TDSConv2dBlock(
+                        channels,
+                        feature_width,
+                        kernel_width,
+                        time_padding=time_padding,
+                        se=se,
+                    ),
+                    TDSFullyConnectedBlock(num_features, se=se),
                 ]
             )
         self.tds_conv_blocks = nn.Sequential(*tds_conv_blocks)
@@ -238,11 +316,14 @@ class TdsStage(nn.Module):
         in_channels: int = 16,
         in_conv_kernel_width: int = 5,
         in_conv_stride: int = 1,
+        in_conv_padding: int = 0,
         num_blocks: int = 1,
         channels: int = 8,
         feature_width: int = 2,
         kernel_width: int = 1,
+        kernel_time_padding: int = 0,
         out_channels: int | None = None,
+        se: dict | None = None,
     ):
         super().__init__()
         """Stage of several TdsBlocks preceded by a non-separable sub-sampling conv.
@@ -268,6 +349,8 @@ class TdsStage(nn.Module):
                 C,
                 kernel_size=in_conv_kernel_width,
                 stride=in_conv_stride,
+                padding=in_conv_padding,
+                se=se if (se and se.get("enable", False)) else None,
             )
         elif in_channels != C:
             # Check that in_channels is consistent with TDS
@@ -283,6 +366,8 @@ class TdsStage(nn.Module):
             num_features=C,
             block_channels=[channels] * num_blocks,
             kernel_width=kernel_width,
+            time_padding=kernel_time_padding,
+            se=se if (se and se.get("enable", False)) else None,
         )
 
         # Linear projection
@@ -301,9 +386,38 @@ class TdsStage(nn.Module):
 
 class TdsNetwork(nn.Module):
     def __init__(
-        self, conv_blocks: Sequence[Conv1dBlock], tds_stages: Sequence[TdsStage]
+        self,
+        conv_blocks: Sequence[Conv1dBlock],
+        tds_stages: Sequence[TdsStage],
+        se: dict | None = None,
     ):
         super().__init__()
+        if se and se.get("enable", False):
+            for block in conv_blocks:
+                block.se = SqueezeExcite(
+                    channels=block.conv[0].out_channels,
+                    reduction=int(se.get("reduction", 4)),
+                    residual=bool(se.get("residual", True)),
+                )
+            for stage in tds_stages:
+                if hasattr(stage, "layers"):
+                    conv = stage.layers[0] if len(stage.layers) > 0 else None
+                    if conv is not None and isinstance(conv, Conv1dBlock):
+                        conv.se = SqueezeExcite(
+                            channels=conv.conv[0].out_channels,
+                            reduction=int(se.get("reduction", 4)),
+                            residual=bool(se.get("residual", True)),
+                        )
+                if hasattr(stage, "layers"):
+                    for layer in stage.layers:
+                        if isinstance(layer, TDSConvEncoder):
+                            for sub in layer.tds_conv_blocks:
+                                if isinstance(sub, (TDSConv2dBlock, TDSFullyConnectedBlock)):
+                                    sub.se = SqueezeExcite(
+                                        channels=sub.layer_norm.normalized_shape[0],
+                                        reduction=int(se.get("reduction", 4)),
+                                        residual=bool(se.get("residual", True)),
+                                    )
         self.layers = nn.Sequential(*conv_blocks, *tds_stages)
         self.left_context = self._get_left_context(conv_blocks, tds_stages)
         self.right_context = 0

@@ -1,0 +1,63 @@
+defaults:
+  - _self_
+  - datamodule: default
+  - optimizer: adamw
+  - lr_scheduler: warmup_cosine
+  - data_split: full_split
+  - transforms: basic
+  - experiment: vqvae/vqmyo
+
+data_location: /home/xiziheng/develop/emg2pose/data/emg2pose_data
+
+seed: 42
+matmul_precision: null  # one of: highest, high, medium
+
+batch_size: 960
+num_workers: 8
+
+train: True
+eval: True
+checkpoint: null
+
+monitor_metric: val/loss
+monitor_mode: min
+
+angle_representation:
+  mode: angle  # angle | axis_angle | rot6d
+  num_joints: 20
+
+trainer:
+  max_epochs: 200
+  devices: [4]
+  log_every_n_steps: 1
+  precision: 32
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    save_top_k: 3
+    save_last: True
+    verbose: True
+    filename: "best-{monitor_metric:.4f}"
+  - _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    patience: 50
+    check_on_train_epoch_end: False
+    verbose: True
+
+hydra:
+  run:
+    dir: logs/vqvae/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${hydra.run.dir}
+    subdir: ${hydra.job.num}_${hydra.job.override_dirname}/seed=${seed}
+  output_subdir: hydra_configs
+  job:
+    name: vqvae_joint_angles
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed

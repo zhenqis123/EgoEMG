@@ -1,0 +1,41 @@
+# @package _global_
+defaults:
+  - override /lr_scheduler: warmup_cosine
+vqvae:
+  _target_: emg2pose.models.modules.vqvae_vqmyo.JointAngleVQVAE
+  embed_dim: 10
+  num_codes: 128
+  commitment_cost: 0.25
+  dropout: 0.0
+
+checkpoint: null
+
+angle_representation:
+  mode: angle
+  num_joints: 20
+batch_size: 350
+optimizer:
+  lr: 0.0003
+datamodule:
+  window_length: 2_000
+  val_test_window_length: 2_000
+  stride: 2_000
+  val_test_stride: 2_000
+  norm_mode: null
+  max_open_files: 4
+  skip_ik_failures: True
+
+trainer:
+  max_epochs: 300
+  devices: [0,1,2]
+  # precision: bf16-mixed
+
+lr_scheduler:
+  scheduler:
+    warmup_iters: 1
+    max_epochs: ${trainer.max_epochs}
+    eta_min: 1e-5
+    start_factor: 1e-3
+    end_factor: 1.0
+  interval: epoch
+  frequency: 1

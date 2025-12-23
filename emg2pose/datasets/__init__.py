@@ -3,3 +3,6 @@ from emg2pose.datasets.emg2pose_dataset import Emg2PoseSessionData, WindowedEmgD
 from emg2pose.datasets.multisession_emg2pose_dataset import (
     MultiSessionWindowedEmgDataset,
 )
+from emg2pose.datasets.multisession_emg2qwerty_dataset import (
+    MultiSessionWindowedEmg2QwertyDataset,
+)

@@ -1,11 +1,13 @@
 defaults:
   - featurizer: tds
   - decoder: lstm
+  - head: mlp
   - _self_
 
 _target_: emg2pose.models.modules.pose.VEMG2PoseWithInitialState
 state_condition: True
 num_position_steps: 500  # 250 ms at 2000 Hz
+head: mlp
 
 decoder:
   out_channels: 40  # position and velocity

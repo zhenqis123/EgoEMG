@@ -10,30 +10,36 @@ conv_blocks:
     in_channels: 16
     out_channels: 256
     kernel_size: 11
-    stride: 5
+    stride: 1
+    padding: 5
   - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
     in_channels: 256
     out_channels: 256
     kernel_size: 5
-    stride: 2
+    stride: 1
+    padding: 2
 
 tds_stages:
   - _target_: emg2pose.models.featurizers.tds.TdsStage
     in_channels: 256
     in_conv_kernel_width: 17
-    in_conv_stride: 4
+    in_conv_stride: 1
+    in_conv_padding: 8
     num_blocks: 2
     # Total channel depth is channels * feature_width
     channels: 16
     feature_width: 16
     kernel_width: 9
+    kernel_time_padding: 4
   - _target_: emg2pose.models.featurizers.tds.TdsStage
     in_channels: 256
     in_conv_kernel_width: 9
-    in_conv_stride: 2
+    in_conv_stride: 1
+    in_conv_padding: 4
     num_blocks: 2
     # Total channel depth is channels * feature_width
     channels: 16
     feature_width: 16
     kernel_width: 5
+    kernel_time_padding: 2
     out_channels: 64

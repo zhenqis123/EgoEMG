@@ -1,0 +1,16 @@
+_target_: emg2pose.models.modules.vqvae.JointAngleVQVAE
+input_dim: 20  # overridden by angle_representation if provided
+hidden_dims: [256, 256]
+embed_dim: 64
+dropout: 0.0
+encoder_residual: false
+decoder_residual: false
+quantizer:
+  _target_: emg2pose.models.quantizers.GroupedVectorQuantizer
+  num_groups: 4
+  num_codes: 512
+  group_dim: 16
+  commitment_cost: 0.25
+  use_ema: false
+  ema_decay: 0.99
+  ema_eps: 1.0e-05

@@ -1,0 +1,31 @@
+# @package _global_
+defaults:
+  - override /lr_scheduler: reduce_on_plateau
+
+vae:
+  _target_: emg2pose.models.modules.cldm_vae.VAE1D
+  in_channels: 20
+  out_channels: 20
+  channels: [32, 64, 64, 64]
+  latent_channels: 16
+  attn_group_counts: [200, 100, 50, 25]
+  attn_heads: 1
+  attn_embed_dim: 256
+
+input_key: joint_angles
+kl_weight: 1.0
+
+optimizer:
+  lr: 1.0e-4
+
+datamodule:
+  window_length: 4_000
+  val_test_window_length: 4_000
+  stride: 4_000
+  val_test_stride: 4_000
+  norm_mode: null
+  max_open_files: 4
+
+trainer:
+  devices: [3]
+batch_size: 500

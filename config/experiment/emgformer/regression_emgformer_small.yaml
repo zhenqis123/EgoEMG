@@ -1,6 +1,8 @@
 # @package _global_
 defaults:
   - /module: emgformer
+  - override /module/decoder: transformer/preset/small
+  - override /lr_scheduler: warmup_cosine
   - _self_
 
 # Algorithm settings
@@ -9,10 +11,11 @@ module:
   decoder:
     causal: true
     preset: small
-
+  head:
+    in_channels: 128
 # Hyperparameters
 optimizer:
-  lr: .001
+  lr: .0001
 datamodule:
   # Adding 1790 samples, which is the left_context of the tds network
   window_length: 11_790
@@ -22,5 +25,8 @@ datamodule:
 trainer:
   gradient_clip_val: 1
   devices: [0,1,2]
+  precision: bf16-mixed
+  max_epochs: 100
 
-batch_size: 640
+batch_size: 960
+matmul_precision: high

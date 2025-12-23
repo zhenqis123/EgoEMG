@@ -1,0 +1,10 @@
+_target_: emg2pose.models.heads.vq_classification.VQDiscreteHead
+in_channels: 384
+embed_dim: 64
+num_codes: 256
+num_levels: 4
+num_joints: 20
+angle_representation: angle  # angle | axis_angle | rot6d
+checkpoint: null  # required; must match VQ-VAE used to generate indices
+freeze_codebook: true
+freeze_decoder: true

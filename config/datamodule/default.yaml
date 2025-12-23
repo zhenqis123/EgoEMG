@@ -10,3 +10,7 @@ datamodule:
   persistent_workers: true
   prefetch_factor: 1
   skip_ik_failures: False
+  max_open_files: 32
+  norm_mode: null
+  norm_stats_path: null
+  norm_eps: 1e-6

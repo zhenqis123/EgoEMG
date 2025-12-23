@@ -1,0 +1,18 @@
+_target_: emg2pose.models.modules.vqvae.JointAngleVQVAE
+input_dim: 20
+hidden_dims: [256, 256, 256]
+embed_dim: 64
+num_codes: 256
+commitment_cost: 0.25
+dropout: 0.0
+encoder_residual: true
+decoder_residual: true
+quantizer:
+  _target_: emg2pose.models.quantizers.ResidualVectorQuantizer
+  num_levels: 4
+  num_codes: 256
+  embed_dim: 64
+  commitment_cost: 0.25
+  use_ema: false
+  ema_decay: 0.99
+  ema_eps: 1.0e-05

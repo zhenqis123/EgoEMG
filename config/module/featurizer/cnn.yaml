@@ -1,0 +1,53 @@
+_target_: emg2pose.models.featurizers.cnn.CNNFeaturizer
+
+conv_blocks:
+  - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+    in_channels: 16
+    out_channels: 256
+    kernel_size: 11
+    stride: 5
+    norm_type: layer
+    dropout: 0.0
+    se:
+      enable: false
+      reduction: 4
+      residual: true
+  - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+    in_channels: 256
+    out_channels: 256
+    kernel_size: 5
+    stride: 2
+    norm_type: layer
+    dropout: 0.0
+    se:
+      enable: false
+      reduction: 4
+      residual: true
+
+cnn_stages:
+  - _target_: emg2pose.models.featurizers.cnn.CNNStage
+    in_channels: 256
+    in_conv_kernel_width: 17
+    in_conv_stride: 4
+    num_blocks: 2
+    out_channels: 256
+    kernel_width: 9
+    norm_type: layer
+    dropout: 0.0
+    se:
+      enable: false
+      reduction: 4
+      residual: true
+  - _target_: emg2pose.models.featurizers.cnn.CNNStage
+    in_channels: 256
+    in_conv_kernel_width: 9
+    in_conv_stride: 2
+    num_blocks: 2
+    out_channels: 64
+    kernel_width: 5
+    norm_type: layer
+    dropout: 0.0
+    se:
+      enable: false
+      reduction: 4
+      residual: true

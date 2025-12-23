@@ -64,6 +64,11 @@ class EMG2PoseEvaluation:
 
     def get_module(self):
         module = make_lightning_module(self.config)
+        # import torch
+        # sd = torch.load("/home/xiziheng/develop/emg2pose/test.pth", map_location="cpu")
+        # missing, unexpected = module.load_state_dict(sd, strict=False)
+        # print("missing:", len(missing))
+        # print("unexpected:", len(unexpected))
         module = module.__class__.load_from_checkpoint(
             self.config.checkpoint,
             module_conf=self.config.module,
@@ -84,6 +89,7 @@ class EMG2PoseEvaluation:
         context_length = self.module.model.left_context + self.module.model.right_context
         effective_window_length = self.window_length + context_length
         stride = self.window_length
+        max_open_files = int(self.config.datamodule.get("max_open_files", 32))
 
         print("Creating dataloaders for each condition.")
         dataloaders = []
@@ -99,6 +105,7 @@ class EMG2PoseEvaluation:
                 padding=(0, 0),
                 jitter=False,
                 skip_ik_failures=self.skip_ik_failures,
+                max_open_files=max_open_files,
             )
             dataloader = DataLoader(
                 dataset, batch_size=self.batch_size, shuffle=False, num_workers=12, pin_memory=True

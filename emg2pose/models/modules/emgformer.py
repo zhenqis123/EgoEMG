@@ -11,7 +11,7 @@ from emg2pose.models.modules.base import BaseModule
 
 
 class Emg2PoseFormer(BaseModule):
-    """Transformer-based pose module outputting per-timestep predictions."""
+    """Transformer-based module agnostic to task type; head decides the semantics."""
 
     def __init__(
         self,
@@ -25,31 +25,9 @@ class Emg2PoseFormer(BaseModule):
 
     def forward(
         self, batch: dict[str, torch.Tensor], provide_initial_pos: bool
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> torch.Tensor:
         emg = batch["emg"]
-        joint_angles = batch["joint_angles"]
-        mask = batch["label_valid_mask"]
-
-        start = self.left_context
-        stop = None if self.right_context == 0 else -self.right_context
-        targets = joint_angles[..., slice(start, stop)]
-        mask = mask[..., slice(start, stop)]
-
-        if targets.shape[-1] <= 0:
-            raise RuntimeError(
-                "Empty target span after applying left/right context. "
-                f"left_context={self.left_context}, right_context={self.right_context}, "
-                f"joint_angles_T={joint_angles.shape[-1]}"
-            )
-
         features = self.featurizer(emg)  # BCT_feat
         decoded = self.decoder(features)
         preds = self.head(decoded)
-
-        if preds.ndim == 2:
-            preds = preds[..., None]
-        n_time = targets.shape[-1]
-        preds = self.align_predictions(preds, n_time)
-        mask = self.align_mask(mask, n_time)
-
-        return preds, targets, mask
+        return preds

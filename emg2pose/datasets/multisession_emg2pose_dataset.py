@@ -73,6 +73,9 @@ class MultiSessionWindowedEmgDataset(Dataset):
     )
     skip_ik_failures: bool = False
     max_open_files: int = 16  # H5Pool capacity per worker
+    norm_mode: str | None = None  # global|channel|user|user_channel|batch|instance
+    norm_stats_path: Path | None = None
+    norm_eps: float = 1e-6
 
     def __post_init__(self):
         assert self.window_length > 0
@@ -93,12 +96,72 @@ class MultiSessionWindowedEmgDataset(Dataset):
 
         # pool is created lazily per worker/process
         self._pool: H5Pool | None = None
+        self._norm_stats: dict[str, Any] | None = None
 
     def _get_pool(self) -> H5Pool:
         # Each worker has its own dataset copy -> its own pool
         if self._pool is None:
             self._pool = H5Pool(max_open=self.max_open_files)
         return self._pool
+
+    def _load_norm_stats(self) -> None:
+        if self._norm_stats is not None:
+            return
+        if not self.norm_stats_path:
+            self._norm_stats = {}
+            return
+        stats = np.load(self.norm_stats_path, allow_pickle=True)
+        self._norm_stats = {
+            k: stats[k].item() if stats[k].dtype == object else stats[k]
+            for k in stats.files
+        }
+
+    def _apply_norm(self, emg: torch.Tensor, user: str, side: str) -> torch.Tensor:
+        if not self.norm_mode or self.norm_mode == "batch":
+            return emg
+        eps = float(self.norm_eps)
+        if self.norm_mode == "instance":
+            mean = emg.mean()
+            std = emg.std()
+            return (emg - mean) / (std + eps)
+        self._load_norm_stats()
+        stats = self._norm_stats or {}
+
+        if self.norm_mode == "global":
+            mean = float(stats.get("global_mean", 0.0))
+            std = float(stats.get("global_std", 1.0))
+            return (emg - mean) / max(std, eps)
+
+        if self.norm_mode == "channel":
+            mean = stats.get("channel_mean")
+            std = stats.get("channel_std")
+            if mean is None or std is None:
+                return emg
+            offset = 0 if side == "left" else 16
+            m = torch.as_tensor(mean[offset:offset + emg.shape[-1]], dtype=emg.dtype, device=emg.device)
+            s = torch.as_tensor(std[offset:offset + emg.shape[-1]], dtype=emg.dtype, device=emg.device)
+            return (emg - m) / torch.clamp(s, min=eps)
+
+        if self.norm_mode == "user":
+            mean_map = stats.get("user_mean", {})
+            std_map = stats.get("user_std", {})
+            mean = float(mean_map.get(user, 0.0))
+            std = float(std_map.get(user, 1.0))
+            return (emg - mean) / max(std, eps)
+
+        if self.norm_mode == "user_channel":
+            mean_map = stats.get("user_channel_mean", {})
+            std_map = stats.get("user_channel_std", {})
+            if user not in mean_map or user not in std_map:
+                return emg
+            mean = mean_map[user]
+            std = std_map[user]
+            offset = 0 if side == "left" else 16
+            m = torch.as_tensor(mean[offset:offset + emg.shape[-1]], dtype=emg.dtype, device=emg.device)
+            s = torch.as_tensor(std[offset:offset + emg.shape[-1]], dtype=emg.dtype, device=emg.device)
+            return (emg - m) / torch.clamp(s, min=eps)
+
+        return emg
 
     def _session_len(self, path: Path) -> int:
         # Open/close quickly only for indexing.
@@ -192,6 +255,9 @@ class MultiSessionWindowedEmgDataset(Dataset):
 
         emg = self.transform(window)          # should return Tensor
         assert torch.is_tensor(emg)
+        user = str(h5["group"].attrs.get("user", "unknown"))
+        side = str(h5["group"].attrs.get("side", "unknown")).lower()
+        emg = self._apply_norm(emg, user=user, side=side)
 
         joint_angles = torch.as_tensor(window["joint_angles"])
         finite_mask = torch.isfinite(joint_angles).all(dim=1)  # T
@@ -209,6 +275,15 @@ class MultiSessionWindowedEmgDataset(Dataset):
         mask = torch.as_tensor(no_fail, dtype=torch.bool)
         mask = mask & finite_mask
 
+        vq_indices = None
+        if "vq_indices" in g:
+            vq = g["vq_indices"]
+            # shape (L, T_full)
+            vq_slice = vq[:, window_start:window_end]
+            vq_indices = torch.as_tensor(vq_slice, dtype=torch.long)
+            if vq_indices.dim() == 1:
+                vq_indices = vq_indices.unsqueeze(0)
+
         return {
             "emg": emg.T,                       # CT
             "joint_angles": joint_angles.T,      # CT
@@ -216,4 +291,7 @@ class MultiSessionWindowedEmgDataset(Dataset):
             "window_start_idx": window_start,
             "window_end_idx": window_end,
             "session_idx": si,
+            "user": user,
+            "side": side,
+            "code_indices": vq_indices,          # (L, T) or None
         }

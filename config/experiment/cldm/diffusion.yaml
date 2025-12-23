@@ -1,0 +1,39 @@
+# @package _global_
+defaults:
+  - override /lr_scheduler: reduce_on_plateau
+
+unet:
+  _target_: emg2pose.models.modules.cldm_unet.UNet1D
+  in_channels: 16
+  cond_channels: 16
+  channels: [32, 64, 128, 256]
+  time_dim: 256
+  cond_mode: concat
+
+emg_vae:
+  _target_: emg2pose.models.modules.cldm_vae.VAE1D
+  in_channels: 16
+  out_channels: 16
+  channels: [32, 64, 64, 64]
+  latent_channels: 16
+
+pose_vae:
+  _target_: emg2pose.models.modules.cldm_vae.VAE1D
+  in_channels: 20
+  out_channels: 20
+  channels: [32, 64, 64, 64]
+  latent_channels: 16
+
+emg_vae_checkpoint: null
+pose_vae_checkpoint: null
+
+optimizer:
+  lr: 1.0e-4
+
+datamodule:
+  window_length: 4_000
+  val_test_window_length: 4_000
+  stride: 4_000
+  val_test_stride: 4_000
+  norm_mode: batch
+  max_open_files: 4
