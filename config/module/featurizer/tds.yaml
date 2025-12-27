@@ -4,6 +4,7 @@ se:
   enable: true
   reduction: 4
   residual: true
+  mode: global
 
 conv_blocks:
   - _target_: emg2pose.models.featurizers.tds.Conv1dBlock

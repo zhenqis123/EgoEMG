@@ -12,8 +12,8 @@ loss_weights:
   cls: 1.0
 num_workers: 8
 # Algorithm settings
-provide_initial_pos: False
 module:
+  provide_initial_pos: False
   decoder:
     causal: true
     preset: small

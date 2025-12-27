@@ -113,8 +113,14 @@ class JointAngleVQVAEModule(pl.LightningModule):
         target = joint_angles
         B = batch['emg'].shape[0]
         mask = batch['label_valid_mask']
-        joint_angles_reshaped = joint_angles.reshape(B, 5, 4, 2000)
-        recon, indices, vq_loss, codebook_loss, commit_loss = self.forward(joint_angles_reshaped)
+        model_input = joint_angles
+        input_mode = getattr(self.model, "input_mode", "bct")
+        if input_mode == "joint_5x4":
+            model_input = joint_angles.reshape(B, 5, 4, joint_angles.shape[-1])
+        elif input_mode != "bct":
+            raise ValueError(f"Unsupported VQ-VAE input_mode: {input_mode}")
+
+        recon, indices, vq_loss, codebook_loss, commit_loss = self.forward(model_input)
         recon_loss = F.mse_loss(recon, target)
         loss = recon_loss + vq_loss
 
@@ -139,7 +145,6 @@ class JointAngleVQVAEModule(pl.LightningModule):
         self.log(f"{stage}/perplexity", perplexity, sync_dist=True)
         self.log(f"{stage}/angle_mae_rad", angle_mae, sync_dist=True)
         self.log(f"{stage}/angle_mae_deg", angle_mae_deg, sync_dist=True)
-
         return loss
 
     def training_step(self, batch, batch_idx) -> torch.Tensor:

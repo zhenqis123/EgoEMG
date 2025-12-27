@@ -183,15 +183,12 @@ class EmgPredictionModule(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.model: BaseModule = instantiate(module_conf, _convert_="all")
-        self.provide_initial_pos = bool(getattr(self.model, "provide_initial_pos", False))
         self.loss_weights = loss_weights or {"mae": 1}
         self._warned_emg_nan = False
         self.task_type = task_type
         self.ignore_index = ignore_index
         self.label_smoothing = float(label_smoothing)
-        # import ipdb;ipdb.set_trace()
         self.gumbel_recon = gumbel_recon or {}
-        # self.use_gumbel_recon = bool(self.gumbel_recon.get("enabled", False))
         self.use_gumbel_recon = True
         self.gumbel_tau = float(self.gumbel_recon.get("temperature", 1.0))
         self.gumbel_hard = bool(self.gumbel_recon.get("hard", False))
@@ -205,8 +202,7 @@ class EmgPredictionModule(pl.LightningModule):
     def forward(
         self, batch: Mapping[str, torch.Tensor]
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        # import ipdb;ipdb.set_trace()
-        out = self.model.forward(batch, self.provide_initial_pos)
+        out = self.model.forward(batch)
         if self.task_type == "discrete":
             return self._prepare_discrete(out, batch)
         preds = out
@@ -261,7 +257,7 @@ class EmgPredictionModule(pl.LightningModule):
             mean = emg.mean()
             std = emg.std()
             batch["emg"] = (emg - mean) / (std + 1e-6)
-        preds, targets= self.forward(batch) 
+        preds, targets, mask= self.forward(batch) 
         joint_angles = batch['joint_angles']
         start = self.model.left_context
         stop = None if self.model.right_context == 0 else -self.model.right_context

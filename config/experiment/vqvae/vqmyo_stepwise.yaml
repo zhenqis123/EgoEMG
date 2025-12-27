@@ -1,0 +1,49 @@
+# @package _global_
+defaults:
+  - override /lr_scheduler: warmup_cosine
+vqvae:
+  _target_: emg2pose.models.modules.vqvae_stepwise.TimeStepGroupedVQVAE
+  input_dim: 20
+  embed_dim: 128
+  num_groups: 8
+  group_dim: 16
+  num_codes: 128
+  commitment_cost: 0.25
+  dropout: 0.1
+  downsample_rate: 0.02
+  use_ema: False
+  # 新增 MLP 控制项
+  enc_hidden_dim: 512   # 宽度：若设为 1024 参数量将翻 4 倍
+  enc_num_blocks: 15    # 深度：每一个 Block 包含两个线性层
+
+checkpoint: /home/xiziheng/develop/emg2pose/logs/vqvae/2025-12-24/11-22-46/lightning_logs/version_0/checkpoints/best-monitor_metric=0.0000.ckpt
+
+angle_representation:
+  mode: angle
+  num_joints: 20
+batch_size: 400
+optimizer:
+  lr: 0.0001
+datamodule:
+  window_length: 10000
+  val_test_window_length: 10000
+  stride: 10000
+  val_test_stride: 10000
+  norm_mode: null
+  max_open_files: 4
+  skip_ik_failures: True
+matmul_precision: highest
+trainer:
+  max_epochs: 50
+  devices: [0]
+  precision: 32
+
+lr_scheduler:
+  scheduler:
+    warmup_iters: 1
+    max_epochs: ${trainer.max_epochs}
+    eta_min: 1e-5
+    start_factor: 1e-3
+    end_factor: 1.0
+  interval: epoch
+  frequency: 1

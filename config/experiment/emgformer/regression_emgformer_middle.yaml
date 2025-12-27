@@ -5,8 +5,8 @@ defaults:
   - _self_
 
 # Algorithm settings
-provide_initial_pos: False
 module:
+  provide_initial_pos: False
   decoder:
     causal: true
     preset: middle
@@ -14,15 +14,52 @@ module:
     in_channels: 256
 # Hyperparameters
 optimizer:
-  lr: .001
+  lr: .0005
 datamodule:
   # Adding 1790 samples, which is the left_context of the tds network
-  window_length: 11_790
-  val_test_window_length: 11_790
-  stride: 5_000
+  window_length: 7_790
+  val_test_window_length: 7_790
+  max_open_files: 4
+  norm_mode: batch
+  norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
+  skip_ik_failures: False
 
 trainer:
   gradient_clip_val: 1
-  devices: [0]
+  devices: [0,1,5]
+  precision: bf16-mixed
+  max_epochs: 200
+  check_val_every_n_epoch: 1
 
-batch_size: 640
+batch_size: 610
+matmul_precision: high
+
+transforms:
+  train:
+    - _target_: emg2pose.transforms.ExtractField
+      field: "emg"
+    - _target_: emg2pose.transforms.RotationAugmentation
+      channel_dim: -1
+    - _target_: emg2pose.transforms.ToFloatTensor
+    - _target_: emg2pose.transforms.RandomChannelMask
+      mask_prob: 0.5
+      min_masked: 0
+      max_masked: null
+      channel_dim: -1
+      mask_value: 0.0
+    - _target_: emg2pose.transforms.RandomTimeMask
+      max_mask_size: 1000
+      num_masks: 2
+      min_mask_size: 0
+      time_dim: 0
+      mask_value: 0.0
+      mask_prob: 0.6
+    - _target_: emg2pose.transforms.RandomFrequencyMask
+      max_mask_size: 128
+      num_masks: 2
+      min_mask_size: 16
+      time_dim: 0
+      mask_prob: 0.6
+  val:
+    - ${to_tensor}
+  test: ${transforms.val}

@@ -142,6 +142,9 @@ class VQ2DWrapper(nn.Module):
 
         return z_q, indices, vq_loss, codebook_loss, commit_loss
 
+    def get_codebook(self) -> torch.Tensor:
+        return self.vq.codebook.weight
+
 
 # -------------------------
 # Conv Encoder / Decoder
@@ -258,6 +261,7 @@ class JointAngleVQVAE(nn.Module):
     forward(x_3d) returns:
       recon_20T, indices, vq_loss, codebook_loss, commit_loss
     """
+    input_mode = "joint_5x4"
 
     def __init__(
         self,
@@ -281,8 +285,10 @@ class JointAngleVQVAE(nn.Module):
         """
         x_3d: (B, 5, 4, 2000)
         """
-        if x_3d.shape[-1] != 2000 or x_3d.shape[1] != 5 or x_3d.shape[2] != 4:
-            raise ValueError(f"Expected x_3d shape (B,5,4,2000), got {tuple(x_3d.shape)}")
+        if x_3d.shape[1] != 5 or x_3d.shape[2] != 4:
+            raise ValueError(
+                f"Expected x_3d shape (B,5,4,T), got {tuple(x_3d.shape)}"
+            )
 
         z_e = self.encoder(x_3d)  # (B, 10, 5, 200)
         z_q, indices, vq_loss, codebook_loss, commit_loss = self.quantizer(z_e)

@@ -19,13 +19,17 @@ class Emg2PoseFormer(BaseModule):
         decoder: nn.Module,
         head: nn.Module,
         out_channels: int = 20,
+        provide_initial_pos: bool = False,
     ):
-        super().__init__(featurizer=featurizer, decoder=decoder, out_channels=out_channels)
+        super().__init__(
+            featurizer=featurizer,
+            decoder=decoder,
+            out_channels=out_channels,
+            provide_initial_pos=provide_initial_pos,
+        )
         self.head = head
 
-    def forward(
-        self, batch: dict[str, torch.Tensor], provide_initial_pos: bool
-    ) -> torch.Tensor:
+    def forward(self, batch: dict[str, torch.Tensor]) -> torch.Tensor:
         emg = batch["emg"]
         features = self.featurizer(emg)  # BCT_feat
         decoded = self.decoder(features)

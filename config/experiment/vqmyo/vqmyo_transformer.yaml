@@ -1,0 +1,84 @@
+# @package _global_
+defaults:
+  - _self_
+
+checkpoint: null
+
+emg2vqvae:
+  model:
+    _target_: emg2pose.models.modules.emg_to_vqvae_transformer.EmgToVQVAETransformer
+    in_channels: 16
+    model_dim: 384
+    num_heads: 12
+    num_layers: 8
+    ffn_dim: 1536
+    dropout: 0.1
+    activation: relu
+    norm_first: true
+    causal: false
+    pos_encoding: sinusoidal
+    input_kernel: 1
+    input_stride: 1
+    num_codes: 128
+    num_groups: 5
+    output_steps: 200
+  vqvae:
+    _target_: emg2pose.models.modules.vqvae_vqmyo.JointAngleVQVAE
+    embed_dim: 10
+    num_codes: 128
+    commitment_cost: 0.25
+    dropout: 0.0
+  vqvae_checkpoint: /home/xiziheng/develop/emg2pose/logs/vqvae/2025-12-22/10-19-40/lightning_logs/version_0/checkpoints/best-monitor_metric=0.0000.ckpt
+  gumbel:
+    temperature: 1.0
+    hard: false
+  loss_weights:
+    latent: 1.0
+    recon: 0.5
+  label_smoothing: 0.05
+matmul_precision: high
+datamodule:
+  window_length: 2_000
+  val_test_window_length: 2_000
+  stride: 2_000
+  val_test_stride: 2_000
+  norm_mode: batch
+  max_open_files: 4
+  skip_ik_failures: True
+
+batch_size: 40
+optimizer:
+  lr: .0003
+trainer:
+  max_epochs: 100
+  devices: [0]
+
+transforms:
+  train:
+    - _target_: emg2pose.transforms.ExtractField
+      field: "emg"
+    - _target_: emg2pose.transforms.RotationAugmentation
+      channel_dim: -1
+    - _target_: emg2pose.transforms.ToFloatTensor
+    - _target_: emg2pose.transforms.RandomChannelMask
+      mask_prob: 0.5
+      min_masked: 0
+      max_masked: null
+      channel_dim: -1
+      mask_value: 0.0
+    - _target_: emg2pose.transforms.RandomTimeMask
+      max_mask_size: 1000
+      num_masks: 2
+      min_mask_size: 0
+      time_dim: 0
+      mask_value: 0.0
+      mask_prob: 1.0
+    - _target_: emg2pose.transforms.RandomFrequencyMask
+      max_mask_size: 128
+      num_masks: 2
+      min_mask_size: 16
+      time_dim: 0
+      mask_prob: 1.0
+  val:
+    - ${to_tensor}
+  test: ${transforms.val}

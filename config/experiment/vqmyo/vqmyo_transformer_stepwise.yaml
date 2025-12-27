@@ -6,49 +6,59 @@ checkpoint: null
 
 emg2vqvae:
   model:
-    _target_: emg2pose.models.modules.emg_to_vqvae_latent.EmgToVQVAELatent
+    _target_: emg2pose.models.modules.emg_to_vqvae_transformer.EmgToVQVAETransformer
     in_channels: 16
-    conv_channels: [64, 128, 128, 128]
-    conv_kernels: [10, 6, 4, 3]
-    conv_strides: [3, 2, 1, 1]
-    conv_paddings: [5, 2, 1, 0]
-    dropout: 0.2
-    gru_hidden: 512
-    gru_layers: 2
+    model_dim: 256
+    num_heads: 8
+    num_layers: 6
+    ffn_dim: 1024
+    dropout: 0.1
+    activation: relu
+    norm_first: true
+    causal: false
+    pos_encoding: sinusoidal
+    input_kernel: 1
+    input_stride: 1
     num_codes: 128
-    num_groups: 5
-    align_kernel: 31
-    output_steps: 200
+    num_groups: 8
+    output_steps: 2000
   vqvae:
-    _target_: emg2pose.models.modules.vqvae_vqmyo.JointAngleVQVAE
-    embed_dim: 10
+    _target_: emg2pose.models.modules.vqvae_stepwise.TimeStepGroupedVQVAE
+    input_dim: 20
+    embed_dim: 128
+    num_groups: 8
+    group_dim: 16
     num_codes: 128
     commitment_cost: 0.25
-    dropout: 0.0
-  vqvae_checkpoint: /home/xiziheng/develop/emg2pose/logs/vqvae/2025-12-22/10-19-40/lightning_logs/version_0/checkpoints/best-monitor_metric=0.0000.ckpt
+    dropout: 0.1
+    downsample_rate: 1
+    use_ema: False
+    enc_hidden_dim: 512
+    enc_num_blocks: 15
+  vqvae_checkpoint: /home/xiziheng/develop/emg2pose/logs/vqvae/2025-12-24/15-20-45/lightning_logs/version_0/checkpoints/best-monitor_metric=0.0000.ckpt
   gumbel:
     temperature: 1.0
     hard: false
   loss_weights:
     latent: 1.0
-    recon: 0.5
+    recon: 0.
   label_smoothing: 0.05
-
+matmul_precision: high
 datamodule:
   window_length: 2_000
   val_test_window_length: 2_000
   stride: 2_000
   val_test_stride: 2_000
-  norm_mode: null
+  norm_mode: batch
   max_open_files: 4
   skip_ik_failures: True
 
-batch_size: 450
+batch_size: 100
 optimizer:
-  lr: .0003
+  lr: .0005
 trainer:
-  max_epochs: 100
-  devices: [0,1,2]
+  max_epochs: 200
+  devices: [0]
 
 transforms:
   train:

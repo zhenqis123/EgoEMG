@@ -13,21 +13,21 @@ checkpoint: null
 angle_representation:
   mode: angle
   num_joints: 20
-batch_size: 350
+batch_size: 70
 optimizer:
   lr: 0.0003
 datamodule:
-  window_length: 2_000
-  val_test_window_length: 2_000
-  stride: 2_000
-  val_test_stride: 2_000
+  window_length: 10_000
+  val_test_window_length: 10_000
+  stride: 10_000
+  val_test_stride: 10_000
   norm_mode: null
   max_open_files: 4
   skip_ik_failures: True
 
 trainer:
   max_epochs: 300
-  devices: [0,1,2]
+  devices: [0]
   # precision: bf16-mixed
 
 lr_scheduler:

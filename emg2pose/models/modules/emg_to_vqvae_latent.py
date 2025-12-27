@@ -86,12 +86,6 @@ class EmgToVQVAELatent(nn.Module):
                 self.alignment.bias.zero_()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Args:
-            x: (B, 16, 2000)
-        Returns:
-            logits: (B, 1000, K)
-        """
         if x.ndim != 3:
             raise ValueError(
                 f"Expected x to have shape (B, C, T), got {tuple(x.shape)}"

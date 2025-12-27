@@ -1,7 +1,7 @@
 # @package _global_
 defaults:
   - /module: vemg_with_initial_state
-  - override /lr_scheduler: cosine
+  - override /lr_scheduler: warmup_cosine
   - _self_
 
 # Algorithm settings
@@ -9,24 +9,26 @@ module:
   provide_initial_pos: False
   state_condition: True
   head:
-    _target_: torch.nn.Identity
+    _target_: emg2pose.models.heads.mlp.MLPHead
+    in_channels: 20
+    out_channels: 20
+
 # Hyperparameters
 optimizer:
-  lr: .0005
+  lr: .001
 datamodule:
   # Adding 1790 samples, which is the left_context of the tds network
-  window_length: 7_790
-  val_test_window_length: 7_790
+  window_length: 11_790
+  val_test_window_length: 11_790
   max_open_files: 4
   norm_mode: batch
   norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
-  skip_ik_failures: True
 trainer:
   gradient_clip_val: 1
   devices: [0]
   precision: 32
   max_epochs: 100
-batch_size: 380
+batch_size: 480
 matmul_precision: high
 
 transforms:

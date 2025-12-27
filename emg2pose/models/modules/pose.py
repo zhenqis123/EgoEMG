@@ -19,8 +19,17 @@ class PoseModule(BaseModule):
     optionally given the initial state.
     """
 
-    def __init__(self, featurizer: nn.Module, predict_vel: bool = False):
-        super().__init__(featurizer, decoder=None)
+    def __init__(
+        self,
+        featurizer: nn.Module,
+        predict_vel: bool = False,
+        provide_initial_pos: bool = False,
+    ):
+        super().__init__(
+            featurizer,
+            decoder=None,
+            provide_initial_pos=provide_initial_pos,
+        )
         self.predict_vel = predict_vel
 
     def _predict_pose(self, emg: torch.Tensor, initial_pos: torch.Tensor):
@@ -44,8 +53,13 @@ class StatePoseModule(BaseModule):
         state_condition: bool = True,
         predict_vel: bool = False,
         rollout_freq: int = 50,
+        provide_initial_pos: bool = False,
     ):
-        super().__init__(featurizer, decoder)
+        super().__init__(
+            featurizer,
+            decoder,
+            provide_initial_pos=provide_initial_pos,
+        )
         self.state_condition = state_condition
         self.predict_vel = predict_vel
         self.rollout_freq = rollout_freq
@@ -91,37 +105,33 @@ class VEMG2PoseWithInitialState(BaseModule):
         state_condition: bool = True,
         rollout_freq: int = 50,
         head: nn.Module | None = None,
+        provide_initial_pos: bool = False,
     ):
-        super().__init__(featurizer, decoder)
+        super().__init__(
+            featurizer,
+            decoder,
+            provide_initial_pos=provide_initial_pos,
+        )
         self.num_position_steps = num_position_steps
         self.state_condition = state_condition
         self.rollout_freq = rollout_freq
         self.head = head
 
     def forward(
-        self, batch: dict[str, torch.Tensor], provide_initial_pos: bool
+        self, batch: dict[str, torch.Tensor]
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         emg = batch["emg"]
-        joint_angles = batch['joint_angles']
-        features = self.featurizer(emg)  # BCT
-        if isinstance(self.decoder, SequentialLSTM):
-            self.decoder.reset_state()
+        joint_angles = batch["joint_angles"]
+
         # Get initial position
         initial_pos = joint_angles[..., self.left_context]
-        if not provide_initial_pos:
-            initial_pos = torch.zeros(joint_angles.shape[0], 256, device=joint_angles.device)
-        preds = [initial_pos]
-        for t in range(features.shape[-1]):
+        if not self.provide_initial_pos:
+            initial_pos = torch.zeros_like(initial_pos)
 
-            inputs = features[:, :, t]
-            if self.state_condition:
-                inputs = torch.concat([inputs, preds[-1]], dim=-1)
-            output = self.decoder(inputs)  # BC
-            pos, vel = torch.split(output, output.shape[1] // 2, dim=1)
-
-            pred = pos if t < self.num_position_steps else preds[-1] + vel
-            preds.append(pred)
-        return self.head(torch.stack(preds[1:], dim=-1))
+        preds = self._predict_pose(emg, initial_pos)
+        if self.head is None:
+            return preds
+        return self.head(preds)
 
     def _predict_pose(self, emg: torch.Tensor, initial_pos: torch.Tensor):
         features = self.featurizer(emg)  # BCT

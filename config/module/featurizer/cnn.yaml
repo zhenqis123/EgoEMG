@@ -12,6 +12,7 @@ conv_blocks:
       enable: false
       reduction: 4
       residual: true
+      mode: causal
   - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
     in_channels: 256
     out_channels: 256
@@ -23,6 +24,7 @@ conv_blocks:
       enable: false
       reduction: 4
       residual: true
+      mode: causal
 
 cnn_stages:
   - _target_: emg2pose.models.featurizers.cnn.CNNStage
@@ -38,6 +40,7 @@ cnn_stages:
       enable: false
       reduction: 4
       residual: true
+      mode: causal
   - _target_: emg2pose.models.featurizers.cnn.CNNStage
     in_channels: 256
     in_conv_kernel_width: 9
@@ -51,3 +54,4 @@ cnn_stages:
       enable: false
       reduction: 4
       residual: true
+      mode: causal

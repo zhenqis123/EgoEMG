@@ -6,8 +6,8 @@ defaults:
   - _self_
 
 # Algorithm settings
-provide_initial_pos: False
 module:
+  provide_initial_pos: False
   predict_vel: False
   state_condition: True
 

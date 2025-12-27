@@ -21,18 +21,20 @@ class BaseModule(nn.Module):
         featurizer: nn.Module,
         decoder: nn.Module | None = None,
         out_channels: int = 20,
+        provide_initial_pos: bool = False,
     ):
         super().__init__()
         # Backward compat: keep `network` attribute while exposing `featurizer`.
         self.featurizer = featurizer
         self.decoder = decoder
         self.out_channels = out_channels
+        self.provide_initial_pos = provide_initial_pos
 
         self.left_context = featurizer.left_context
         self.right_context = featurizer.right_context
 
     def forward(
-        self, batch: dict[str, torch.Tensor], provide_initial_pos: bool
+        self, batch: dict[str, torch.Tensor]
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
 
         emg = batch["emg"]
@@ -41,7 +43,7 @@ class BaseModule(nn.Module):
 
         # Get initial position
         initial_pos = joint_angles[..., self.left_context]
-        if not provide_initial_pos:
+        if not self.provide_initial_pos:
             initial_pos = torch.zeros_like(initial_pos)
 
         # Generate prediction

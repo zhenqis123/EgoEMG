@@ -12,5 +12,5 @@ decoder:
   causal: true
   activation: relu
   norm_first: true
-  pos_encoding: sinusoidal
+  pos_encoding: rope
   out_proj: true

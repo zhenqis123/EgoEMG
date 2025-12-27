@@ -9,11 +9,18 @@ from torch import nn
 
 
 class SqueezeExcite(nn.Module):
-    """Causal Channel-wise Squeeze-Excitation over temporal dimension."""
-    def __init__(self, channels: int, reduction: int = 4, residual: bool = True):
+    """Channel-wise Squeeze-Excitation over temporal dimension."""
+    def __init__(
+        self,
+        channels: int,
+        reduction: int = 4,
+        residual: bool = True,
+        mode: Literal["causal", "global"] = "causal",
+    ):
         super().__init__()
         hidden = max(channels // reduction, 1)
         self.residual = residual
+        self.mode = mode
         # 1x1 Conv1d <=> per-time-step Linear over channels
         self.net = nn.Sequential(
             nn.Conv1d(channels, hidden, kernel_size=1),
@@ -26,10 +33,16 @@ class SqueezeExcite(nn.Module):
         # x: (B, C, T)
         B, C, T = x.shape
 
-        # prefix mean: scale_pool[..., t] = mean_{k<=t} x[..., k]
-        cumsum = torch.cumsum(x, dim=-1)  # (B, C, T)
-        denom = torch.arange(1, T + 1, device=x.device, dtype=x.dtype).view(1, 1, T)
-        scale_pool = cumsum / denom  # (B, C, T) strictly causal
+        if self.mode == "causal":
+            # prefix mean: scale_pool[..., t] = mean_{k<=t} x[..., k]
+            cumsum = torch.cumsum(x, dim=-1)  # (B, C, T)
+            denom = torch.arange(1, T + 1, device=x.device, dtype=x.dtype).view(
+                1, 1, T
+            )
+            scale_pool = cumsum / denom  # (B, C, T) strictly causal
+        else:
+            # global mean over time, then broadcast
+            scale_pool = x.mean(dim=-1, keepdim=True).expand(-1, -1, T)
 
         scale = self.net(scale_pool)  # (B, C, T)
         out = x * scale
@@ -130,6 +143,7 @@ class Conv1dBlock(nn.Module):
                 channels=out_channels,
                 reduction=int(se.get("reduction", 4)),
                 residual=bool(se.get("residual", True)),
+                mode=str(se.get("mode", "causal")),
             )
         )
 
@@ -189,6 +203,7 @@ class TDSConv2dBlock(nn.Module):
                 channels=channels * width,
                 reduction=int(se.get("reduction", 4)),
                 residual=bool(se.get("residual", True)),
+                mode=str(se.get("mode", "causal")),
             )
         )
 
@@ -240,6 +255,7 @@ class TDSFullyConnectedBlock(nn.Module):
                 channels=num_features,
                 reduction=int(se.get("reduction", 4)),
                 residual=bool(se.get("residual", True)),
+                mode=str(se.get("mode", "causal")),
             )
         )
 
@@ -398,6 +414,7 @@ class TdsNetwork(nn.Module):
                     channels=block.conv[0].out_channels,
                     reduction=int(se.get("reduction", 4)),
                     residual=bool(se.get("residual", True)),
+                    mode=str(se.get("mode", "causal")),
                 )
             for stage in tds_stages:
                 if hasattr(stage, "layers"):
@@ -407,6 +424,7 @@ class TdsNetwork(nn.Module):
                             channels=conv.conv[0].out_channels,
                             reduction=int(se.get("reduction", 4)),
                             residual=bool(se.get("residual", True)),
+                            mode=str(se.get("mode", "causal")),
                         )
                 if hasattr(stage, "layers"):
                     for layer in stage.layers:
@@ -417,6 +435,7 @@ class TdsNetwork(nn.Module):
                                         channels=sub.layer_norm.normalized_shape[0],
                                         reduction=int(se.get("reduction", 4)),
                                         residual=bool(se.get("residual", True)),
+                                        mode=str(se.get("mode", "causal")),
                                     )
         self.layers = nn.Sequential(*conv_blocks, *tds_stages)
         self.left_context = self._get_left_context(conv_blocks, tds_stages)
