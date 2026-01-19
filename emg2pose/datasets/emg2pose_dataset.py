@@ -220,15 +220,32 @@ class WindowedEmgDataset(torch.utils.data.Dataset):
         window_end = offset + self.window_length + self.right_padding
         window = self.session[window_start:window_end]
 
-        emg = self.transform(window)
-        assert torch.is_tensor(emg)
+        def _as_tensor(value: Any) -> torch.Tensor:
+            return value if torch.is_tensor(value) else torch.as_tensor(value)
 
-        joint_angles = window[Emg2PoseSessionData.JOINT_ANGLES]
-        joint_angles = torch.as_tensor(joint_angles)
+        transformed = self.transform(window)
+        joint_angles = None
+
+        if isinstance(transformed, tuple) and len(transformed) == 2:
+            emg, joint_angles = transformed
+        elif isinstance(transformed, dict):
+            emg = transformed.get("emg")
+            if emg is None:
+                raise ValueError("Transform dict output must include 'emg'.")
+            joint_angles = transformed.get(Emg2PoseSessionData.JOINT_ANGLES)
+        else:
+            emg = transformed
+
+        emg = _as_tensor(emg)
+        if joint_angles is None:
+            joint_angles = window[Emg2PoseSessionData.JOINT_ANGLES]
+        joint_angles = _as_tensor(joint_angles)
 
         finite_mask = torch.isfinite(joint_angles).all(dim=1)  # T
         if not finite_mask.all():
-            joint_angles = torch.nan_to_num(joint_angles, nan=0.0, posinf=0.0, neginf=0.0)
+            joint_angles = torch.nan_to_num(
+                joint_angles, nan=0.0, posinf=0.0, neginf=0.0
+            )
 
         mask = torch.as_tensor(self.session.no_ik_failure[window_start:window_end])
         mask = mask & finite_mask

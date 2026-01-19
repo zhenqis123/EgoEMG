@@ -50,13 +50,11 @@ transforms:
       min_mask_size: 0
       time_dim: 0
       mask_value: 0.0
-      mask_prob: 1.0
     - _target_: emg2pose.transforms.RandomFrequencyMask
       max_mask_size: 128
       num_masks: 2
       min_mask_size: 16
       time_dim: 0
-      mask_prob: 1.0
   val:
     - ${to_tensor}
   test: ${transforms.val}

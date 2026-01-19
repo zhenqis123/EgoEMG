@@ -1,0 +1,8 @@
+_target_: emg2pose.models.decoders.channel_time_rope_transformer.CyRoPETransformerEncoder
+model_dim: 256
+num_heads: 4
+num_layers: 3
+num_channels: 16
+channel_angles: null
+time_base: 10000.0
+dropout: 0.1

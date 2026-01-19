@@ -3,6 +3,6 @@ lr_scheduler:
   scheduler:
     _target_: torch.optim.lr_scheduler.CosineAnnealingLR
     T_max: ${trainer.max_epochs}
-    eta_min: 1e-5
+    eta_min: 5e-6
   interval: epoch
   frequency: 1

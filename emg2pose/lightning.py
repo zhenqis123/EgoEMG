@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning.utilities import rank_zero_only
 
 from emg2pose import utils
 from emg2pose.datasets.multisession_emg2pose_dataset import (
@@ -199,6 +200,31 @@ class EmgPredictionModule(pl.LightningModule):
         self.regression_metrics = get_default_metrics()
         self.discrete_metrics: list = []  # placeholder for custom discrete metrics if needed
 
+    def on_fit_start(self) -> None:
+        super().on_fit_start()
+        self._log_param_breakdown()
+
+    @rank_zero_only
+    def _log_param_breakdown(self) -> None:
+        def _count_params(module: torch.nn.Module) -> tuple[int, int]:
+            total = sum(p.numel() for p in module.parameters())
+            trainable = sum(p.numel() for p in module.parameters() if p.requires_grad)
+            return total, trainable
+
+        model = self.model
+        parts: dict[str, tuple[int, int]] = {}
+        if getattr(model, "featurizer", None) is not None:
+            parts["featurizer"] = _count_params(model.featurizer)
+        if getattr(model, "decoder", None) is not None:
+            parts["decoder"] = _count_params(model.decoder)
+
+        if parts:
+            formatted = ", ".join(
+                f"{name}={total}/{trainable}"
+                for name, (total, trainable) in parts.items()
+            )
+            log.info("Parameter breakdown (total/trainable): %s", formatted)
+
     def forward(
         self, batch: Mapping[str, torch.Tensor]
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -257,7 +283,8 @@ class EmgPredictionModule(pl.LightningModule):
             mean = emg.mean()
             std = emg.std()
             batch["emg"] = (emg - mean) / (std + 1e-6)
-        preds, targets, mask= self.forward(batch) 
+        preds, targets, mask = self.forward(batch)
+        batch_size = batch["emg"].shape[0]
         joint_angles = batch['joint_angles']
         start = self.model.left_context
         stop = None if self.model.right_context == 0 else -self.model.right_context
@@ -287,7 +314,7 @@ class EmgPredictionModule(pl.LightningModule):
             
             for metric in self.regression_metrics:
                 metrics.update(metric(decoded_angles, joint_angle_targets, valid_mask, stage))
-            self.log_dict(metrics, sync_dist=True)
+            self.log_dict(metrics, sync_dist=True, batch_size=batch_size)
             vqvae = self.model.head.vqvae_module
             if hasattr(vqvae.model, "quantize_angles"):
                 recon_angles, _, _, _, _ = vqvae(joint_angle_targets)
@@ -298,9 +325,16 @@ class EmgPredictionModule(pl.LightningModule):
             denom = valid_mask.sum() * recon_diff.shape[1]
             recon_mae = (recon_diff * valid_mask[:, None, :]).sum() / denom
             recon_mae_deg = recon_mae * (180.0 / torch.pi)
-            self.log(f"{stage}_recon_mae", recon_mae, sync_dist=True)
-            self.log(f"{stage}_recon_mae_deg", recon_mae_deg, sync_dist=True)
-            self.log(f"{stage}_loss", loss, sync_dist=True)
+            self.log(
+                f"{stage}_recon_mae", recon_mae, sync_dist=True, batch_size=batch_size
+            )
+            self.log(
+                f"{stage}_recon_mae_deg",
+                recon_mae_deg,
+                sync_dist=True,
+                batch_size=batch_size,
+            )
+            self.log(f"{stage}_loss", loss, sync_dist=True, batch_size=batch_size)
             return loss
 
         # regression path
@@ -308,12 +342,12 @@ class EmgPredictionModule(pl.LightningModule):
         metrics = {}
         for metric in self.regression_metrics:
             metrics.update(metric(preds, targets, valid_mask, stage))
-        self.log_dict(metrics, sync_dist=True)
+        self.log_dict(metrics, sync_dist=True, batch_size=batch_size)
 
         loss = 0.0
         for loss_name, weight in self.loss_weights.items():
             loss += metrics.get(f"{stage}_{loss_name}", 0.0) * weight
-        self.log(f"{stage}_loss", loss, sync_dist=True)
+        self.log(f"{stage}_loss", loss, sync_dist=True, batch_size=batch_size)
         return loss
         
     def training_step(self, batch, batch_idx) -> torch.Tensor:
@@ -378,8 +412,9 @@ class EmgPredictionModule(pl.LightningModule):
             #     correct = correct * mask.unsqueeze(-1)
             acc = correct.sum() / (mask.unsqueeze(-1).sum() + 1e-6) if mask is not None else correct.mean()
 
-        self.log(f"{stage}_cls_ce", ce_loss, sync_dist=True)
-        self.log(f"{stage}_cls_acc", acc, sync_dist=True)
+        batch_size = logits.shape[0]
+        self.log(f"{stage}_cls_ce", ce_loss, sync_dist=True, batch_size=batch_size)
+        self.log(f"{stage}_cls_acc", acc, sync_dist=True, batch_size=batch_size)
 
         return ce_loss
 
@@ -404,8 +439,19 @@ class EmgPredictionModule(pl.LightningModule):
             loss = (diff * valid[:, None, :]).sum() / denom
         else:
             loss = diff.mean()
-        self.log(f"{stage}_gumbel_recon_mae", loss, sync_dist=True)
-        self.log(f"{stage}_gumbel_recon_mae_deg", loss * (180.0 / torch.pi), sync_dist=True)
+        batch_size = logits.shape[0]
+        self.log(
+            f"{stage}_gumbel_recon_mae",
+            loss,
+            sync_dist=True,
+            batch_size=batch_size,
+        )
+        self.log(
+            f"{stage}_gumbel_recon_mae_deg",
+            loss * (180.0 / torch.pi),
+            sync_dist=True,
+            batch_size=logits.shape[0],
+        )
         return loss
 
     def _warn_if_gumbel_unfrozen(self) -> None:

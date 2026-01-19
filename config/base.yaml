@@ -13,13 +13,13 @@ seed: 42
 matmul_precision: null  # one of: highest, high, medium
 
 batch_size: 320
-num_workers: 16  # Number of workers for dataloading
+num_workers: 4  # Number of workers for dataloading
 
 train: True  # Whether to run training
 eval: True  # Whether to run evaluation on validation and test splits
 checkpoint: null
 
-monitor_metric: val_loss
+monitor_metric: val_mae
 monitor_mode: min
 
 loss_weights:
@@ -31,9 +31,12 @@ trainer:
   devices: [0]
   log_every_n_steps: 1
   precision: 32
+  enable_model_summary: False
 
 # By default: static learning rate
 callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelSummary
+    max_depth: 2
   - _target_: pytorch_lightning.callbacks.LearningRateMonitor
   - _target_: pytorch_lightning.callbacks.ModelCheckpoint
     monitor: ${monitor_metric}
@@ -41,7 +44,7 @@ callbacks:
     save_top_k: 3
     save_last: True
     verbose: True
-    filename: "best-{monitor_metric:.4f}"
+    filename: "best-${monitor_metric}={${monitor_metric}:.4f}"
   - _target_: pytorch_lightning.callbacks.EarlyStopping
     monitor: ${monitor_metric}
     mode: ${monitor_mode}

@@ -18,6 +18,7 @@ from emg2pose import transforms
 
 from emg2pose.lightning import EmgPredictionModule
 from emg2pose.transforms import Transform
+from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
 from omegaconf import DictConfig, ListConfig, OmegaConf
 import torch
@@ -151,6 +152,16 @@ def train(
         results["test_metrics"] = test_metrics
 
     pprint.pprint(results, sort_dicts=False)
+    if HydraConfig.initialized() and HydraConfig.get().mode.name == "MULTIRUN":
+        if not config.eval or not results.get("val_metrics"):
+            raise RuntimeError("Optuna sweeps require eval=True with val metrics.")
+        val_metrics = results["val_metrics"][0]
+        if config.monitor_metric not in val_metrics:
+            raise KeyError(
+                f"Monitor metric '{config.monitor_metric}' missing from val metrics."
+            )
+        return float(val_metrics[config.monitor_metric])
+
     return results
 
 

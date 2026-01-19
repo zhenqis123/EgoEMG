@@ -1,23 +1,28 @@
 # @package _global_
 defaults:
   - /module: emgformer
+  - override /module/featurizer: tds_no_out
   - override /module/decoder: transformer/preset/small
-  - override /lr_scheduler: warmup_cosine
+  - override /lr_scheduler: cosine
+  - override /transforms: emgformer_regression_aug_best
   - _self_
 
-# Algorithm settings
+checkpoint: 
 module:
   provide_initial_pos: False
   decoder:
     causal: true
     preset: small
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
   head:
     in_channels: 128
 
+num_workers: 6
 # Hyperparameters
 optimizer:
   lr: .001
-checkpoint: /home/xiziheng/develop/emg2pose/logs/2025-12-27/15-53-28/lightning_logs/version_0/checkpoints/best-monitor_metric=0.0000.ckpt
 datamodule:
   # Adding 1790 samples, which is the left_context of the tds network
   window_length: 7_790
@@ -29,40 +34,10 @@ datamodule:
 
 trainer:
   gradient_clip_val: 1
-  devices: [0,1,5]
+  devices: [0]
   precision: bf16-mixed
   max_epochs: 200
   check_val_every_n_epoch: 1
 
 batch_size: 830
 matmul_precision: high
-
-transforms:
-  train:
-    - _target_: emg2pose.transforms.ExtractField
-      field: "emg"
-    - _target_: emg2pose.transforms.RotationAugmentation
-      channel_dim: -1
-    - _target_: emg2pose.transforms.ToFloatTensor
-    - _target_: emg2pose.transforms.RandomChannelMask
-      mask_prob: 0.5
-      min_masked: 0
-      max_masked: null
-      channel_dim: -1
-      mask_value: 0.0
-    - _target_: emg2pose.transforms.RandomTimeMask
-      max_mask_size: 1000
-      num_masks: 2
-      min_mask_size: 0
-      time_dim: 0
-      mask_value: 0.0
-      mask_prob: 1.0
-    - _target_: emg2pose.transforms.RandomFrequencyMask
-      max_mask_size: 128
-      num_masks: 2
-      min_mask_size: 16
-      time_dim: 0
-      mask_prob: 1.0
-  val:
-    - ${to_tensor}
-  test: ${transforms.val}

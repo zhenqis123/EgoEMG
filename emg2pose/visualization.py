@@ -464,7 +464,7 @@ def ik_failure_plot(session, ax=None):
         # Create a figure and axes with the specified figsize
         fig, ax = plt.subplots(figsize=(8, 2))
 
-    ik_failure_mask = ~session.no_ik_failure.astype(bool)
+    ik_failure_mask = ~np.asarray(session.no_ik_failure).astype(bool)
     (line,) = ax.plot(session["joint_angles"].sum(-1), label="joint angle sum")
 
     # Iterate over the mask to find start and end indices of True regions

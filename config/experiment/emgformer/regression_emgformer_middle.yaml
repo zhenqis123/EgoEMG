@@ -2,6 +2,7 @@
 defaults:
   - /module: emgformer
   - override /module/decoder: transformer/preset/middle
+  - override /transforms: emgformer_regression_aug
   - _self_
 
 # Algorithm settings
@@ -10,8 +11,12 @@ module:
   decoder:
     causal: true
     preset: middle
+    pos_encoding: rope
+    dropout: 0.1
   head:
     in_channels: 256
+
+checkpoint: /home/xiziheng/develop/emg2pose/logs/2025-12-29/11-27-43/lightning_logs/version_0/checkpoints/best-monitor_metric=0.0000.ckpt
 # Hyperparameters
 optimizer:
   lr: .0005
@@ -26,40 +31,10 @@ datamodule:
 
 trainer:
   gradient_clip_val: 1
-  devices: [0,1,5]
+  devices: [0]
   precision: bf16-mixed
-  max_epochs: 200
+  max_epochs: 300
   check_val_every_n_epoch: 1
 
-batch_size: 610
+batch_size: 620
 matmul_precision: high
-
-transforms:
-  train:
-    - _target_: emg2pose.transforms.ExtractField
-      field: "emg"
-    - _target_: emg2pose.transforms.RotationAugmentation
-      channel_dim: -1
-    - _target_: emg2pose.transforms.ToFloatTensor
-    - _target_: emg2pose.transforms.RandomChannelMask
-      mask_prob: 0.5
-      min_masked: 0
-      max_masked: null
-      channel_dim: -1
-      mask_value: 0.0
-    - _target_: emg2pose.transforms.RandomTimeMask
-      max_mask_size: 1000
-      num_masks: 2
-      min_mask_size: 0
-      time_dim: 0
-      mask_value: 0.0
-      mask_prob: 0.6
-    - _target_: emg2pose.transforms.RandomFrequencyMask
-      max_mask_size: 128
-      num_masks: 2
-      min_mask_size: 16
-      time_dim: 0
-      mask_prob: 0.6
-  val:
-    - ${to_tensor}
-  test: ${transforms.val}

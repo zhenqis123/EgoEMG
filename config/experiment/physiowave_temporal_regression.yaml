@@ -1,0 +1,29 @@
+# @package _global_
+defaults:
+  - _self_
+
+batch_size: 110
+num_workers: 8
+
+datamodule:
+  window_length: 1_024
+  val_test_window_length: 1_024
+  stride: null
+  val_test_stride: null
+  max_open_files: 4
+  norm_mode: batch
+  norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
+  skip_ik_failures: False
+
+trainer:
+  gradient_clip_val: 1.0
+  devices: [0,1,2,3]
+  precision: bf16-mixed
+  max_epochs: 20
+  check_val_every_n_epoch: 1
+  strategy: ddp_find_unused_parameters_true
+
+optimizer:
+  lr: 2e-4
+
+matmul_precision: high
