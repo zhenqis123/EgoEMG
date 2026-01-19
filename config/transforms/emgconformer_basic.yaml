@@ -1,0 +1,13 @@
+# @package _global_
+to_tensor:
+  _target_: emg2pose.transforms.ExtractToTensor
+  field: emg
+
+transforms:
+  train:
+  - _target_: emg2pose.transforms.ExtractField
+    field: emg
+  - _target_: emg2pose.transforms.ToFloatTensor
+  val:
+  - ${to_tensor}
+  test: ${transforms.val}

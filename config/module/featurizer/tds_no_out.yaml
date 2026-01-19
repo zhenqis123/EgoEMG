@@ -4,7 +4,7 @@ se:
   enable: true
   reduction: 4
   residual: true
-  mode: causal
+  mode: global
 
 conv_blocks:
   - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
@@ -22,17 +22,18 @@ tds_stages:
   - _target_: emg2pose.models.featurizers.tds.TdsStage
     in_channels: 256
     in_conv_kernel_width: 17
-    in_conv_stride: 1
+    in_conv_stride: 4
     num_blocks: 2
+    # Total channel depth is channels * feature_width
     channels: 16
     feature_width: 16
     kernel_width: 9
   - _target_: emg2pose.models.featurizers.tds.TdsStage
     in_channels: 256
     in_conv_kernel_width: 9
-    in_conv_stride: 1
+    in_conv_stride: 2
     num_blocks: 2
+    # Total channel depth is channels * feature_width
     channels: 16
     feature_width: 16
     kernel_width: 5
-    out_channels: 64

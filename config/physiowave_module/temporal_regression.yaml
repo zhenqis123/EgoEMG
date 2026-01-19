@@ -1,0 +1,28 @@
+_target_: emg2pose.models.physiowave.model.PhysioWaveTemporalRegressor
+
+input_channels: 16
+in_channels: 8
+max_level: 3
+wave_kernel_size: 16
+wavelet_names: [sym4, sym5, db6, coif3, bior4.4]
+use_separate_channel: true
+patch_size: 64
+embed_dim: 256
+depth: 6
+num_heads: 8
+mlp_ratio: 4.0
+dropout: 0.1
+use_pos_embed: true
+pos_embed_type: 2d
+
+temporal_pooling: mean
+upsample_mode: linear
+regression_mode: temporal
+
+out_channels: 20
+head_hidden_dim: 512
+head_dropout: 0.1
+
+freeze_pretrained: false
+pretrained_path: null
+pretrained_strict: true

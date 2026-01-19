@@ -253,36 +253,48 @@ class MultiSessionWindowedEmgDataset(Dataset):
 
         window = ts[window_start:window_end]  # structured ndarray
 
-        emg = self.transform(window)          # should return Tensor
-        assert torch.is_tensor(emg)
+        def _as_tensor(value: Any) -> torch.Tensor:
+            return value if torch.is_tensor(value) else torch.as_tensor(value)
+
+        transformed = self.transform(window)
+        joint_angles = None
+
+        if isinstance(transformed, tuple) and len(transformed) == 2:
+            emg, joint_angles = transformed
+        elif isinstance(transformed, dict):
+            emg = transformed.get("emg")
+            if emg is None:
+                raise ValueError("Transform dict output must include 'emg'.")
+            joint_angles = transformed.get("joint_angles")
+        else:
+            emg = transformed
+
+        emg = _as_tensor(emg)
         user = str(h5["group"].attrs.get("user", "unknown"))
         side = str(h5["group"].attrs.get("side", "unknown")).lower()
         emg = self._apply_norm(emg, user=user, side=side)
 
-        joint_angles = torch.as_tensor(window["joint_angles"])
+        if joint_angles is None:
+            joint_angles = window["joint_angles"]
+        joint_angles = _as_tensor(joint_angles)
         finite_mask = torch.isfinite(joint_angles).all(dim=1)  # T
         if not finite_mask.all():
-            joint_angles = torch.nan_to_num(joint_angles, nan=0.0, posinf=0.0, neginf=0.0)
+            joint_angles = torch.nan_to_num(
+                joint_angles, nan=0.0, posinf=0.0, neginf=0.0
+            )
 
         # mask: use ik_failure_mask if exists; otherwise compute-on-the-fly
         g = h5["group"]
         if "ik_failure_mask" in g:
-            no_fail = ~np.asarray(g["ik_failure_mask"][window_start:window_end], dtype=bool)
+            no_fail = ~np.asarray(
+                g["ik_failure_mask"][window_start:window_end], dtype=bool
+            )
         else:
             # fallback; expensive if happens often; ideally always store ik_failure_mask
             ja_np = window["joint_angles"]
             no_fail = get_ik_failures_mask(ja_np)[...]
         mask = torch.as_tensor(no_fail, dtype=torch.bool)
         mask = mask & finite_mask
-
-        vq_indices = None
-        if "vq_indices" in g:
-            vq = g["vq_indices"]
-            # shape (L, T_full)
-            vq_slice = vq[:, window_start:window_end]
-            vq_indices = torch.as_tensor(vq_slice, dtype=torch.long)
-            if vq_indices.dim() == 1:
-                vq_indices = vq_indices.unsqueeze(0)
 
         return {
             "emg": emg.T,                       # CT
@@ -293,5 +305,4 @@ class MultiSessionWindowedEmgDataset(Dataset):
             "session_idx": si,
             "user": user,
             "side": side,
-            "code_indices": vq_indices,          # (L, T) or None
         }

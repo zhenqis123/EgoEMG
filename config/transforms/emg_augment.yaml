@@ -1,0 +1,49 @@
+# @package _global_
+baseline_drift:
+  _target_: emg2pose.transforms.BaselineDrift
+  sample_rate: 2000.0
+  min_freq: 0.05
+  max_freq: 0.5
+  min_amp_ratio: 0.02
+  max_amp_ratio: 0.08
+  walk_step_std_ratio: 0.002
+  mode: both
+  mask_prob: 0.3
+  time_dim: 0
+  channel_independent: true
+
+powerline_noise:
+  _target_: emg2pose.transforms.PowerlineNoise
+  sample_rate: 2000.0
+  base_freqs: [50.0, 60.0]
+  max_harmonic: 3
+  min_amp_ratio: 0.005
+  max_amp_ratio: 0.03
+  mask_prob: 0.3
+  time_dim: 0
+  channel_independent: true
+
+local_time_warp:
+  _target_: emg2pose.transforms.LocalTimeWarp
+  min_num_knots: 5
+  max_num_knots: 8
+  max_jitter_ratio: 0.2
+  mask_prob: 0.3
+  time_dim: 0
+
+magnitude_warping:
+  _target_: emg2pose.transforms.RandomMagnitudeWarping
+  sigma: 0.15
+  num_knots: 12
+  mask_prob: 0.5
+  time_dim: 0
+  channel_independent: true
+
+transforms:
+  train:
+    - ${baseline_drift}
+    - ${powerline_noise}
+    - ${local_time_warp}
+    - ${magnitude_warping}
+  val: []
+  test: ${transforms.val}

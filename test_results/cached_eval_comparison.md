@@ -64,12 +64,25 @@
 
 ### Comparison between Different Settings
 
-| Setting | MAE (deg, user_stage) | MAE (deg, user) | MAE (deg, stage) |
-| :--- | :---: | :---: | :---: |
-| **Official (tds + LSTM) (6.4M)** | 15.62 | 12.75 | 15.24 |
-| emg2tendon | 14.7 | 11.30 | 14.3 |
-| Official + mask ik failure | 15.38 | - | - |
-| Official + casual se block | 15.60 | 12.18 | 15.16 |
-| Official + se block + mask ik failure + batch norm + *aggressive augmentation*| 14.99| 11.48| 14.23 |
-| tds + transformer (3.5 M) | **14.61** | **11.28** | **14.16** |
-| tds + transformer (6.4 M) | **14.61** | **11.28** | **14.16** |
+| Setting | Architecture | Parameters | MAE (deg, user_stage) | MAE (deg, user) | MAE (deg, stage) |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **emg2pose** | TDS + LSTM | 6.4M | 15.62 | 12.75 | 15.24 |
+| emg2tendon | VAE + Diffusion | - | 14.70 | 11.30 | 14.3 |
+| VQ-MyoPose (subset) | VQ-VAE + BiGRU | - | 14.60 | **10.20** | 21.9 |
+| emg2pose (w aug) | TDS + LSTM | 6.4M | 14.99 | 11.48 | 14.23 |
+| emgformer_nano (w aug)| TDS + Transformer | **3.1M** | 14.82 | **11.52** | 15.22 |
+| emgformer_small (w aug)| TDS + Transformer | **3.5M** | **14.53** | **11.28** | 13.92 |
+| emgformer_small_middle (w aug)| TDS + Transformer | **3.5M** | 14.80 | 11.34 | 14.09 |
+| emgformer_middle (w aug)| TDS + Transformer | **6.4M** | 14.80 | 11.44 | **13.79** |
+| emgformer_large (w aug)| TDS + Transformer | **14.1M** | 14.96 | 11.71 | 13.77 |
+| emgformer_xxlarge (w aug)| TDS + Transformer | **53.2M** | 15.31 | 11.86 | 14.00 |
+| emgconformer (w/o specaug) | Conformer | 1M | 16.33 | 12.75 | 15.16 |
+| emgconformer (w specaug) | Conformer | 1M | 17.51 | 13.17 | 17.00 |
+
+### Comparison between Different Settings in small emgformer
+| Setting | Architecture | Parameters | MAE (deg, user_stage) | MAE (deg, user) | MAE (deg, stage) | train_mae |
+| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+
+| emgformer_small (w small aug, 0.5 channel dropout, 0.2 decoder dropout, zero masking, 7790 window length)| TDS + Transformer | 3.5M | 14.69 | 11.42 | 14.08 |
+| emgformer_small (w small aug, 0.5 channel dropout, 0.2 decoder dropout, only time masking, 7790 window length)| TDS + Transformer | 3.5M | 14.68 | 11.34 | 14.07 |
+| emgformer_small (w big aug, 0.6 channel dropout, 0.2 decoder dropout, middle masking, 7790 window length)| TDS + Transformer | 3.5M | 15.00 | 11.37 | 14.57 |

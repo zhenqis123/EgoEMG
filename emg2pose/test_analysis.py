@@ -15,6 +15,7 @@ from emg2pose.datasets.multisession_emg2pose_dataset import (
 )
 
 from emg2pose.train import make_lightning_module
+from emg2pose.train_emgconformer import make_lightning_module as make_emgconformer_lightning_module
 from emg2pose.transforms import Compose
 from hydra.utils import instantiate
 
@@ -63,19 +64,29 @@ class EMG2PoseEvaluation:
         return df
 
     def get_module(self):
-        module = make_lightning_module(self.config)
-        # import torch
-        # sd = torch.load("/home/xiziheng/develop/emg2pose/test.pth", map_location="cpu")
-        # missing, unexpected = module.load_state_dict(sd, strict=False)
-        # print("missing:", len(missing))
-        # print("unexpected:", len(unexpected))
-        module = module.__class__.load_from_checkpoint(
-            self.config.checkpoint,
-            module_conf=self.config.module,
-            optimizer_conf=self.config.optimizer,
-            lr_scheduler_conf=self.config.lr_scheduler,
-            loss_weights=self.config.loss_weights,
-        )
+        # Determine the model type from the config
+        model_target = self.config.module._target_
+
+        if "emgconformer" in model_target.lower():
+            # Import and use the EMGConformer-specific lightning module
+            from emg2pose.lightning_emgconformer import EmgConformerLightningModule
+            module = EmgConformerLightningModule.load_from_checkpoint(
+                self.config.checkpoint,
+                model_conf=self.config.module,
+                optimizer_conf=self.config.optimizer,
+                lr_scheduler_conf=self.config.lr_scheduler,
+                loss_weights=self.config.loss_weights,
+            )
+        else:
+            # Use the default module loading for other models
+            module = make_lightning_module(self.config)
+            module = module.__class__.load_from_checkpoint(
+                self.config.checkpoint,
+                module_conf=self.config.module,
+                optimizer_conf=self.config.optimizer,
+                lr_scheduler_conf=self.config.lr_scheduler,
+                loss_weights=self.config.loss_weights,
+            )
         module.eval()
         return module
 
@@ -86,7 +97,14 @@ class EMG2PoseEvaluation:
         """
 
         transforms = Compose(instantiate(self.config.transforms[self.split], _convert_="all"))
-        context_length = self.module.model.left_context + self.module.model.right_context
+
+        # Handle context length differently for EMGConformer
+        if hasattr(self.module.model, 'left_context') and hasattr(self.module.model, 'right_context'):
+            context_length = self.module.model.left_context + self.module.model.right_context
+        else:
+            # For models that don't have explicit context (like EMGConformer), use 0
+            context_length = 0
+
         effective_window_length = self.window_length + context_length
         stride = self.window_length
         max_open_files = int(self.config.datamodule.get("max_open_files", 32))
