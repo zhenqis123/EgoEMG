@@ -18,6 +18,14 @@ def _pimforce_to_emg2pose_angles(
     PiMforce order: per finger [spread, flex1, flex2, flex3]
     emg2pose order: see emg2pose/constants.py
     """
+    pose = pose.copy()
+    # Match PiMforce kinematics: thumb CMC angles are offset in the raw data.
+    if pose_in_degrees:
+        pose[0] -= 20.0  # thumb spread/AA
+        pose[1] -= 60.0  # thumb flexion/FE
+    else:
+        pose[0] -= np.deg2rad(20.0)
+        pose[1] -= np.deg2rad(60.0)
     if pose_in_degrees:
         pose = np.deg2rad(pose)
 

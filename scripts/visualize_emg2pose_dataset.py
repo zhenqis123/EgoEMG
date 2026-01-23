@@ -10,58 +10,71 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import csv
 
 import numpy as np
 import plotly.io as pio
 import torch
 
 import emg2pose.visualization as visualization
-from emg2pose.datasets.emg2pose_dataset import Emg2PoseSessionData
-from emg2pose.datasets.pimforce_dataset import WindowedPiMforceDataset
+from emg2pose.datasets.pimforce_dataset import _pimforce_to_emg2pose_angles
 from emg2pose.lightning import EmgPredictionModule
 from emg2pose.utils import generate_hydra_config_from_overrides
 
 
-def _load_session(path: Path, start: int, stop: int):
-    session = Emg2PoseSessionData(path)
-    window = session[start:stop]
-    emg = window["emg"]
-    joint_angles = window["joint_angles"]
-    no_ik_failure = session.no_ik_failure[start:stop]
-    return emg, joint_angles, no_ik_failure
-
-
-def _load_pimforce_sample(
+def _load_pimforce_raw(
     root_dir: Path,
     index: int,
     start: int,
     stop: int,
-    pose_mode: str,
-    pose_in_degrees: bool,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    dataset = WindowedPiMforceDataset(
-        root_dir=root_dir,
-        pose_mode=pose_mode,
-        pose_in_degrees=pose_in_degrees,
-        window_start=start,
-        window_stop=stop,
-        clip_to_valid=True,
-    )
-    sample = dataset[index]
-    emg = sample["emg"]
-    joint_angles = sample["joint_angles"]
-    if torch.is_tensor(emg):
-        emg = emg.detach().cpu().numpy()
-    if torch.is_tensor(joint_angles):
-        joint_angles = joint_angles.detach().cpu().numpy()
-    emg = emg.T
-    joint_angles = joint_angles.T
-    valid_mask = sample.get("label_valid_mask")
-    if torch.is_tensor(valid_mask):
-        valid_mask = valid_mask.detach().cpu().numpy()
-    if valid_mask is None:
-        valid_mask = np.ones(emg.shape[0], dtype=bool)
-    no_ik_failure = valid_mask.astype(bool)
+    metadata_path = root_dir / "pimforce_metadata.csv"
+    if not metadata_path.is_file():
+        raise FileNotFoundError(f"Missing metadata CSV: {metadata_path}")
+
+    if index < 0:
+        raise IndexError("Index must be non-negative.")
+
+    row = None
+    with metadata_path.open("r", encoding="utf-8", newline="") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for i, record in enumerate(reader):
+            if i == index:
+                row = record
+                break
+    if row is None:
+        raise IndexError(f"Index {index} out of range for {metadata_path}")
+
+    output_rel = Path(row["output_path"])
+    sample_path = root_dir / output_rel
+    if not sample_path.is_file():
+        raise FileNotFoundError(f"Missing sample file: {sample_path}")
+
+    combined = np.load(sample_path, mmap_mode="r")
+    num_emg = int(row["num_emg_channels"])
+    num_joint = int(row["num_joint_channels"])
+
+    if combined.ndim != 2:
+        raise ValueError(f"Expected 2D array, got shape {combined.shape} in {sample_path}")
+
+    emg = combined[:num_emg, :].T
+    joint_angles = combined[num_emg : num_emg + num_joint, :].T
+    if stop <= 0:
+        stop = emg.shape[0]
+    emg = emg[start:stop]
+    joint_angles = joint_angles[start:stop].copy()
+    if joint_angles.shape[1] != 20:
+        raise ValueError(
+            "Expected 20 PiMforce joint angles, got "
+            f"{joint_angles.shape[1]} in {sample_path}"
+        )
+    # Match PiMforce kinematics: thumb CMC angles are offset in the raw data.
+    joint_angles[:, 0] -= 20.0  # thumb spread/AA
+    joint_angles[:, 1] -= 60.0  # thumb flexion/FE
+    joint_angles = _pimforce_to_emg2pose_angles(
+        joint_angles.T, pose_in_degrees=True
+    ).T
+    no_ik_failure = np.ones(emg.shape[0], dtype=bool)
     return emg, joint_angles, no_ik_failure
 
 
@@ -134,35 +147,20 @@ def _plot_mesh_sequence(
 
 
 def main() -> None:
-    pio.renderers.default = "browser"
-    parser = argparse.ArgumentParser(description="Visualize emg2pose sessions.")
+    # pio.renderers.default = "browser"
+    parser = argparse.ArgumentParser(description="Visualize PiMforce processed_raw sessions.")
     parser.add_argument(
         "--dataset",
         type=str,
-        choices=["emg2pose", "pimforce"],
-        default="emg2pose",
+        choices=["pimforce_raw"],
+        default="pimforce_raw",
         help="Dataset type to visualize.",
     )
-    parser.add_argument("--session", type=Path, default=None, help="Path to session hdf5.")
     parser.add_argument(
         "--pimforce-root",
         type=Path,
         default=None,
-        help="Root directory for PiMforce dataset (contains emg_train.npy).",
-    )
-    parser.add_argument(
-        "--pimforce-pose-mode",
-        type=str,
-        choices=["last", "sequence"],
-        default="sequence",
-        help="Pose mode for PiMforce samples.",
-    )
-    parser.add_argument(
-        "--pimforce-pose-unit",
-        type=str,
-        choices=["deg", "rad"],
-        default="rad",
-        help="Pose unit for PiMforce samples.",
+        help="Root directory for PiMforce processed_raw dataset.",
     )
     parser.add_argument(
         "--index",
@@ -171,14 +169,8 @@ def main() -> None:
         help="Sample index for PiMforce dataset.",
     )
     parser.add_argument("--start", type=int, default=0, help="Start index.")
-    parser.add_argument("--stop", type=int, default=10_000, help="Stop index.")
-    parser.add_argument("--num-frames", type=int, default=10000, help="Frames to visualize.")
-    parser.add_argument(
-        "--native-fs",
-        type=int,
-        default=2000,
-        help="Native sample rate for joint angles (default: 2000 Hz).",
-    )
+    parser.add_argument("--stop", type=int, default=-1, help="Stop index.")
+    parser.add_argument("--native-fs", type=int, default=2000, help="Native sample rate.")
     parser.add_argument(
         "--target-fs",
         type=int,
@@ -207,34 +199,25 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if args.dataset == "emg2pose":
-        if args.session is None:
-            raise ValueError("--session is required for dataset=emg2pose")
-        emg, joint_angles, no_ik_failure = _load_session(
-            args.session, args.start, args.stop
-        )
-        visualization.ik_failure_plot(Emg2PoseSessionData(args.session))
-    else:
-        if args.pimforce_root is None:
-            raise ValueError("--pimforce-root is required for dataset=pimforce")
-        emg, joint_angles, no_ik_failure = _load_pimforce_sample(
-            args.pimforce_root,
-            args.index,
-            args.start,
-            args.stop,
-            args.pimforce_pose_mode,
-            args.pimforce_pose_unit == "deg",
-        )
-
+    if args.pimforce_root is None:
+        raise ValueError("--pimforce-root is required for dataset=pimforce_raw")
+    emg, joint_angles, no_ik_failure = _load_pimforce_raw(
+        args.pimforce_root,
+        args.index,
+        args.start,
+        args.stop,
+    )
+    print("Loaded")
     stride = max(int(round(args.native_fs / args.target_fs)), 1)
     effective_fs = args.native_fs / stride
     joint_angles_vis = _interval_sample(joint_angles, stride)
+    num_frames = joint_angles_vis.shape[0]
     frame_duration_ms = max(int(round(1000.0 / effective_fs)), 1)
     output_base = args.output or Path("/tmp/emg2pose_vis.html")
     gt_output = output_base.with_name(output_base.stem + "_gt.html")
     _plot_mesh_sequence(
         joint_angles_vis,
-        args.num_frames,
+        num_frames,
         color="gray",
         output=gt_output,
         show=args.show,
@@ -247,7 +230,7 @@ def main() -> None:
         pred_output = output_base.with_name(output_base.stem + "_pred.html")
         _plot_mesh_sequence(
             preds_vis,
-            args.num_frames,
+            num_frames,
             color="lightpink",
             output=pred_output,
             show=args.show,
@@ -255,10 +238,10 @@ def main() -> None:
         )
 
         gt_frames = visualization.joint_angles_to_frames_parallel(
-            joint_angles_vis[: args.num_frames], color="gray"
+            joint_angles_vis[:num_frames], color="gray"
         )
         pred_frames = visualization.joint_angles_to_frames_parallel(
-            preds_vis[: args.num_frames], color="lightpink"
+            preds_vis[:num_frames], color="lightpink"
         )
         gt_frames = visualization.remove_alpha_channel(gt_frames)
         pred_frames = visualization.remove_alpha_channel(pred_frames)
