@@ -1,3 +1,0 @@
-_target_: emg2pose.utils.load_splits
-metadata_file: ${data_location}/metadata_10pct.csv
-subsample: 1

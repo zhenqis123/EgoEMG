@@ -32,7 +32,7 @@ for MODEL_SPEC in "${MODELS[@]}"; do
 
     python -m emg2pose.train \
       experiment=${EXPERIMENT} \
-      transforms=emgformer_regression_noaug \
+      transforms=emgformer_regression_no_aug \
       trainer.devices=[${GPUS}] \
       +trainer.strategy=ddp \
       trainer.max_epochs=${EPOCHS} \
