@@ -1,0 +1,190 @@
+# @package _global_
+# Medium scale: emg2pose + emg2qwerty + NinaPro DB1-8 + GrabMyo + MyoKi (12 datasets)
+dataset:
+  train:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2pose
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        root_dir: ${data_root}/emg2pose_v3
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        skip_ik_failures: ${datamodule.skip_ik_failures}
+        allowed_splits: [train]
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2qwerty
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.emg2qwerty_dataset.Emg2QwertyDataset
+        root_dir: ${data_root}/emg2qwerty_v3
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: ninapro
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.ninapro_dataset.NinaproDB1Dataset
+        root_dir: ${data_root}/Ninapro_relabeled_zarr/DB1
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        return_joint_angles: true
+        use_gesture_as_joint_angles: false
+        return_gesture_labels: false
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: ninapro
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.ninapro_dataset.NinaproDB2Dataset
+        root_dir: ${data_root}/Ninapro_relabeled_zarr/DB2
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        return_joint_angles: true
+        use_gesture_as_joint_angles: false
+        return_gesture_labels: false
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: ninapro
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.ninapro_dataset.NinaproDB3Dataset
+        root_dir: ${data_root}/Ninapro_relabeled_zarr/DB3
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        return_joint_angles: false
+        use_gesture_as_joint_angles: false
+        return_gesture_labels: false
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: ninapro
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.ninapro_dataset.NinaproDB4Dataset
+        root_dir: ${data_root}/Ninapro_relabeled_zarr/DB4
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        return_joint_angles: false
+        use_gesture_as_joint_angles: false
+        return_gesture_labels: false
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: ninapro
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.ninapro_dataset.NinaproDB5Dataset
+        root_dir: ${data_root}/Ninapro_relabeled_zarr/DB5
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        return_joint_angles: true
+        use_gesture_as_joint_angles: false
+        return_gesture_labels: false
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: ninapro
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.ninapro_dataset.NinaproDB6Dataset
+        root_dir: ${data_root}/Ninapro_relabeled_zarr/DB6
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        return_joint_angles: false
+        use_gesture_as_joint_angles: false
+        return_gesture_labels: false
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: ninapro
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.ninapro_dataset.NinaproDB7Dataset
+        root_dir: ${data_root}/Ninapro_relabeled_zarr/DB7
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        return_joint_angles: false
+        use_gesture_as_joint_angles: false
+        return_gesture_labels: false
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: ninapro
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.ninapro_dataset.NinaproDB8Dataset
+        root_dir: ${data_root}/Ninapro_relabeled_zarr/DB8
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        return_joint_angles: false
+        use_gesture_as_joint_angles: false
+        return_gesture_labels: false
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: grabmyo
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.grabmyo_dataset.GrabMyoDataset
+        root_dir: ${data_root}/grabmyo_v3
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: myoki
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.myoki_dataset.MyoKiDataset
+        root_dir: ${data_root}/myoki_v3
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+
+  val:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2pose
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        root_dir: ${data_root}/emg2pose_v3
+        window_length: ${datamodule.val_test_window_length}
+        stride: ${datamodule.val_test_window_length}
+        padding: ${datamodule.padding}
+        jitter: false
+        skip_ik_failures: ${datamodule.skip_ik_failures}
+        allowed_splits: [val]
+
+  test: []

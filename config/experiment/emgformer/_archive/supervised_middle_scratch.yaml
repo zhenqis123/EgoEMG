@@ -1,0 +1,88 @@
+# @package _global_
+# Supervised training baseline (no SSL pretraining) - middle decoder
+# Trained from scratch for 200 epochs with initial LR=1e-3
+defaults:
+  - /module: emgformer
+  - override /lr_scheduler: cosine
+  - override /transforms: emgformer_regression_aug_best
+  - override /dataset: default_hdf5
+  - override /module/featurizer: tds_no_out
+  - override /module/decoder: transformer/preset/middle
+  - _self_
+
+data_location: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+
+# No pretrained checkpoint - train from scratch!
+checkpoint: null
+pretrained_strict: false
+
+module:
+  provide_initial_pos: False
+  decoder:
+    causal: false
+    preset: middle
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
+  head:
+    in_channels: 256
+
+# High initial LR for training from scratch
+num_workers: 12
+optimizer:
+  lr: 0.001  # Initial LR for training from scratch
+
+datamodule:
+  window_length: 7_790
+  val_test_window_length: 7_790
+  norm_mode: batch
+  norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
+  skip_ik_failures: False
+  prefetch_factor: 3
+  persistent_workers: true
+  pin_memory: true
+
+trainer:
+  gradient_clip_val: 1
+  devices: [0, 1, 2, 3]  # 4-GPU DDP
+  precision: bf16-mixed
+  max_epochs: 200
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 50
+  strategy: ddp_find_unused_parameters_true
+
+# Batch size tuned for 90%+ GPU utilization on 4-GPU DDP
+# Effective batch size = 180 * 4 = 720
+batch_size: 180
+
+matmul_precision: high
+
+loss_weights:
+  mae: 1.0
+  fingertip_distance: 0.0
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelSummary
+    max_depth: 2
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "supervised-middle-{epoch:03d}-{val_mae:.4f}"
+    verbose: true
+  # EarlyStopping disabled - train full 200 epochs
+  # - _target_: pytorch_lightning.callbacks.EarlyStopping
+  #   monitor: val_mae
+  #   mode: min
+  #   patience: 30
+  #   check_on_train_epoch_end: False
+  #   verbose: true
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: logs/emg2pose_supervised
+  name: supervised_middle_200ep
+  version: null
+  default_hp_metric: false

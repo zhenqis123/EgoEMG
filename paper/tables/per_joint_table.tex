@@ -1,0 +1,24 @@
+\begin{table}[h]
+\centering
+\caption{Per-joint MAE ($^\circ$) on \dataset{} averaged over all six test splits (gesture/user/both $\times$ left/right). Values report per-user mean $\pm$ standard deviation (n=36 for gesture, n=6 for user, n=5 for both, pooled); lower is better. Bold indicates the best mean per row.}
+\label{tab:per_joint_egoemg}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{lccc}
+\toprule
+Joint group & \model{}-S & \model{}-M & \model{}-L \\
+\midrule
+Distal & $\mathbf{10.4_{\pm2.5}}$ & $10.7_{\pm2.4}$ & $10.5_{\pm2.3}$ \\
+Wrist deviation & $12.0_{\pm4.4}$ & $11.9_{\pm5.5}$ & $\mathbf{11.3_{\pm4.6}}$ \\
+Thumb & $13.5_{\pm3.0}$ & $13.1_{\pm3.2}$ & $\mathbf{12.8_{\pm3.4}}$ \\
+Index & $\mathbf{13.6_{\pm2.5}}$ & $13.7_{\pm2.5}$ & $13.7_{\pm2.9}$ \\
+Proximal & $14.4_{\pm2.7}$ & $\mathbf{14.2_{\pm2.8}}$ & $\mathbf{14.2_{\pm3.4}}$ \\
+Ring & $15.7_{\pm3.4}$ & $15.7_{\pm3.2}$ & $\mathbf{15.3_{\pm3.8}}$ \\
+Middle finger & $16.0_{\pm2.8}$ & $15.8_{\pm3.0}$ & $\mathbf{15.3_{\pm3.7}}$ \\
+Wrist flexion & $16.2_{\pm5.0}$ & $\mathbf{15.9_{\pm5.8}}$ & $\mathbf{15.9_{\pm6.4}}$ \\
+Pinky & $18.3_{\pm4.3}$ & $\mathbf{18.1_{\pm3.8}}$ & $18.6_{\pm4.5}$ \\
+Mid-phalanx & $22.3_{\pm5.2}$ & $22.1_{\pm4.8}$ & $\mathbf{21.7_{\pm5.4}}$ \\
+\bottomrule
+\end{tabular}
+\end{table}

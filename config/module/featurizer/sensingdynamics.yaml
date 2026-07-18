@@ -1,0 +1,26 @@
+_target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsFeaturizer
+
+out_channels: 256
+
+conv_blocks:
+  - _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
+    in_channels: 1
+    out_channels: 32
+    kernel_size: [3, 5]
+    stride: [2, 2]
+    dropout_rate: 0.05
+    circular_pad: true
+  - _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
+    in_channels: 32
+    out_channels: 128
+    kernel_size: [3, 5]
+    stride: [2, 2]
+    dropout_rate: 0.05
+    circular_pad: true
+  - _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
+    in_channels: 128
+    out_channels: 256
+    kernel_size: [3, 5]
+    stride: [2, 1]
+    dropout_rate: 0.05
+    circular_pad: true

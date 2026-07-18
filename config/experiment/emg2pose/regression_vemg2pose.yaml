@@ -4,23 +4,65 @@ defaults:
   - override /lr_scheduler: cosine
   - _self_
 
+data_location: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+
+checkpoint: /home/xiziheng/develop/emg2pose/emg2pose_model_checkpoints/regression_vemg2pose.ckpt
+pretrained_strict: false
+
 # Algorithm settings
 module:
   provide_initial_pos: False
   state_condition: True
   head:
     _target_: torch.nn.Identity
+
+loss_weights:
+  mae: 1
+  fingertip_distance: 0.01
+
 # Hyperparameters
 optimizer:
   lr: .0005
 datamodule:
-  # Adding 1790 samples, which is the left_context of the tds network
   window_length: 7_790
   val_test_window_length: 7_790
-  max_open_files: 4
   norm_mode: batch
   norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
   skip_ik_failures: True
+
+dataset:
+  train:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: true
+      skip_ik_failures: True
+      allowed_splits: [train]
+  val:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: True
+      allowed_splits: [val]
+  test:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: True
+      allowed_splits: [test]
+
+num_workers: 12
 trainer:
   gradient_clip_val: 1
   devices: [0]

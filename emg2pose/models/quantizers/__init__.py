@@ -1,6 +1,2 @@
 # flake8: noqa
-from emg2pose.models.quantizers.vq import (
-    GroupedVectorQuantizer,
-    ResidualVectorQuantizer,
-    VectorQuantizer,
-)
+from emg2pose.models.quantizers.gumbel_vq import GumbelVectorQuantizer

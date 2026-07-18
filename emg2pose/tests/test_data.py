@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from emg2pose.datasets.emg2pose_dataset import Emg2PoseSessionData
+from emg2pose.datasets.emg2pose_dataset_legacy import Emg2PoseSessionData
 
 
 metadata_keys = [

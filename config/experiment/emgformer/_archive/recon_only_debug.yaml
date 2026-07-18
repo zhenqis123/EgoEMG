@@ -1,0 +1,60 @@
+# @package _global_
+# Recon-only experiment: debug whether recon loss can decrease normally
+# Uses only emg2pose + emg2qwerty datasets, all other losses zeroed out
+defaults:
+  - /module: emgformer_pretrain
+  - override /module/featurizer: tds_no_out
+  - override /module/decoder: transformer/preset/small
+  - override /lr_scheduler: cosine
+  - override /transforms: pretrain_mae
+  - override /dataset: recon_only
+  - _self_
+
+checkpoint: null
+
+module:
+  decoder:
+    causal: false
+    preset: small
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
+  recon_head:
+    in_channels: 128
+    out_channels: 16
+  angle_head:
+    in_channels: 128
+    out_channels: 22
+  gesture_head:
+    in_channels: 128
+    out_channels: ${gesture_num_classes}
+
+num_workers: 10
+optimizer:
+  lr: 0.0005
+
+loss_weights:
+  recon: 1.0
+  angle: 0.0
+  gesture: 0.0
+  keystroke: 0.0
+
+datamodule:
+  window_length: 7_790
+  val_test_window_length: 7_790
+  norm_mode: batch
+  norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
+  skip_ik_failures: False
+  prefetch_factor: 1
+  persistent_workers: true
+  pin_memory: true
+
+trainer:
+  gradient_clip_val: 1
+  devices: [2,3,4,5]
+  strategy: ddp_find_unused_parameters_true
+  precision: bf16-mixed
+  max_epochs: 50
+  log_every_n_steps: 10
+
+batch_size: 900

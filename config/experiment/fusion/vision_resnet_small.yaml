@@ -1,0 +1,115 @@
+# @package _global_
+# ResNet18 Vision-Only Baseline (Small)
+# Pre-cropped 256×256 images → ResNet18 → 256-dim MLP → 22 joint angles
+# Center-frame supervision only — one image predicts one pose.
+
+defaults:
+  - /module: resnet_vision
+  - override /dataset: egoemg_angle_regression
+  - override /datamodule: default
+  - override /transforms: noop
+  - override /lr_scheduler: cosine
+  - _self_
+
+# ── EMG data (skipped — vision-only) ───────────────────────────────────────
+egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_emg_layout: emg2pose_interpolate16
+egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
+egoemg_channel_interpolate: false
+skip_emg_loading: true
+
+# ── Pre-cropped images ──────────────────────────────────────────────────────
+per_episode_crops_dir: /mnt/nvme/xiziheng/EgoEMG_v2_crops
+vision_num_frames: 1
+vision_frame_selection: center
+vision_patch_size: 256
+
+# ── Hydra output ────────────────────────────────────────────────────────────
+hydra:
+  run:
+    dir: logs/fusion/${now:%Y-%m-%d}/${now:%H-%M-%S}_${hydra.job.name}
+  sweep:
+    dir: ${hydra.run.dir}
+    subdir: ${hydra.job.num}_${hydra.job.override_dirname}
+  output_subdir: hydra_configs
+  job:
+    name: vision_resnet_small
+    chdir: false
+
+# ── Not used, kept for config compatibility ─────────────────────────────────
+wilor_checkpoint_path: /home/xiziheng/develop/WiLoR/pretrained_models/wilor_final.ckpt
+mano_model_path: /home/xiziheng/develop/WiLoR/mano_data
+
+# ── Training ────────────────────────────────────────────────────────────────
+seed: 42
+train: true
+eval: true
+component_lr_scales:
+  backbone: 1.0
+  head: 1.0
+batch_size: 900
+val_batch_size: 256
+num_workers: 8
+matmul_precision: high
+
+trainer:
+  gradient_clip_val: 1
+  devices: [0,1,2,3,4,5]
+  precision: bf16-mixed
+  max_epochs: 100
+  check_val_every_n_epoch: 2
+  log_every_n_steps: 1
+
+optimizer:
+  _target_: torch.optim.AdamW
+  lr: 1.0e-4
+  weight_decay: 1.0e-2
+
+datamodule:
+  window_length: 7_790
+  val_test_window_length: 7_790
+  stride: 780
+  val_test_stride: 7790
+  dataset_repeat: 2
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  skip_ik_failures: false
+  persistent_workers: true
+  prefetch_factor: 2
+  pin_memory: false
+
+loss_weights:
+  mae: 1.0
+  fingertip_distance: 0.01
+
+# ── Module ──────────────────────────────────────────────────────────────────
+module:
+  backbone_type: resnet18
+  out_channels: 22
+  pretrained: true
+  freeze_backbone: false
+  head_hidden: 256
+  head_dropout: 0.1
+
+ignore_head_tail_dims: 0
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "resnet-small-{epoch:03d}-{val_mae:.4f}"
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: val_mae
+    mode: min
+    patience: 30
+    check_on_train_epoch_end: false
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: logs/fusion
+  name: vision_resnet_small
+  version: null
+  default_hp_metric: false

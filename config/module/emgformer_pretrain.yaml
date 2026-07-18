@@ -1,0 +1,20 @@
+defaults:
+  - featurizer: tds_no_out
+  - decoder: transformer/preset/middle
+  - _self_
+
+_target_: emg2pose.models.modules.emgformer_pretrain.EmgformerPretrain
+
+decoder:
+  pos_encoding: rope
+
+recon_head: null  # No reconstruction loss for angle-supervised pretraining
+angle_head:
+  _target_: emg2pose.models.heads.mlp.MLPHead
+  in_channels: 256  # Must match decoder model_dim
+  out_channels: 22
+  hidden_sizes: [512]
+  activation: relu
+  dropout: 0.1
+gesture_head: null  # No gesture loss
+keystroke_head: null  # No keystroke loss

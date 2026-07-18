@@ -1,0 +1,74 @@
+# @package _global_
+# 多任务预训练基础模板 (recon + angle + gesture + keystroke)
+defaults:
+  - /module: emgformer_pretrain
+  - override /module/featurizer: tds_no_out
+  - override /module/decoder: transformer/preset/middle
+  - override /lr_scheduler: warmup_cosine
+  - override /transforms: pretrain_mae
+  - _self_
+
+checkpoint: null
+
+module:
+  decoder:
+    causal: false
+    preset: middle
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
+  recon_head:
+    in_channels: 256
+    out_channels: 16
+  angle_head:
+    in_channels: 256
+    out_channels: 22
+  gesture_head:
+    in_channels: 256
+    out_channels: ${gesture_num_classes}
+  keystroke_head:
+    in_channels: 256
+
+num_workers: 12
+
+optimizer:
+  lr: 0.001
+
+loss_weights:
+  recon: 1.0
+  angle: 1.0
+  gesture: 0.5
+  keystroke: 0.5
+
+datamodule:
+  window_length: 7_790
+  val_test_window_length: 7_790
+  norm_mode: batch
+  norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
+  skip_ik_failures: False
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: true
+
+trainer:
+  gradient_clip_val: 1
+  precision: bf16-mixed
+  max_epochs: 500
+  limit_val_batches: 0
+  log_every_n_steps: 10
+
+matmul_precision: high
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    save_top_k: 3
+    save_last: true
+    filename: "pretrain-{epoch:03d}-{train_loss:.4f}"
+    every_n_epochs: 10
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: pretrain_multitask
+  version: null
+  default_hp_metric: false

@@ -1,0 +1,179 @@
+# @package _global_
+# Finetune middle_aggressive pretrain model on EgoEMG.
+# Loads pretrain checkpoint, uses 22-dim angle head (native to EgoEMG).
+# Per-dataset normalization to match pretrain training conditions.
+#
+# Usage:
+#   python -m emg2pose.train \
+#     experiment=emgformer/finetune_egoemg_middle_aggressive
+#     datamodule.window_length=7_790
+
+defaults:
+  - /module: emgformer
+  - override /lr_scheduler: cosine
+  - override /transforms: emgformer_regression_aug_best
+  - override /module/featurizer: tds_slim
+  - override /module/decoder: transformer/preset/middle
+  - _self_
+
+data_root: /home/xiziheng/develop/emg2pose/data/emg_corpus
+egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_emg_layout: emg2pose_interpolate16
+egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
+
+# Load pretrain checkpoint
+checkpoint: /home/xiziheng/develop/emg2pose/logs/pretrain/2026-04-20/22-54-57/pretrain_resume_no_mask/version_0/checkpoints/last.ckpt
+pretrained_strict: false
+
+# Use 22-dim head to match pretrain
+module:
+  out_channels: 22
+  provide_initial_pos: False
+  decoder:
+    causal: false
+    preset: middle
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
+    model_dim: 256
+    num_heads: 8
+    num_layers: 6
+    ffn_dim: 1024
+  head:
+    in_channels: 256
+    out_channels: 22
+
+# EgoEMG has native 22 angles, no need to ignore dims
+ignore_head_tail_dims: 0
+
+dataset:
+  train:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: egoemg
+      gesture_spaces: null
+      angle_dim: 22
+      norm_mode: per-dataset
+      norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+      base:
+        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        memmap_dir: ${egoemg_memmap_dir}
+        window_length: 7_790
+        stride: 780
+        allowed_splits: [train]
+        modalities: [emg, joint_angles, labels]
+        target_hand: left
+        emg_field_preference: filtered
+        emg_layout: ${egoemg_emg_layout}
+        emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+        # Normalization handled by PretrainWrapperDataset (avoid double norm)
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: egoemg
+      gesture_spaces: null
+      angle_dim: 22
+      norm_mode: per-dataset
+      norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+      base:
+        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        memmap_dir: ${egoemg_memmap_dir}
+        window_length: 7_790
+        stride: 780
+        allowed_splits: [train]
+        modalities: [emg, joint_angles, labels]
+        target_hand: right
+        emg_field_preference: filtered
+        emg_layout: ${egoemg_emg_layout}
+        emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+        # Normalization handled by PretrainWrapperDataset (avoid double norm)
+
+  val:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: egoemg
+      gesture_spaces: null
+      angle_dim: 22
+      norm_mode: per-dataset
+      norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+      base:
+        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        memmap_dir: ${egoemg_memmap_dir}
+        window_length: 7_790
+        stride: 7_790
+        allowed_splits: [val]
+        modalities: [emg, joint_angles, labels]
+        target_hand: left
+        emg_field_preference: filtered
+        emg_layout: ${egoemg_emg_layout}
+        emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+        # Normalization handled by PretrainWrapperDataset (avoid double norm)
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: egoemg
+      gesture_spaces: null
+      angle_dim: 22
+      norm_mode: per-dataset
+      norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+      base:
+        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        memmap_dir: ${egoemg_memmap_dir}
+        window_length: 7_790
+        stride: 7_790
+        allowed_splits: [val]
+        modalities: [emg, joint_angles, labels]
+        target_hand: right
+        emg_field_preference: filtered
+        emg_layout: ${egoemg_emg_layout}
+        emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+        # Normalization handled by PretrainWrapperDataset (avoid double norm)
+
+  test: []
+
+num_workers: 12
+
+optimizer:
+  lr: 0.00001
+
+datamodule:
+  window_length: 7_790
+  val_test_window_length: 7_790
+  stride: null
+  val_test_stride: null
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  skip_ik_failures: false
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: true
+
+trainer:
+  gradient_clip_val: 1
+  devices: [4]
+  precision: bf16-mixed
+  max_epochs: 50
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 50
+
+batch_size: 700
+matmul_precision: high
+
+loss_weights:
+  mae: 1.0
+  fingertip_distance: 0.01
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "finetune-egoemg-middle-aggr-{epoch:03d}-{val_mae:.4f}"
+  - _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: val_mae
+    mode: min
+    patience: 50
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: logs/emg2pose_finetune
+  name: finetune_egoemg_middle_aggressive
+  version: null
+  default_hp_metric: false

@@ -1,0 +1,32 @@
+\begin{table}[h]
+\centering
+\caption{Per-hand EMG-to-pose MAE on \dataset{}. MAE is reported in degrees; lower is better. Left and right hands are processed independently with shared model weights, and left-hand EMG is mirrored to the right-hand convention. Rows are grouped by method family; shaded rows highlight \model{} variants.}
+\label{tab:emg_per_hand}
+\footnotesize
+\setlength{\tabcolsep}{3.8pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{llccc}
+\toprule
+Method & Hand & Gesture & User & Both \\
+\midrule
+\multicolumn{5}{l}{\textit{\model{} variants}} \\
+\midrule
+\model{}-S & Left & 12.4 & 14.7 & 16.5 \\
+ & Right & 13.2 & 16.6 & 18.4 \\
+\midrule
+\model{}-M & Left & 11.5 & 15.5 & 17.0 \\
+ & Right & 12.1 & 16.6 & 17.8 \\
+\midrule
+\model{}-L & Left & 11.4 & 15.3 & 17.6 \\
+ & Right & 12.0 & 16.0 & 17.7 \\
+\midrule
+\multicolumn{5}{l}{\textit{Traditional architectures}} \\
+\midrule
+vEMG2Pose & Left & 14.7 & 15.7 & 17.2 \\
+ & Right & 15.2 & 17.0 & 17.5 \\
+\midrule
+NeuroPose & Left & 15.9 & 15.4 & 15.7 \\
+ & Right & 15.7 & 16.0 & 16.9 \\
+\bottomrule
+\end{tabular}
+\end{table}

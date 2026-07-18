@@ -24,6 +24,13 @@ from emg2pose.kinematics import (
 )
 
 
+def _normalize_mask(mask: torch.Tensor, num_joints: int) -> torch.Tensor:
+    """Ensure mask is (B, J, T). Accepts (B, T) or (B, J, T)."""
+    if mask.ndim == 2:
+        return mask.unsqueeze(1).expand(-1, num_joints, -1)
+    return mask
+
+
 class Metric:
     """Compute a dictionary of metrics from predicted and target joint angles."""
 
@@ -54,7 +61,8 @@ class AnglularDerivatives(Metric):
         acc = torch.diff(vel, dim=-1)
         jerk = torch.diff(acc, dim=-1)
 
-        mask = mask.unsqueeze(1).expand(-1, NUM_JOINTS, -1)  # BT -> BCT
+        num_joints = pred.shape[1]
+        mask = _normalize_mask(mask, num_joints)
         mask_vel = self.adjust_mask(mask)
         mask_acc = self.adjust_mask(mask_vel)
         mask_jerk = self.adjust_mask(mask_acc)
@@ -69,9 +77,9 @@ class AnglularDerivatives(Metric):
             return tensor[mask_tensor].abs().mean() * EMG_SAMPLE_RATE
 
         return {
-            f"{stage}_vel": safe_mean(vel, mask_vel),
-            f"{stage}_acc": safe_mean(acc, mask_acc),
-            f"{stage}_jerk": safe_mean(jerk, mask_jerk),
+            f"{stage}_derivatives/vel": safe_mean(vel, mask_vel),
+            f"{stage}_derivatives/acc": safe_mean(acc, mask_acc),
+            f"{stage}_derivatives/jerk": safe_mean(jerk, mask_jerk),
         }
 
     def adjust_mask(self, mask: torch.Tensor) -> torch.Tensor:
@@ -96,7 +104,8 @@ class AngleMAE(Metric):
         mask: torch.Tensor,
         stage: str,
     ) -> dict[str, torch.Tensor]:
-        mask = mask.unsqueeze(1).expand(-1, NUM_JOINTS, -1)
+        num_joints = pred.shape[1]
+        mask = _normalize_mask(mask, num_joints)
         if mask.sum() == 0:
             return {f"{stage}_mae": pred.sum() * 0.0}
         return {f"{stage}_mae": torch.nn.L1Loss()(pred[mask], target[mask])}
@@ -114,7 +123,7 @@ class PerFingerAngleMAE(Metric):
     ) -> dict[str, torch.Tensor]:
 
         return {
-            f"{stage}_mae_{finger}": self.get_error_for_finger(
+            f"{stage}_mae_per_finger/{finger}": self.get_error_for_finger(
                 pred, target, mask, finger
             )
             for finger in FINGERS
@@ -123,7 +132,9 @@ class PerFingerAngleMAE(Metric):
     @staticmethod
     def get_error_for_finger(pred, target, mask, finger: str):
         idxs = [j.index for j in JOINTS if finger in j.groups]
-        mask = mask.unsqueeze(1).expand(-1, len(idxs), -1)
+        mask = _normalize_mask(mask, len(idxs))
+        if mask.shape[1] > len(idxs):  # per-joint mask, select relevant joints
+            mask = mask[:, idxs]
         if mask.sum() == 0:
             return pred.sum() * 0.0
         return torch.nn.L1Loss()(pred[:, idxs][mask], target[:, idxs][mask])
@@ -141,14 +152,16 @@ class PDAngleMAE(Metric):
     ) -> dict[str, torch.Tensor]:
 
         return {
-            f"{stage}_mae_{group}": self.get_error_for_group(pred, target, mask, group)
+            f"{stage}_mae_per_pd/{group}": self.get_error_for_group(pred, target, mask, group)
             for group in PD_GROUPS
         }
 
     @staticmethod
     def get_error_for_group(pred, target, mask, group: str):
         idxs = [j.index for j in JOINTS if group in j.groups]
-        mask = mask.unsqueeze(1).expand(-1, len(idxs), -1)
+        mask = _normalize_mask(mask, len(idxs))
+        if mask.shape[1] > len(idxs):  # per-joint mask, select relevant joints
+            mask = mask[:, idxs]
         if mask.sum() == 0:
             return pred.sum() * 0.0
         return torch.nn.L1Loss()(pred[:, idxs][mask], target[:, idxs][mask])
@@ -172,20 +185,34 @@ class LandmarkDistances(Metric):
         if self.hand_model.device != pred.device:
             self.hand_model.to(pred.device)
 
+        # If mask is per-joint (B, J, T), collapse to per-frame (B, T).
+        # FK operates on all joints; a frame is valid if any non-wrist joint
+        # has a True mask (Incre wrist channels are always False).
+        if mask.ndim >= 3:
+            mask = mask[:, :20, :].any(dim=1)  # (B, T), exclude wrist ch 20-21
+
         # If everything is masked out, return graph-connected zeros and skip FK.
         if mask.sum() == 0:
             z = pred.sum() * 0.0
             return {
-                f"{stage}_fingertip_distance": z,
-                f"{stage}_landmark_distance": z,
+                f"{stage}_landmark/fingertip": z,
+                f"{stage}_landmark/all": z,
             }
 
-        # Convert angles to 3D positions
-        # We downsample in time to avoid OOM in forward_kinematics
-        sl = slice(None, None, self.downsampling)
-        pred_pos = forward_kinematics(pred[:, :, sl], self.hand_model)
-        target_pos = forward_kinematics(target[:, :, sl], self.hand_model)
-        mask_sliced = mask[:, sl]
+        # Convert angles to 3D positions.
+        # Pick frames that have at least one valid sample (mask.any) and
+        # downsample those if needed – this keeps vision_only-style sparse
+        # supervision (e.g. single center frame) from being entirely missed
+        # by a uniform stride that does not align with the active frame.
+        valid_frames = mask.any(dim=0).nonzero(as_tuple=True)[0]
+        if len(valid_frames) > 100:
+            step = max(1, len(valid_frames) // 100)
+            valid_frames = valid_frames[::step]
+        # FK uses ops such as torch.eye that are not implemented for bfloat16 on CPU.
+        # Cast to float32 here so offline evaluation works consistently across devices.
+        pred_pos = forward_kinematics(pred[:, :, valid_frames].float(), self.hand_model)
+        target_pos = forward_kinematics(target[:, :, valid_frames].float(), self.hand_model)
+        mask_sliced = mask[:, valid_frames]
 
         # Landmark distances
         lm_idxs = [lm.index for lm in LANDMARKS if lm.name not in NO_MOVEMENT_LANDMARKS]
@@ -200,8 +227,8 @@ class LandmarkDistances(Metric):
         )
 
         return {
-            f"{stage}_fingertip_distance": fingertip_distance,
-            f"{stage}_landmark_distance": landmark_distance,
+            f"{stage}_landmark/fingertip": fingertip_distance,
+            f"{stage}_landmark/all": landmark_distance,
         }
 
     def get_mean_distance(
@@ -220,11 +247,47 @@ class LandmarkDistances(Metric):
             return pred.sum() * 0.0
         return masked.mean()
 
+class WristAngleMAE(Metric):
+    """Angular mean absolute error for wrist angles (channels 20, 21)."""
+
+    def __call__(
+        self,
+        pred: torch.Tensor,
+        target: torch.Tensor,
+        mask: torch.Tensor,
+        stage: str,
+    ) -> dict[str, torch.Tensor]:
+        # Only compute if model outputs >= 22 channels
+        if pred.shape[1] < 22:
+            return {
+                f"{stage}_mae_wrist/flexion": pred.sum() * 0.0,
+                f"{stage}_mae_wrist/deviation": pred.sum() * 0.0,
+            }
+
+        # Normalize mask to (B, T). If already per-joint (B, J, T), use the
+        # wrist flexion channel (idx 20) so that Incre zero-padded wrist is
+        # correctly excluded (lightning.py sets mask[:, -2:, :] = False).
+        if mask.ndim >= 3:
+            mask = mask.reshape(-1, mask.shape[-2], mask.shape[-1])[:, 20, :]
+        mask_flexion = mask.unsqueeze(1).expand(-1, 1, -1)
+        mask_deviation = mask.unsqueeze(1).expand(-1, 1, -1)
+        if mask.sum() == 0:
+            return {
+                f"{stage}_mae_wrist/flexion": pred.sum() * 0.0,
+                f"{stage}_mae_wrist/deviation": pred.sum() * 0.0,
+            }
+        return {
+            f"{stage}_mae_wrist/flexion": torch.nn.L1Loss()(pred[:, 20:21][mask_flexion], target[:, 20:21][mask_flexion]),
+            f"{stage}_mae_wrist/deviation": torch.nn.L1Loss()(pred[:, 21:22][mask_deviation], target[:, 21:22][mask_deviation]),
+        }
+
+
 def get_default_metrics() -> list[Metric]:
     return [
         AngleMAE(),
         AnglularDerivatives(),
         PerFingerAngleMAE(),
         PDAngleMAE(),
+        WristAngleMAE(),
         LandmarkDistances(),
     ]

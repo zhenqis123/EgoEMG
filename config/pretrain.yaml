@@ -1,0 +1,136 @@
+defaults:
+  - _self_
+  - dataset: pretrain_all
+  - datamodule: default
+  - optimizer: adamw
+  - lr_scheduler: cosine
+  - transforms: pretrain_mae
+  - experiment: emgformer/pretrain_emgformer_small
+
+data_root: /home/xiziheng/develop/emg2pose/data/emg_corpus
+data_location: ${data_root}/emg2pose_v3
+
+seed: 42
+matmul_precision: high
+
+batch_size: 320
+num_workers: 4
+
+train: True
+eval: False
+checkpoint: null
+monitor_metric: val_loss
+monitor_mode: min
+
+loss_weights:
+  recon: 1.0
+  angle: 1.0
+  gesture: 0.5
+  keystroke: 1.0
+
+recon_loss: mse
+angle_loss: mae
+label_smoothing: 0.0
+
+masking:
+  patch_size: 100
+  mask_ratio: 0.3
+
+gesture_num_classes: 108
+gesture_spaces:
+  - name: ninapro_gesture
+    field: gesture_id
+    num_classes: 53
+    datasets: [ninapro]
+  - name: grabmyo_gesture
+    field: gesture_id
+    num_classes: 17
+    datasets: [grabmyo]
+    value_map:
+      1: 0
+      2: 1
+      3: 2
+      4: 3
+      5: 4
+      6: 5
+      7: 6
+      8: 7
+      9: 8
+      10: 9
+      11: 10
+      12: 11
+      13: 12
+      14: 13
+      15: 14
+      16: 15
+      17: 16
+  - name: putemg_gesture
+    field: gesture_gt
+    num_classes: 9
+    datasets: [putemg]
+    value_map:
+      -1: 0
+      0: 1
+      1: 2
+      2: 3
+      3: 4
+      6: 5
+      7: 6
+      8: 7
+      9: 8
+  - name: posture_target
+    field: target_position
+    num_classes: 9
+    datasets: [posture]
+    value_map:
+      1: 0
+      2: 1
+      3: 2
+      4: 3
+      5: 4
+      6: 5
+      7: 6
+      8: 7
+      9: 8
+  - name: posture_grasp
+    field: grasp
+    num_classes: 6
+    datasets: [posture]
+    value_map:
+      1: 0
+      2: 1
+      3: 2
+      4: 3
+      5: 4
+      6: 5
+  - name: myoki_task
+    field: task
+    num_classes: 6
+    datasets: [myoki]
+  - name: myoki_grasp
+    field: grasp
+    num_classes: 8
+    datasets: [myoki]
+
+callbacks: []
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: tensorboard
+  version: null
+  default_hp_metric: false
+
+hydra:
+  run:
+    dir: logs/pretrain/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${hydra.run.dir}
+    subdir: ${hydra.job.num}_${hydra.job.override_dirname}/seed=${seed}
+  output_subdir: hydra_configs
+  job:
+    name: emg2pose_pretrain
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed

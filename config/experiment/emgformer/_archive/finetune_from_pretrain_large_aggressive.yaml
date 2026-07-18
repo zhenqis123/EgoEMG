@@ -1,0 +1,118 @@
+# @package _global_
+# Finetune from large_aggressive supervised pretrain checkpoint on emg2pose.
+
+defaults:
+  - /module: emgformer
+  - override /lr_scheduler: cosine
+  - override /transforms: emgformer_regression_aug_best
+  - override /module/featurizer: tds_slim
+  - override /module/decoder: transformer/preset/large_aggressive
+  - _self_
+
+data_root: /home/xiziheng/develop/emg2pose/data/emg_corpus
+data_location: ${data_root}/emg2pose_v3_memmap
+
+checkpoint: null
+pretrained_strict: true
+
+module:
+  out_channels: 22
+  provide_initial_pos: false
+  decoder:
+    causal: false
+    preset: large_aggressive
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
+    model_dim: 384
+    num_heads: 12
+    num_layers: 8
+    ffn_dim: 1536
+  head:
+    in_channels: 384
+    out_channels: 22
+
+ignore_head_tail_dims: 2
+
+dataset:
+  train:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${data_location}
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: true
+      skip_ik_failures: false
+      allowed_splits: [train]
+  val:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${data_location}
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: false
+      allowed_splits: [val]
+  test:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${data_location}
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: false
+      allowed_splits: [test]
+
+num_workers: 12
+
+optimizer:
+  lr: 0.00001
+
+datamodule:
+  window_length: 7_790
+  val_test_window_length: 7_790
+  stride: 7_790
+  val_test_stride: 7_790
+  norm_mode: batch
+  norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
+  skip_ik_failures: false
+  prefetch_factor: 3
+  persistent_workers: true
+  pin_memory: true
+
+trainer:
+  gradient_clip_val: 1
+  devices: [3]
+  precision: bf16-mixed
+  max_epochs: 50
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 50
+
+batch_size: 320
+matmul_precision: high
+
+loss_weights:
+  mae: 1.0
+  fingertip_distance: 0.01
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "finetune-large-aggr-{epoch:03d}-{val_mae:.4f}"
+  - _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: val_mae
+    mode: min
+    patience: 50
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: logs/emg2pose_finetune
+  name: finetune_from_pretrain_large_aggressive
+  version: null
+  default_hp_metric: false

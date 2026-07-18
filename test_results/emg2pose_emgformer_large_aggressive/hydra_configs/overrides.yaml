@@ -1,0 +1,3 @@
+- experiment=emgformer/regression_emgformer_large_aggressive
+- checkpoint=/home/xiziheng/develop/emg2pose/test_results/emg2pose_large_aggressive/checkpoints/best.ckpt
+- +per_user=true

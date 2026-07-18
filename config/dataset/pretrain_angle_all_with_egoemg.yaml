@@ -1,0 +1,144 @@
+# @package _global_
+# Full angle-supervised pretrain with all datasets
+# emg2pose uses stride=7790 (no overlap)
+# EgoEMG, NinaPro, PimForce use stride=1560 (5x data)
+
+egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_emg_layout: emg2pose_interpolate16
+egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
+
+dataset:
+  train:
+    # EgoEMG - left hand (5x stride)
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: egoemg
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      base:
+        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        memmap_dir: ${egoemg_memmap_dir}
+        window_length: 7790
+        stride: 1560
+        allowed_splits: [train]
+        modalities: [emg, joint_angles, labels]
+        target_hand: left
+        emg_field_preference: filtered
+        emg_layout: ${egoemg_emg_layout}
+        emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+        # Normalization handled by PretrainWrapperDataset (avoid double norm)
+
+    # EgoEMG - right hand (5x stride)
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: egoemg
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      base:
+        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        memmap_dir: ${egoemg_memmap_dir}
+        window_length: 7790
+        stride: 1560
+        allowed_splits: [train]
+        modalities: [emg, joint_angles, labels]
+        target_hand: right
+        emg_field_preference: filtered
+        emg_layout: ${egoemg_emg_layout}
+        emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+        # Normalization handled by PretrainWrapperDataset (avoid double norm)
+
+    # emg2pose (stride=7790, no overlap)
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2pose
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      base:
+        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        memmap_dir: ${data_root}/emg2pose_v3_memmap
+        window_length: 7790
+        stride: 7790
+        padding: [0, 0]
+        jitter: true
+        skip_ik_failures: false
+        allowed_splits: [train]
+
+    # PimForce (5x stride)
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: pimforce
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      base:
+        _target_: emg2pose.datasets.pimforce_memmap_dataset.PimforceMemmapDataset
+        root_dir: ${data_root}/pimforce_v3_memmap
+        window_length: 7790
+        stride: 1560
+        padding: [0, 0]
+        jitter: true
+        channel_alignment_mode: interpolate
+        pose_in_degrees: true
+        return_joint_angles: true
+
+  val:
+    # EgoEMG validation
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: egoemg
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      base:
+        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        memmap_dir: ${egoemg_memmap_dir}
+        window_length: 7790
+        stride: 7790
+        allowed_splits: [val]
+        modalities: [emg, joint_angles, labels]
+        target_hand: left
+        emg_field_preference: filtered
+        emg_layout: ${egoemg_emg_layout}
+        emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+        # Normalization handled by PretrainWrapperDataset (avoid double norm)
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: egoemg
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      base:
+        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        memmap_dir: ${egoemg_memmap_dir}
+        window_length: 7790
+        stride: 7790
+        allowed_splits: [val]
+        modalities: [emg, joint_angles, labels]
+        target_hand: right
+        emg_field_preference: filtered
+        emg_layout: ${egoemg_emg_layout}
+        emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+        # Normalization handled by PretrainWrapperDataset (avoid double norm)
+
+    # emg2pose validation
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2pose
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      base:
+        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        memmap_dir: ${data_root}/emg2pose_v3_memmap
+        window_length: 7790
+        stride: 7790
+        padding: [0, 0]
+        jitter: false
+        skip_ik_failures: false
+        allowed_splits: [val]
+
+  test: []

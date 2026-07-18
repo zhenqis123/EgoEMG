@@ -6,167 +6,46 @@
 
 
 import logging
-
-from collections.abc import Mapping, Sequence
 import os
-from pathlib import Path
+import time
 
-import numpy as np
-import pandas as pd
+from collections.abc import Mapping
+from pathlib import Path
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning.utilities import rank_zero_only
 
 from emg2pose import utils
-from emg2pose.datasets.multisession_emg2pose_dataset import (
-    MultiSessionWindowedEmgDataset,
-)
 from emg2pose.metrics import get_default_metrics
 from emg2pose.models.modules import BaseModule
+from emg2pose.transforms_batch import BatchAugmentation
 from hydra.utils import instantiate
 
-from omegaconf import DictConfig
-from torch.utils.data import DataLoader, Dataset
-from tqdm import tqdm
+from omegaconf import DictConfig, OmegaConf
 
 log = logging.getLogger(__name__)
 
 
-class WindowedEmgDataModule(pl.LightningDataModule):
-    def __init__(
-        self,
-        window_length: int,
-        stride: int | None,
-        padding: tuple[int, int],
-        batch_size: int,
-        num_workers: int,
-        train_sessions: Sequence[Path],
-        val_sessions: Sequence[Path],
-        test_sessions: Sequence[Path],
-        val_test_window_length: int | None = None,
-        val_test_stride: int | None = None,
-        skip_ik_failures: bool = False,
-        pin_memory: bool = True,
-        persistent_workers: bool = True,
-        prefetch_factor: int = 2,
-        max_open_files: int = 32,
-        norm_mode: str | None = None,
-        norm_stats_path: str | None = None,
-        norm_eps: float = 1e-6,
-    ) -> None:
-        super().__init__()
-
-        self.window_length = window_length
-        self.val_test_window_length = val_test_window_length or window_length
-        self.stride = stride
-        self.val_test_stride = val_test_stride if val_test_stride is not None else stride
-        self.padding = padding
-
-        self.batch_size = batch_size
-        self.num_workers = num_workers
-        self.pin_memory = pin_memory
-        self.persistent_workers = persistent_workers
-        self.prefetch_factor = prefetch_factor
-        self.max_open_files = max_open_files
-        self.norm_mode = norm_mode
-        self.norm_stats_path = norm_stats_path
-        self.norm_eps = norm_eps
-
-        self.train_sessions = train_sessions
-        self.val_sessions = val_sessions
-        self.test_sessions = test_sessions
-
-        self.train_transforms = None
-        self.val_transforms = None
-        self.test_transforms = None
-
-        self.skip_ik_failures = skip_ik_failures
-
-    def setup(self, stage: str | None = None) -> None:
-        # train
-        self.train_dataset = MultiSessionWindowedEmgDataset(
-            hdf5_paths=list(self.train_sessions),
-            transform=self.train_transforms,
-            window_length=self.window_length,
-            stride=self.stride,
-            padding=self.padding,
-            jitter=True,
-            skip_ik_failures=self.skip_ik_failures,
-            max_open_files=self.max_open_files,
-            norm_mode=self.norm_mode,
-            norm_stats_path=self.norm_stats_path,
-            norm_eps=self.norm_eps,
-        )
-
-        # val
-        self.val_dataset = MultiSessionWindowedEmgDataset(
-            hdf5_paths=list(self.val_sessions),
-            transform=self.val_transforms,
-            window_length=self.val_test_window_length,
-            stride=self.val_test_stride,
-            padding=self.padding,
-            jitter=False,
-            skip_ik_failures=self.skip_ik_failures,
-            max_open_files=self.max_open_files,
-            norm_mode=self.norm_mode,
-            norm_stats_path=self.norm_stats_path,
-            norm_eps=self.norm_eps,
-        )
-
-        # test
-        self.test_dataset = MultiSessionWindowedEmgDataset(
-            hdf5_paths=list(self.test_sessions),
-            transform=self.test_transforms,
-            window_length=self.val_test_window_length,
-            stride=self.val_test_stride,
-            padding=(0, 0),
-            jitter=False,
-            skip_ik_failures=self.skip_ik_failures,
-            max_open_files=self.max_open_files,
-            norm_mode=self.norm_mode,
-            norm_stats_path=self.norm_stats_path,
-            norm_eps=self.norm_eps,
-        )
+def _debug_steps_enabled() -> bool:
+    return os.environ.get("EMG2POSE_DEBUG_STEPS", "0").lower() in {"1", "true", "yes"}
 
 
-    def train_dataloader(self) -> DataLoader:
-        kwargs = dict(
-            dataset=self.train_dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            pin_memory=self.pin_memory,
-            shuffle=True,
-        )
-        if self.num_workers > 0:
-            kwargs["persistent_workers"] = self.persistent_workers
-            kwargs["prefetch_factor"] = self.prefetch_factor
-        return DataLoader(**kwargs)
+def _load_state_dict_from_checkpoint(checkpoint_path: str) -> dict[str, torch.Tensor]:
+    """Load state_dict from checkpoint file, handling various formats."""
+    path = Path(checkpoint_path).expanduser()
+    if not path.is_file():
+        raise FileNotFoundError(f"Pretrained checkpoint not found: {path}")
 
-    def val_dataloader(self) -> DataLoader:
-        kwargs = dict(
-            dataset=self.val_dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            pin_memory=self.pin_memory,
-            shuffle=False,
-        )
-        if self.num_workers > 0:
-            kwargs["persistent_workers"] = self.persistent_workers
-            kwargs["prefetch_factor"] = self.prefetch_factor
-        return DataLoader(**kwargs)
+    checkpoint = torch.load(path, map_location="cpu")
+    if isinstance(checkpoint, dict):
+        if "model_state_dict" in checkpoint:
+            return checkpoint["model_state_dict"]
+        elif "state_dict" in checkpoint:
+            return checkpoint["state_dict"]
+        else:
+            return checkpoint
+    return checkpoint
 
-    def test_dataloader(self) -> DataLoader:
-        kwargs = dict(
-            dataset=self.test_dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            pin_memory=self.pin_memory,
-            shuffle=False,
-        )
-        if self.num_workers > 0:
-            kwargs["persistent_workers"] = self.persistent_workers
-            kwargs["prefetch_factor"] = self.prefetch_factor
-        return DataLoader(**kwargs)
 
 class EmgPredictionModule(pl.LightningModule):
     def __init__(
@@ -175,34 +54,217 @@ class EmgPredictionModule(pl.LightningModule):
         optimizer_conf: DictConfig,
         lr_scheduler_conf: DictConfig,
         loss_weights: dict[str, float] | None = None,
-        task_type: str = "regression",  # regression | discrete
-        ignore_index: int = -100,
-        label_smoothing: float = 0.0,
-        gumbel_recon: DictConfig | None = None,
+        pretrained_checkpoint: str | None = None,
+        pretrained_strict: bool = False,
+        pretrained_emg_checkpoint: str | None = None,
+        freeze_backbone: bool = False,
+        ignore_head_tail_dims: int = 0,
+        datamodule: DictConfig | None = None,
+        stage2_vision_checkpoint: str | None = None,
+        component_lr_scales: dict[str, float] | None = None,
+        batch_augmentation: DictConfig | None = None,
+        val_episode_name_mapping: dict[str, str] | None = None,
     ) -> None:
 
         super().__init__()
         self.save_hyperparameters()
         self.model: BaseModule = instantiate(module_conf, _convert_="all")
         self.loss_weights = loss_weights or {"mae": 1}
-        self._warned_emg_nan = False
-        self.task_type = task_type
-        self.ignore_index = ignore_index
-        self.label_smoothing = float(label_smoothing)
-        self.gumbel_recon = gumbel_recon or {}
-        self.use_gumbel_recon = True
-        self.gumbel_tau = float(self.gumbel_recon.get("temperature", 1.0))
-        self.gumbel_hard = bool(self.gumbel_recon.get("hard", False))
-        self.gumbel_weight = float(self.gumbel_recon.get("weight", 1.0))
-        self._warned_gumbel_unfrozen = False
+        self.ignore_head_tail_dims = int(ignore_head_tail_dims)
+        self.component_lr_scales = component_lr_scales or {}
+        self.task_type = "regression"
+
+        # Batch augmentation on GPU (replaces per-sample CPU transforms)
+        if batch_augmentation is not None:
+            self.batch_aug = BatchAugmentation(
+                OmegaConf.to_container(batch_augmentation, resolve=True)
+            )
+        else:
+            self.batch_aug = None
 
         # Metrics sets
         self.regression_metrics = get_default_metrics()
-        self.discrete_metrics: list = []  # placeholder for custom discrete metrics if needed
+
+        # Per-split validation MAE accumulators
+        # Tracks MAE separately for each generalization condition:
+        #   "stage" (seen user, unseen gesture),
+        #   "user" (unseen user, seen gesture),
+        #   "user_stage" (unseen user + unseen gesture)
+        self._val_split_sums: dict[str, float] = {}
+        self._val_split_counts: dict[str, float] = {}
+
+        # Per-episode validation MAE accumulators
+        self._val_episode_sums: dict[str, float] = {}
+        self._val_episode_counts: dict[str, float] = {}
+        self.val_episode_name_mapping: dict[str, str] = val_episode_name_mapping or {}
+
+        # Per-joint validation MAE accumulators
+        self._val_joint_sums: dict[int, float] = {}
+        self._val_joint_counts: dict[int, float] = {}
+
+        if pretrained_checkpoint is not None:
+            self._load_pretrained_backbone(
+                pretrained_checkpoint, strict=bool(pretrained_strict)
+            )
+            self._load_pretrained_angle_head(
+                pretrained_checkpoint, strict=bool(pretrained_strict)
+            )
+
+        if pretrained_emg_checkpoint is not None:
+            self._load_pretrained_backbone(
+                pretrained_emg_checkpoint, strict=bool(pretrained_strict)
+            )
+
+        if stage2_vision_checkpoint is not None:
+            self._load_fusion_vision_weights(stage2_vision_checkpoint)
+
+        if freeze_backbone:
+            self._freeze_backbone()
+
+        # Apply component-level freezing for scale=0 entries
+        for comp, scale in self.component_lr_scales.items():
+            if scale == 0.0:
+                self._freeze_component(comp)
+
+    def _debug_step_log(self, message: str) -> None:
+        if not _debug_steps_enabled():
+            return
+        rank = getattr(self.trainer, "global_rank", 0) if self.trainer is not None else 0
+        print(f"[emg2pose-debug][rank={rank}] {message}", flush=True)
+
+    @staticmethod
+    def _debug_sync() -> None:
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
 
     def on_fit_start(self) -> None:
         super().on_fit_start()
         self._log_param_breakdown()
+
+    def _load_pretrained_backbone(self, checkpoint_path: str, strict: bool = False) -> None:
+        state_dict = _load_state_dict_from_checkpoint(checkpoint_path)
+
+        model_state = self.model.state_dict()
+        filtered: dict[str, torch.Tensor] = {}
+        for key, value in state_dict.items():
+            stripped = key[6:] if key.startswith("model.") else key
+            if not stripped.startswith((
+                "featurizer.", "decoder.", "backbone.", "avgpool.",
+                "vision_backbone.", "vision_proj.", "fusion_proj.", "head_vision.",
+                "temporal_attn.",  # EMG temporal attention pooling (center_supervised fusion)
+            )):
+                continue
+            if stripped in model_state and model_state[stripped].shape == value.shape:
+                filtered[stripped] = value
+
+        missing_keys, unexpected_keys = self.model.load_state_dict(
+            filtered, strict=False
+        )
+        print(f"Missing keys: {missing_keys}")
+        print(f"Unexpected keys: {unexpected_keys}")
+        log.info(
+            "Loaded pretrained backbone from %s (matched %d/%d keys).",
+            Path(checkpoint_path).expanduser(),
+            len(filtered),
+            len(model_state),
+        )
+
+        if strict:
+            missing_backbone = [
+                key
+                for key in missing_keys
+                if key.startswith((
+                    "featurizer.", "decoder.", "backbone.", "avgpool.",
+                    "vision_backbone.", "vision_proj.", "fusion_proj.", "head_vision.",
+                    "temporal_attn.",
+                ))
+            ]
+            if missing_backbone or unexpected_keys:
+                raise RuntimeError(
+                    "Error(s) in loading pretrained backbone:\n"
+                    f"\tMissing backbone keys: {missing_backbone}\n"
+                    f"\tUnexpected keys: {unexpected_keys}\n"
+                )
+
+    def _load_pretrained_angle_head(self, checkpoint_path: str, strict: bool = False) -> None:
+        state_dict = _load_state_dict_from_checkpoint(checkpoint_path)
+
+        head = getattr(self.model, "head", None) or getattr(self.model, "angle_head", None)
+        if head is None:
+            log.warning("Model has neither 'head' nor 'angle_head' — skipping angle_head loading.")
+            return
+
+        head_state = head.state_dict()
+        filtered: dict[str, torch.Tensor] = {}
+        matched = 0
+
+        for key, value in state_dict.items():
+            # Pretrain checkpoint uses "model.angle_head." prefix
+            if key.startswith("model.angle_head."):
+                mapped = key[len("model.angle_head.") :]
+            elif key.startswith("angle_head."):
+                mapped = key[len("angle_head.") :]
+            # Regular model checkpoint uses "model.head." prefix
+            elif key.startswith("model.head."):
+                mapped = key[len("model.head.") :]
+            elif key.startswith("head."):
+                mapped = key[len("head.") :]
+            else:
+                continue
+
+            if mapped not in head_state:
+                continue
+
+            target = head_state[mapped]
+            if target.shape == value.shape:
+                filtered[mapped] = value
+                matched += 1
+                continue
+
+            if (
+                value.ndim >= 1
+                and target.shape[0] < value.shape[0]
+                and target.shape[1:] == value.shape[1:]
+            ):
+                # Loaded has more dims than model: truncate
+                filtered[mapped] = value[: target.shape[0]].clone()
+                matched += 1
+                continue
+
+            if (
+                value.ndim >= 1
+                and target.shape[0] > value.shape[0]
+                and target.shape[1:] == value.shape[1:]
+            ):
+                # Loaded has fewer dims than model: pad with zeros
+                padded = torch.zeros_like(target)
+                padded[: value.shape[0]] = value
+                filtered[mapped] = padded
+                matched += 1
+                continue
+
+        missing_keys, unexpected_keys = head.load_state_dict(
+            filtered, strict=False
+        )
+        log.info(
+            "Loaded pretrained angle_head from %s (matched %d/%d keys).",
+            Path(checkpoint_path).expanduser(),
+            matched,
+            len(head_state),
+        )
+        if matched == 0:
+            log.warning(
+                "No angle_head weights matched. Check head architecture and "
+                "out_channels vs pretrain."
+            )
+
+        if strict:
+            if missing_keys or unexpected_keys:
+                raise RuntimeError(
+                    "Error(s) in loading pretrained angle_head:\n"
+                    f"\tMissing keys: {missing_keys}\n"
+                    f"\tUnexpected keys: {unexpected_keys}\n"
+                )
 
     @rank_zero_only
     def _log_param_breakdown(self) -> None:
@@ -225,57 +287,207 @@ class EmgPredictionModule(pl.LightningModule):
             )
             log.info("Parameter breakdown (total/trainable): %s", formatted)
 
+    def _freeze_backbone(self) -> None:
+        for name, param in self.model.named_parameters():
+            if name.startswith(("featurizer.", "decoder.")):
+                param.requires_grad = False
+        log.info("Backbone frozen (featurizer + decoder).")
+
+    _COMPONENT_PREFIX_MAP: dict[str, list[str]] = {
+        "featurizer": ["featurizer."],
+        "decoder": ["decoder."],
+        "vision_proj": ["vision_proj."],
+        "fusion_proj": ["fusion_proj."],
+        "head": ["head."],
+        "head_vision": ["head_vision."],
+        "vision_backbone": ["vision_backbone."],
+        "backbone": ["backbone."],
+    }
+
+    def _params_by_component(self) -> dict[str, list[torch.nn.Parameter]]:
+        """Group model parameters by component prefix."""
+        groups: dict[str, list[torch.nn.Parameter]] = {c: [] for c in self._COMPONENT_PREFIX_MAP}
+        unassigned: list[torch.nn.Parameter] = []
+        for name, param in self.model.named_parameters():
+            matched = False
+            for comp, prefixes in self._COMPONENT_PREFIX_MAP.items():
+                if any(name.startswith(p) for p in prefixes):
+                    groups[comp].append(param)
+                    matched = True
+                    break
+            if not matched:
+                unassigned.append(param)
+        if unassigned:
+            groups["_unassigned"] = unassigned
+        return groups
+
+    def _freeze_component(self, component: str) -> None:
+        prefixes = self._COMPONENT_PREFIX_MAP.get(component)
+        if prefixes is None:
+            log.warning("Unknown component '%s' for freezing, skipping.", component)
+            return
+        for name, param in self.model.named_parameters():
+            if any(name.startswith(p) for p in prefixes):
+                param.requires_grad = False
+        log.info("Component '%s' frozen.", component)
+
+    def _load_fusion_vision_weights(self, checkpoint_path: str) -> None:
+        """Load vision_proj, fusion_proj, and head weights from a vision_only checkpoint."""
+        state_dict = _load_state_dict_from_checkpoint(checkpoint_path)
+
+        vision_prefixes = ("vision_proj.", "head_vision.", "vision_backbone.")
+        model_state = self.model.state_dict()
+        filtered: dict[str, torch.Tensor] = {}
+        for key, value in state_dict.items():
+            stripped = key[6:] if key.startswith("model.") else key
+            if not any(stripped.startswith(p) for p in vision_prefixes):
+                continue
+            if stripped in model_state and model_state[stripped].shape == value.shape:
+                filtered[stripped] = value
+
+        if filtered:
+            self.model.load_state_dict(filtered, strict=False)
+            log.info(
+                "Loaded %d vision/fusion/head keys from %s",
+                len(filtered),
+                Path(checkpoint_path).expanduser(),
+            )
+        else:
+            log.warning("No matching vision/fusion/head keys found in %s", checkpoint_path)
+
     def forward(
         self, batch: Mapping[str, torch.Tensor]
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         out = self.model.forward(batch)
         if self.task_type == "discrete":
             return self._prepare_discrete(out, batch)
-        preds = out
-        joint_angles = batch["joint_angles"]
-        mask = batch["label_valid_mask"]
-        start = self.model.left_context
-        stop = None if self.model.right_context == 0 else -self.model.right_context
-        targets = joint_angles[..., slice(start, stop)]
-        mask = mask[..., slice(start, stop)]
-        if preds.ndim == 2:
-            preds = preds[..., None]
-        n_time = targets.shape[-1]
-        preds = self.model.align_predictions(preds, n_time)
-        mask = self.model.align_mask(mask, n_time)
+
+        # Handle tuple output from BaseModule.forward() which returns (preds, targets, mask)
+        if isinstance(out, tuple):
+            preds, targets, mask = out
+        # Handle dict output from EmgformerPretrain
+        elif isinstance(out, dict):
+            preds = out.get("angles", out.get("recon"))
+            if preds is None:
+                raise ValueError(
+                    f"Model output dict must contain 'angles' or 'recon' key. "
+                    f"Got keys: {list(out.keys())}."
+                )
+            # For dict output, derive targets and mask from batch
+            joint_angles = batch.get("joint_angles", batch.get("angle_target"))
+            mask = batch.get("label_valid_mask", batch.get("angle_mask"))
+            if joint_angles is None or mask is None:
+                raise KeyError(
+                    "Batch must contain either (joint_angles, label_valid_mask) "
+                    f"or (angle_target, angle_mask). Got keys: {list(batch.keys())}"
+                )
+            if joint_angles.shape[-1] == 1:
+                # center-target-only: single center frame, extract center prediction
+                targets = joint_angles
+                center = preds.shape[-1] // 2
+                preds = preds[..., center:center + 1]
+            else:
+                start = self.model.left_context
+                stop = None if self.model.right_context == 0 else -self.model.right_context
+                targets = joint_angles[..., slice(start, stop)]
+                mask = mask[..., slice(start, stop)]
+                # Align predictions and mask up to targets' time dimension
+                n_time = targets.shape[-1]
+                preds = self.model.align_predictions(preds, n_time)
+                if mask.ndim == 2:
+                    mask = self.model.align_mask(mask, n_time)
+                elif mask.ndim == 3:
+                    mask = self.model.align_mask(
+                        mask.mean(dim=1), n_time
+                    )  # (B, C, T) -> (B, T) -> align -> (B, T)
+        else:
+            # Legacy tensor-only output (e.g., Emg2PoseFormer, VEMG2PoseWithInitialState)
+            preds = out
+            joint_angles = batch.get("joint_angles", batch.get("angle_target"))
+            mask = batch.get("label_valid_mask", batch.get("angle_mask"))
+            if joint_angles is None or mask is None:
+                raise KeyError(
+                    "Batch must contain either (joint_angles, label_valid_mask) "
+                    f"or (angle_target, angle_mask). Got keys: {list(batch.keys())}"
+                )
+            if joint_angles.shape[-1] == 1:
+                # center-target-only: targets are single center frame,
+                # extract center prediction step — no interpolation needed.
+                targets = joint_angles
+                center = preds.shape[-1] // 2
+                preds = preds[..., center:center + 1]
+            else:
+                start = self.model.left_context
+                stop = None if self.model.right_context == 0 else -self.model.right_context
+                targets = joint_angles[..., slice(start, stop)]
+                mask = mask[..., slice(start, stop)]
+                # Align predictions and mask up to targets' time dimension
+                n_time = targets.shape[-1]
+                preds = self.model.align_predictions(preds, n_time)
+                if mask.ndim == 2:
+                    mask = self.model.align_mask(mask, n_time)
+                elif mask.ndim == 3:
+                    mask = self.model.align_mask(
+                        mask.mean(dim=1), n_time
+                    )  # (B, C, T) -> (B, T) -> align -> (B, T)
+
+        if self.ignore_head_tail_dims > 0:
+            if preds.ndim == 2:
+                preds = preds[..., None]
+            if self.ignore_head_tail_dims >= preds.shape[1]:
+                raise ValueError(
+                    "ignore_head_tail_dims must be smaller than prediction channels."
+                )
+            preds = preds[:, : -self.ignore_head_tail_dims, :]
+
+        # Handle prediction-target channel mismatch (e.g., pretrain model outputs
+        # 22 channels but dataset only provides 20 joint angles)
+        if preds.shape[1] != targets.shape[1]:
+            n_ch = min(preds.shape[1], targets.shape[1])
+            preds = preds[:, :n_ch, :]
+            targets = targets[:, :n_ch, :]
+
+        # For 3D masks (angle_mask: B,C,T) the time is already aligned with targets;
+        # for 2D masks (label_valid_mask: B,T) we need temporal alignment
+        if mask.ndim == 3:
+            # Already time-aligned; just trim channels if needed
+            if mask.shape[1] != targets.shape[1]:
+                mask = mask[:, :targets.shape[1], :]
+        elif mask.ndim == 2:
+            n_time = targets.shape[-1]
+            mask = self.model.align_mask(mask, n_time)
 
         return preds, targets, mask
-
-    def _prepare_discrete(
-        self, preds: torch.Tensor, batch: Mapping[str, torch.Tensor]
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        joint_angles = batch["joint_angles"]
-        start = self.model.left_context
-        stop = None if self.model.right_context == 0 else -self.model.right_context
-        targets_full = joint_angles[..., slice(start, stop)]
-        code_indices = self._quantize_angles(targets_full)  # (B, L, T_code)
-        logits = preds.permute(0, 3, 2, 1).contiguous()  # (B, L, T_pred, num_codes)
-        return logits, code_indices
-
-    def _quantize_angles(self, joint_angles: torch.Tensor) -> torch.Tensor:
-        vqvae = self.model.head.vqvae_module
-        b, j, t = joint_angles.shape
-        with torch.no_grad():
-            if hasattr(vqvae.model, "quantize_angles"):
-                return vqvae.model.quantize_angles(joint_angles)
-            flat = joint_angles.transpose(1, 2).reshape(-1, j)
-            repr_in = vqvae._encode_representation(flat)
-            z_e = vqvae.model.encoder(repr_in)
-            _, indices, _, _, _ = vqvae.model.quantizer(z_e)
-        if indices.ndim == 1:
-            indices = indices.unsqueeze(0)
-        if indices.shape[0] == flat.shape[0]:
-            indices = indices.transpose(0, 1)
-        return indices.view(indices.shape[0], b, t).permute(1, 0, 2)
 
     def _step(
         self, batch: Mapping[str, torch.Tensor], stage: str = "train"
     ) -> torch.Tensor:
+        debug = _debug_steps_enabled()
+        step_t0 = time.perf_counter()
+        last_t = step_t0
+
+        def mark(name: str) -> None:
+            nonlocal last_t
+            if not debug:
+                return
+            self._debug_sync()
+            now = time.perf_counter()
+            self._debug_step_log(
+                f"{stage} batch_idx={getattr(self, '_debug_batch_idx', '?')} "
+                f"{name}: +{now - last_t:.3f}s total={now - step_t0:.3f}s"
+            )
+            last_t = now
+
+        if debug:
+            emg = batch.get("emg")
+            ja = batch.get("joint_angles", batch.get("angle_target"))
+            mask = batch.get("label_valid_mask", batch.get("angle_mask"))
+            self._debug_step_log(
+                f"{stage} batch_idx={getattr(self, '_debug_batch_idx', '?')} "
+                f"start emg={tuple(emg.shape) if emg is not None else None} "
+                f"target={tuple(ja.shape) if ja is not None else None} "
+                f"mask={tuple(mask.shape) if mask is not None else None}"
+            )
 
         # Generate predictions
         if getattr(self.hparams, "datamodule", None) and self.hparams.datamodule.get("norm_mode") == "batch":
@@ -283,79 +495,300 @@ class EmgPredictionModule(pl.LightningModule):
             mean = emg.mean()
             std = emg.std()
             batch["emg"] = (emg - mean) / (std + 1e-6)
+            mark("batch_norm")
         preds, targets, mask = self.forward(batch)
+        mark(
+            f"forward preds={tuple(preds.shape)} targets={tuple(targets.shape)} "
+            f"mask={tuple(mask.shape)}"
+        )
         batch_size = batch["emg"].shape[0]
-        joint_angles = batch['joint_angles']
-        start = self.model.left_context
-        stop = None if self.model.right_context == 0 else -self.model.right_context
-        joint_angle_targets = joint_angles[..., slice(start, stop)]
-        n_time = joint_angle_targets.shape[-1]
-        if self.task_type == "discrete":
-            code_sub = targets
-            cls_loss = self._discrete_loss(preds, code_sub, None, stage)
-            cls_weight = self.loss_weights.get("cls", 1.0)
-            loss = cls_loss * cls_weight
-            # import ipdb;ipdb.set_trace()
-            if self.use_gumbel_recon:
-                gumbel_loss = self._gumbel_recon_loss(preds, code_sub, None, stage)
-                loss = loss + gumbel_loss * self.gumbel_weight
-            # import ipdb;ipdb.set_trace()
-            decoded_angles = self.model.head.decode_from_logits(
-                preds.permute(0, 3, 2, 1), target_t=n_time
-            )  # (B, J, T_pred)
-            if decoded_angles.ndim == 2:
-                decoded_angles = decoded_angles[..., None]
-
-            mask_full = batch["label_valid_mask"][..., slice(start, stop)]
-            mask_aligned = self.model.align_mask(mask_full, n_time)
-            # align targets_full to match decoded_aligned length
-            valid_mask = mask_aligned.bool()
-            metrics = {}
-            
-            for metric in self.regression_metrics:
-                metrics.update(metric(decoded_angles, joint_angle_targets, valid_mask, stage))
-            self.log_dict(metrics, sync_dist=True, batch_size=batch_size)
-            vqvae = self.model.head.vqvae_module
-            if hasattr(vqvae.model, "quantize_angles"):
-                recon_angles, _, _, _, _ = vqvae(joint_angle_targets)
-            else:
-                recon_angles, _, _, _, _ = vqvae(joint_angle_targets.reshape(-1, 20))
-                recon_angles = recon_angles.reshape(joint_angle_targets.shape)
-            recon_diff = torch.abs(recon_angles - joint_angle_targets)
-            denom = valid_mask.sum() * recon_diff.shape[1]
-            recon_mae = (recon_diff * valid_mask[:, None, :]).sum() / denom
-            recon_mae_deg = recon_mae * (180.0 / torch.pi)
-            self.log(
-                f"{stage}_recon_mae", recon_mae, sync_dist=True, batch_size=batch_size
-            )
-            self.log(
-                f"{stage}_recon_mae_deg",
-                recon_mae_deg,
-                sync_dist=True,
-                batch_size=batch_size,
-            )
-            self.log(f"{stage}_loss", loss, sync_dist=True, batch_size=batch_size)
-            return loss
 
         # regression path
         valid_mask = mask.bool()
+        mark("mask_bool")
+
+        # Incre dataset has no wrist annotations (channels 20,21 are zero-padded).
+        # Mask wrist only for incre samples, while keeping EgoEMG wrist supervised
+        # in mixed batches.
+        if "dataset_name" in batch:
+            incre_rows = torch.tensor(
+                [d == "egoemg_incre" for d in batch["dataset_name"]],
+                device=preds.device,
+                dtype=torch.bool,
+            )
+            if incre_rows.any() and preds.shape[1] > 20:
+                if valid_mask.ndim == 2:
+                    n_joints = preds.shape[1]
+                    valid_mask = (
+                        valid_mask.unsqueeze(1)
+                        .expand(-1, n_joints, -1)
+                        .clone()
+                    )
+                else:
+                    valid_mask = valid_mask.clone()
+                valid_mask[incre_rows, -2:, :] = False  # wrist pitch/yaw
+        mark("incre_wrist_mask")
+
         metrics = {}
         for metric in self.regression_metrics:
+            metric_t0 = time.perf_counter()
             metrics.update(metric(preds, targets, valid_mask, stage))
+            if debug:
+                self._debug_sync()
+                self._debug_step_log(
+                    f"{stage} batch_idx={getattr(self, '_debug_batch_idx', '?')} "
+                    f"metric {metric.__class__.__name__}: "
+                    f"{time.perf_counter() - metric_t0:.3f}s"
+                )
+        mark("metrics_all")
         self.log_dict(metrics, sync_dist=True, batch_size=batch_size)
+        mark("log_dict")
 
+        # Per-split MAE accumulation (val only, when generalization info available)
+        if stage == "val" and "held_out_user" in batch and "held_out_stage" in batch:
+            hou = batch["held_out_user"]   # (B,) BoolTensor
+            hos = batch["held_out_stage"]  # (B,) BoolTensor
+            per_elem_err = (preds - targets).abs()  # (B, J, T)
+            # Expand valid_mask to match preds shape if needed
+            if valid_mask.ndim == 2:
+                vmask = valid_mask.unsqueeze(1).expand_as(per_elem_err)
+            else:
+                vmask = valid_mask
+            # Per-bucket: stage=(!hou & hos), user=(hou & !hos), user_stage=(hou & hos)
+            buckets = {
+                "stage": (~hou) & hos,
+                "user": hou & (~hos),
+                "user_stage": hou & hos,
+            }
+            for bucket_name, bucket_mask in buckets.items():
+                # bucket_mask: (B,) — expand to (B, 1, 1) to broadcast over (B, J, T)
+                bmask = bucket_mask.view(-1, 1, 1) & vmask
+                if bmask.any():
+                    berr = (per_elem_err * bmask.float()).sum().item()
+                    bcount = bmask.sum().item()
+                    self._val_split_sums[bucket_name] = self._val_split_sums.get(bucket_name, 0.0) + berr
+                    self._val_split_counts[bucket_name] = self._val_split_counts.get(bucket_name, 0.0) + bcount
+            mark("val_split_accum")
+
+        # Per-episode MAE accumulation (val only)
+        if stage == "val" and "episode_id" in batch:
+            ep_ids = batch["episode_id"]  # tuple of str, length B
+            per_elem_err = (preds - targets).abs()  # (B, J, T)
+            if valid_mask.ndim == 2:
+                vmask_ep = valid_mask.unsqueeze(1).expand_as(per_elem_err)
+            else:
+                vmask_ep = valid_mask
+            for i, ep_id in enumerate(ep_ids):
+                e_err = per_elem_err[i]  # (J, T)
+                e_mask = vmask_ep[i]    # (J, T)
+                if e_mask.any():
+                    self._val_episode_sums[ep_id] = (
+                        self._val_episode_sums.get(ep_id, 0.0)
+                        + (e_err * e_mask.float()).sum().item()
+                    )
+                    self._val_episode_counts[ep_id] = (
+                        self._val_episode_counts.get(ep_id, 0.0)
+                        + e_mask.sum().item()
+                    )
+            mark("val_episode_accum")
+
+        # Per-joint MAE accumulation (val only)
+        if stage == "val":
+            per_elem_err = (preds - targets).abs()  # (B, J, T)
+            if valid_mask.ndim == 2:
+                vmask_j = valid_mask.unsqueeze(1).expand_as(per_elem_err)
+            else:
+                vmask_j = valid_mask
+            for j in range(per_elem_err.shape[1]):
+                j_err = per_elem_err[:, j, :]  # (B, T)
+                j_mask = vmask_j[:, j, :]      # (B, T)
+                if j_mask.any():
+                    self._val_joint_sums[j] = (
+                        self._val_joint_sums.get(j, 0.0)
+                        + (j_err * j_mask.float()).sum().item()
+                    )
+                    self._val_joint_counts[j] = (
+                        self._val_joint_counts.get(j, 0.0)
+                        + j_mask.sum().item()
+                    )
+            mark("val_joint_accum")
+
+        # ── Center-frame MAE (for vision / fusion models) ──────────
+        # Only needed when T > 1 (broadcast case).  When the dataset already
+        # returns center-frame-only targets (T == 1) the regular metrics above
+        # cover the single time step.
+        if ("vision_features" in batch or "vision_img" in batch) and mask.shape[-1] > 1:
+            T = mask.shape[-1]
+            center = T // 2
+            center_mask = torch.zeros_like(mask, dtype=torch.float32)
+            center_mask[..., center] = mask[..., center].float()
+            center_valid = center_mask.bool()
+            if center_valid.any():
+                center_mae = {}
+                for metric in self.regression_metrics:
+                    center_mae.update(metric(preds, targets, center_valid, f"{stage}_center"))
+                self.log_dict(center_mae, sync_dist=True, batch_size=batch_size)
+                mark("center_metrics")
+
+        # Backward-compat: map old flat loss-weight keys to new hierarchical metric keys.
+        _LOSS_KEY_COMPAT = {
+            "fingertip_distance": "landmark/fingertip",
+            "landmark_distance": "landmark/all",
+        }
         loss = 0.0
         for loss_name, weight in self.loss_weights.items():
-            loss += metrics.get(f"{stage}_{loss_name}", 0.0) * weight
+            lookup = _LOSS_KEY_COMPAT.get(loss_name, loss_name)
+            loss += metrics.get(f"{stage}_{lookup}", 0.0) * weight
+        mark("loss_reduce")
+
+        # ── Delta L2: always report magnitude, optionally regularize ──
+        delta_reg_weight = float(self.loss_weights.get("delta_reg", 0.0))
+        delta = getattr(self.model, "_last_delta", None)
+        if delta is not None:
+            delta_l2 = (delta ** 2).mean()
+            self.log(f"{stage}_delta_l2", delta_l2, sync_dist=True, batch_size=batch_size)
+            if delta_reg_weight > 0 and stage == "train":
+                loss = loss + delta_reg_weight * delta_l2
+
         self.log(f"{stage}_loss", loss, sync_dist=True, batch_size=batch_size)
+        mark("log_loss_return")
         return loss
         
+    def on_after_batch_transfer(self, batch, dataloader_idx):
+        if _debug_steps_enabled():
+            rank = getattr(self.trainer, "global_rank", 0) if self.trainer is not None else 0
+            emg = batch.get("emg") if isinstance(batch, Mapping) else None
+            print(
+                f"[emg2pose-debug][rank={rank}] after_batch_transfer start "
+                f"training={self.trainer.training if self.trainer is not None else None} "
+                f"dataloader_idx={dataloader_idx} "
+                f"emg={tuple(emg.shape) if emg is not None else None}",
+                flush=True,
+            )
+            t0 = time.perf_counter()
+        if self.batch_aug is not None and self.trainer.training:
+            batch = self.batch_aug(batch)
+        if _debug_steps_enabled():
+            self._debug_sync()
+            rank = getattr(self.trainer, "global_rank", 0) if self.trainer is not None else 0
+            print(
+                f"[emg2pose-debug][rank={rank}] after_batch_transfer done "
+                f"{time.perf_counter() - t0:.3f}s",
+                flush=True,
+            )
+        return batch
+
+    def on_train_epoch_start(self) -> None:
+        self._debug_step_log(f"train_epoch_start epoch={self.current_epoch}")
+
+    def on_train_batch_start(self, batch, batch_idx) -> None:
+        if not _debug_steps_enabled():
+            return
+        emg = batch.get("emg") if isinstance(batch, Mapping) else None
+        self._debug_step_log(
+            f"train_batch_start batch_idx={batch_idx} "
+            f"emg={tuple(emg.shape) if emg is not None else None}"
+        )
+
+    def on_before_batch_transfer(self, batch, dataloader_idx):
+        if not _debug_steps_enabled():
+            return batch
+        rank = getattr(self.trainer, "global_rank", 0) if self.trainer is not None else 0
+        emg = batch.get("emg") if isinstance(batch, Mapping) else None
+        print(
+            f"[emg2pose-debug][rank={rank}] before_batch_transfer "
+            f"training={self.trainer.training if self.trainer is not None else None} "
+            f"dataloader_idx={dataloader_idx} "
+            f"emg={tuple(emg.shape) if emg is not None else None}",
+            flush=True,
+        )
+        return batch
+
     def training_step(self, batch, batch_idx) -> torch.Tensor:
+        self._debug_batch_idx = batch_idx
         result = self._step(batch, stage="train")
+        # Log learning rate
+        sch = self.lr_schedulers()
+        if sch is not None:
+            self.log("lr", sch.get_last_lr()[0], on_step=False, on_epoch=True, prog_bar=True)
         return result
 
+    def on_validation_epoch_start(self) -> None:
+        """Reset per-split and per-episode validation MAE accumulators."""
+        self._val_split_sums = {"stage": 0.0, "user": 0.0, "user_stage": 0.0}
+        self._val_split_counts = {"stage": 0.0, "user": 0.0, "user_stage": 0.0}
+        self._val_episode_sums = {}
+        self._val_episode_counts = {}
+        self._val_joint_sums = {}
+        self._val_joint_counts = {}
+
     def validation_step(self, batch, batch_idx) -> torch.Tensor:
+        self._debug_batch_idx = batch_idx
         return self._step(batch, stage="val")
+
+    def on_validation_epoch_end(self) -> None:
+        """Compute and log per-split and per-episode validation MAE with DDP sync."""
+        for bucket in ("stage", "user", "user_stage"):
+            s = self._val_split_sums.get(bucket, 0.0)
+            c = self._val_split_counts.get(bucket, 0.0)
+            # DDP: gather sums and counts across all devices
+            t_sum = torch.tensor(s, device=self.device, dtype=torch.float64)
+            t_cnt = torch.tensor(c, device=self.device, dtype=torch.float64)
+            gathered_sums = self.all_gather(t_sum)
+            gathered_cnts = self.all_gather(t_cnt)
+            total_sum = gathered_sums.sum()
+            total_cnt = gathered_cnts.sum()
+            if total_cnt > 0:
+                mae_val = (total_sum / total_cnt).item()
+                self.log(f"val_{bucket}_mae", mae_val, sync_dist=False,
+                         batch_size=int(total_cnt.item()))
+
+        # Per-episode validation MAE requires every rank to call collectives in
+        # the exact same order. If no complete episode list is provided, each
+        # DDP rank may see a different local set and deadlock here.
+        world_size = getattr(self.trainer, "world_size", 1) if self.trainer else 1
+        if self.val_episode_name_mapping or world_size <= 1:
+            all_ep_ids = (
+                sorted(self.val_episode_name_mapping.keys())
+                if self.val_episode_name_mapping
+                else sorted(self._val_episode_sums.keys())
+            )
+            for ep_id in all_ep_ids:
+                s = self._val_episode_sums.get(ep_id, 0.0)
+                c = self._val_episode_counts.get(ep_id, 0.0)
+                t_sum = torch.tensor(s, device=self.device, dtype=torch.float64)
+                t_cnt = torch.tensor(c, device=self.device, dtype=torch.float64)
+                gathered_sums = self.all_gather(t_sum)
+                gathered_cnts = self.all_gather(t_cnt)
+                total_sum = gathered_sums.sum()
+                total_cnt = gathered_cnts.sum()
+                if total_cnt > 0:
+                    mae_val = (total_sum / total_cnt).item()
+                    display_name = self.val_episode_name_mapping.get(ep_id, ep_id)
+                    self.log(
+                        f"val_mae/{display_name}",
+                        mae_val,
+                        sync_dist=False,
+                        batch_size=int(total_cnt.item()),
+                    )
+
+        # Per-joint validation MAE with DDP sync
+        from emg2pose.constants import JOINTS
+        idx_to_name = {j.index: j.name for j in JOINTS}
+        for j_idx in range(len(JOINTS)):
+            s = self._val_joint_sums.get(j_idx, 0.0)
+            c = self._val_joint_counts.get(j_idx, 0.0)
+            t_sum = torch.tensor(s, device=self.device, dtype=torch.float64)
+            t_cnt = torch.tensor(c, device=self.device, dtype=torch.float64)
+            gathered_sums = self.all_gather(t_sum)
+            gathered_cnts = self.all_gather(t_cnt)
+            total_sum = gathered_sums.sum()
+            total_cnt = gathered_cnts.sum()
+            if total_cnt > 0:
+                mae_val = (total_sum / total_cnt).item()
+                joint_name = idx_to_name.get(j_idx, f"joint_{j_idx}")
+                self.log(f"val_mae_per_joint/{joint_name}", mae_val, sync_dist=False,
+                         batch_size=int(total_cnt.item()))
 
     def test_step(
         self, batch, batch_idx, dataloader_idx: int | None = None
@@ -363,139 +796,41 @@ class EmgPredictionModule(pl.LightningModule):
         return self._step(batch, stage="test")
 
     def configure_optimizers(self):
-        params = list(self.parameters())
-        vqvae = getattr(getattr(self.model, "head", None), "vqvae_module", None)
-        if vqvae is not None:
-            excluded = {id(p) for p in vqvae.parameters()}
-            params = [p for p in params if id(p) not in excluded]
+        scales = self.component_lr_scales
+        if not scales:
+            return utils.instantiate_optimizer_and_scheduler(
+                self.parameters(),
+                optimizer_config=self.hparams.optimizer_conf,
+                lr_scheduler_config=self.hparams.lr_scheduler_conf,
+            )
+
+        # Per-component param groups with scaled learning rates
+        base_lr = float(self.hparams.optimizer_conf.lr)
+        comp_params = self._params_by_component()
+        param_groups = []
+        for comp, params in comp_params.items():
+            params = [p for p in params if p.requires_grad]
+            if not params:
+                continue
+            scale = scales.get(comp, 1.0)
+            param_groups.append({
+                "params": params,
+                "lr": base_lr * scale,
+                "name": comp,
+            })
+
+        if not param_groups:
+            raise RuntimeError("All parameters frozen — nothing to optimize.")
+
+        names_and_scales = ", ".join(
+            f"{g['name']}={scales.get(g['name'], 1.0):.0e}"
+            for g in param_groups
+        )
+        log.info("Per-component LR scales: %s (base_lr=%.0e)", names_and_scales, base_lr)
+
+        lr_scheduler_conf = self.hparams.lr_scheduler_conf
         return utils.instantiate_optimizer_and_scheduler(
-            params,
+            param_groups,
             optimizer_config=self.hparams.optimizer_conf,
-            lr_scheduler_config=self.hparams.lr_scheduler_conf,
+            lr_scheduler_config=lr_scheduler_conf,
         )
-
-    def _discrete_loss(
-        self,
-        logits: torch.Tensor,
-        code_indices: torch.Tensor,
-        mask: torch.Tensor,
-        stage: str,
-    ) -> torch.Tensor:
-        """
-        logits: (B, L, T_pred, num_codes)
-        code_indices: (B, T_pred, L)
-        mask: (B, T_pred)
-        """
-        B, L, T_pred, num_codes = logits.shape
-        code_indices = code_indices.long()
-
-        logits_flat = logits.permute(0, 2, 1, 3).reshape(-1, num_codes)  # (B*T_pred*L, K)
-        targets_flat = code_indices.reshape(-1)  # (B*T_pred*L,)
-        if mask is not None:
-            mask_flat = mask.unsqueeze(-1).expand(-1, -1, L).reshape(-1)  # (B*T_pred*L,)
-            valid = mask_flat.bool()
-            logits_flat = logits_flat[valid]
-            targets_flat = targets_flat[valid]
-        ce_loss = torch.nn.functional.cross_entropy(
-            logits_flat,
-            targets_flat,
-            ignore_index=self.ignore_index,
-            label_smoothing=self.label_smoothing,
-        )
-
-        # Accuracy
-        with torch.no_grad():
-            pred_idx = logits.argmax(dim=-1)  # (B, L, T_pred)
-            # import ipdb;ipdb.set_trace()
-            correct = (pred_idx == code_indices).to(torch.float32)
-            # if mask is not None:
-            #     correct = correct * mask.unsqueeze(-1)
-            acc = correct.sum() / (mask.unsqueeze(-1).sum() + 1e-6) if mask is not None else correct.mean()
-
-        batch_size = logits.shape[0]
-        self.log(f"{stage}_cls_ce", ce_loss, sync_dist=True, batch_size=batch_size)
-        self.log(f"{stage}_cls_acc", acc, sync_dist=True, batch_size=batch_size)
-
-        return ce_loss
-
-    def _gumbel_recon_loss(
-        self,
-        logits: torch.Tensor,
-        code_indices: torch.Tensor,
-        mask: torch.Tensor,
-        stage: str,
-    ) -> torch.Tensor:
-        self._warn_if_gumbel_unfrozen()
-        logits_for_head = logits.permute(0, 3, 2, 1).contiguous()  # (B, K, T, L)
-        # import ipdb;ipdb.set_trace()
-        pred_angles = self.model.head.decode_from_logits_gumbel(
-            logits_for_head, tau=self.gumbel_tau, hard=self.gumbel_hard
-        )
-        target_angles = self.model.head.decode_from_indices(code_indices.permute(0, 2, 1))
-        diff = torch.abs(pred_angles - target_angles)
-        if mask is not None:
-            valid = mask.bool()
-            denom = valid.sum().clamp(min=1) * diff.shape[1]
-            loss = (diff * valid[:, None, :]).sum() / denom
-        else:
-            loss = diff.mean()
-        batch_size = logits.shape[0]
-        self.log(
-            f"{stage}_gumbel_recon_mae",
-            loss,
-            sync_dist=True,
-            batch_size=batch_size,
-        )
-        self.log(
-            f"{stage}_gumbel_recon_mae_deg",
-            loss * (180.0 / torch.pi),
-            sync_dist=True,
-            batch_size=logits.shape[0],
-        )
-        return loss
-
-    def _warn_if_gumbel_unfrozen(self) -> None:
-        if self._warned_gumbel_unfrozen or not self.use_gumbel_recon:
-            return
-        head = getattr(self.model, "head", None)
-        if head is None or not hasattr(head, "vqvae_module"):
-            self._warned_gumbel_unfrozen = True
-            return
-        model = head.vqvae_module.model
-        quantizer = model.quantizer
-        codebook_trainable = any(p.requires_grad for p in quantizer.parameters())
-        decoder_modules = []
-        if hasattr(model, "decoder"):
-            decoder_modules.append(model.decoder)
-        if hasattr(model, "upsample"):
-            decoder_modules.append(model.upsample)
-        if decoder_modules:
-            decoder_trainable = any(
-                p.requires_grad for module in decoder_modules for p in module.parameters()
-            )
-        else:
-            decoder_trainable = False
-        if codebook_trainable or decoder_trainable:
-            log.warning(
-                "Gumbel recon enabled but VQ codebook/decoder are trainable. "
-                "Consider freeze_codebook=True and freeze_decoder=True."
-            )
-        self._warned_gumbel_unfrozen = True
-
-    def build_valid_mask(
-        self,
-        base_mask: torch.Tensor,
-        targets: torch.Tensor,
-    ) -> torch.Tensor:
-        """Combine base IK mask and finite-value check."""
-        mask = base_mask.bool()
-
-        # Drop any timestep containing NaN/Inf in targets across joints
-        finite = torch.isfinite(targets).all(dim=1)
-        mask = mask & finite
-
-        # Warn if everything is masked to avoid empty tensors in losses
-        if mask.sum() == 0:
-            log.warning("All samples masked out after combining IK/interp/finite checks.")
-
-        return mask

@@ -1,0 +1,197 @@
+# @package _global_
+# EMG2Pose baseline (TDS + MLP, original architecture) trained on EgoEMG from scratch.
+# Faithfully reproduces the original experiment config from upstream commit 8f9a15e.
+# No EMG normalization, only rotation augmentation — identical to original.
+#
+# Key changes for EgoEMG:
+#   - dataset → EgoEMG memmap (both hands)
+#   - decoder out_channels: 20→22
+#   - decoder in_channels: 84→86 (64 features + 22 state)
+#
+# Usage:
+#   python -m emg2pose.train \
+#     experiment=emg2pose/regression_emg2pose_egoemg \
+#     data_location=/path/to/EgoEMG_memmap
+
+defaults:
+  - /module: pose_stateful
+  - override /transforms: rotation_augmentation
+  - _self_
+
+egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_emg_layout: emg2pose_interpolate16
+egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
+egoemg_channel_interpolate: false
+
+checkpoint: null
+pretrained_strict: false
+
+# TDS featurizer (original architecture, outputs 64 dims)
+network:
+  _target_: emg2pose.models.featurizers.tds.TdsNetwork
+  conv_blocks:
+    - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+      in_channels: 16
+      out_channels: 256
+      kernel_size: 11
+      stride: 5
+    - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+      in_channels: 256
+      out_channels: 256
+      kernel_size: 5
+      stride: 2
+  tds_stages:
+    - _target_: emg2pose.models.featurizers.tds.TdsStage
+      in_channels: 256
+      in_conv_kernel_width: 17
+      in_conv_stride: 4
+      num_blocks: 2
+      channels: 16
+      feature_width: 16
+      kernel_width: 9
+    - _target_: emg2pose.models.featurizers.tds.TdsStage
+      in_channels: 256
+      in_conv_kernel_width: 9
+      in_conv_stride: 2
+      num_blocks: 2
+      channels: 16
+      feature_width: 16
+      kernel_width: 5
+      out_channels: 64
+
+module:
+  provide_initial_pos: False
+  predict_vel: False
+  state_condition: True
+  decoder:
+    _target_: emg2pose.models.decoders.mlp.MLP
+    in_channels: 86  # 64 features + 22 state
+    layer_sizes: [512, 512]
+    out_channels: 22
+    layer_norm: True
+    scale: .01
+
+ignore_head_tail_dims: 0
+
+loss_weights:
+  mae: 1
+  fingertip_distance: 0.01
+
+optimizer:
+  lr: .001
+
+dataset:
+  train:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: filtered
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      emg_field_preference: filtered
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+
+  val:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [val]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: filtered
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [val]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      emg_field_preference: filtered
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+
+  test: []
+
+num_workers: 12
+
+datamodule:
+  window_length: 7790
+  val_test_window_length: 7790
+  stride: 780
+  val_test_stride: 7_790
+  padding: [0, 0]
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  skip_ik_failures: false
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: false
+
+trainer:
+  gradient_clip_val: 1
+  devices: [0,1,2,3,4,5]
+  precision: bf16-mixed
+  max_epochs: 100
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 50
+
+batch_size: 900
+matmul_precision: high
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_loss
+    mode: min
+    save_last: true
+    verbose: true
+    filename: "emg2pose-egoemg-{epoch:03d}-{val_loss:.4f}"
+  - _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: val_loss
+    mode: min
+    patience: 50
+    check_on_train_epoch_end: false
+    verbose: true
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: regression_emg2pose_egoemg
+  version: null
+  default_hp_metric: false
+
+monitor_metric: val_loss
+monitor_mode: min

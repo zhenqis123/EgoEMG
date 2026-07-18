@@ -1,0 +1,154 @@
+# @package _global_
+# ViT Small + EMGFormer Small Fusion
+# Vision: cached ViT features (1280-dim) → 128-dim projection → small head
+# EMG:    EMGFormer small featurizer+decoder (frozen) from EMG checkpoint → 256-dim
+# Fusion: vision_proj → concat with decoder output → fusion_proj → residual head
+#
+# Loads vision_proj + head_vision from vision_vit_small stage1 checkpoint (stage2_vision_checkpoint).
+# EMG backbone loaded via pretrained_emg_checkpoint, fusion layers trained.
+defaults:
+  - /module: mid_fusion
+  - override /dataset: egoemg_angle_regression
+  - override /datamodule: default
+  - override /transforms: emgformer_regression_aug_best
+  - override /lr_scheduler: cosine
+  - override /module/featurizer: tds_slim
+  - _self_
+
+# ── EMG data ────────────────────────────────────────────────────────────────
+egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_emg_layout: emg2pose_interpolate16
+egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
+egoemg_channel_interpolate: false
+
+# ── Cached ViT features ─────────────────────────────────────────────────────
+cached_vit_features_dir: /mnt/nvme/xiziheng/EgoEMG_v2_vit_features_lmdb
+preload_features: true
+
+# ── Hydra output ─────────────────────────────────────────────────────────────
+hydra:
+  run:
+    dir: logs/fusion/${now:%Y-%m-%d}/${now:%H-%M-%S}_${hydra.job.name}
+  sweep:
+    dir: ${hydra.run.dir}
+    subdir: ${hydra.job.num}_${hydra.job.override_dirname}
+  output_subdir: hydra_configs
+  job:
+    name: vit_small_emgfusion
+    chdir: false
+
+# ── WiLoR (not used for inference, kept for config compatibility) ────────────
+wilor_checkpoint_path: /home/xiziheng/develop/WiLoR/pretrained_models/wilor_final.ckpt
+mano_model_path: /home/xiziheng/develop/WiLoR/mano_data
+
+# ── Checkpoints ──────────────────────────────────────────────────────────────
+# Set to the trained vision_vit_small baseline checkpoint
+stage2_vision_checkpoint: null
+# EMGFormer small (featurizer + decoder only)
+pretrained_emg_checkpoint: /home/xiziheng/develop/emg2pose/logs/2026-04-30/23-28-41_emg2pose/regression_emgformer_small_aggressive_egoemg/version_0/checkpoints/egoemg-small-epoch=007-val_mae=0.2625.ckpt
+
+# ── Training ────────────────────────────────────────────────────────────────
+seed: 42
+train: true
+eval: true
+component_lr_scales:
+  featurizer: 0.0
+  decoder: 0.0
+  vision_proj: 1.0
+  fusion_proj: 1.0
+  head: 1.0
+  head_vision: 1.0
+batch_size: 640
+val_batch_size: 600
+num_workers: 8
+prefetch_factor: 4
+persistent_workers: true
+matmul_precision: high
+
+trainer:
+  gradient_clip_val: 1
+  devices: [0,1,2,3,4,5]
+  precision: bf16-mixed
+  max_epochs: 500
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 1
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 5.0e-5
+  weight_decay: 1.0e-4
+
+datamodule:
+  window_length: 7_790
+  val_test_window_length: 7_790
+  stride: 400
+  val_test_stride: 7790
+  dataset_repeat: 1
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  skip_ik_failures: false
+  persistent_workers: true
+  pin_memory: false
+
+loss_weights:
+  mae: 1.0
+  fingertip_distance: 0.01
+  delta_reg: 0.1
+
+# ── Module ──────────────────────────────────────────────────────────────────
+module:
+  skip_vision_backbone: true
+  fusion_mode: fusion
+  moddrop_prob: 0.3
+  out_channels: 22
+  provide_initial_pos: false
+  vision_embed_dim: 1280
+  emg_feat_dim: 256
+  fusion_proj_dim: 128
+  vision_pretrained_checkpoint: ${wilor_checkpoint_path}
+  mano_model_path: ${mano_model_path}
+  vision_freeze: ${vision_freeze}
+  decoder:
+    causal: false
+    preset: small
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
+    model_dim: 256
+    num_heads: 4
+    num_layers: 3
+    ffn_dim: 512
+  head:
+    in_channels: 256
+    out_channels: 22
+
+vision_freeze:
+  strategy: simple
+  frozen_block_end: 32
+  freeze_patch_embed: true
+  freeze_pos_embed: true
+  freeze_mano_tokens: true
+  finetune_last_norm: false
+
+ignore_head_tail_dims: 0
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "vit-small-emgfusion-{epoch:03d}-{val_mae:.4f}"
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: val_mae
+    mode: min
+    patience: 30
+    check_on_train_epoch_end: false
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: logs/fusion
+  name: vit_small_emgfusion
+  version: null
+  default_hp_metric: false

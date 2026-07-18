@@ -1,0 +1,85 @@
+# @package _global_
+defaults:
+  - /module: emgformer
+  - override /module/featurizer: tds_slim
+  - override /module/decoder: transformer/preset/small
+  - override /lr_scheduler: cosine
+  - override /transforms: emgformer_regression_aug_best
+  - _self_
+
+# checkpoint: /home/xiziheng/develop/emg2pose/logs/pretrain/2026-01-31/00-59-16/tensorboard/version_0/checkpoints/epoch=499-step=110500.ckpt
+# checkpoint: /home/xiziheng/develop/emg2pose/logs/2026-04-24/16-06-41_emg2pose/emg2pose/version_0/checkpoints/best-val_mae=val_mae=0.2264.ckpt
+pretrained_strict: true
+module:
+  provide_initial_pos: False
+  decoder:
+    causal: false
+    preset: small
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
+    model_dim: 256
+    num_heads: 4
+    num_layers: 3
+    ffn_dim: 512
+  head:
+    in_channels: 256
+
+num_workers: 12
+datamodule:
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: false
+  # Adding 1790 samples, which is the left_context of the tds network
+  window_length: 7_790
+  val_test_window_length: 7_790
+  norm_mode: null
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  skip_ik_failures: False
+
+# Hyperparameters
+optimizer:
+  lr: .0001
+
+dataset:
+  train:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: true
+      skip_ik_failures: False
+      allowed_splits: [train]
+  val:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: False
+      allowed_splits: [val]
+  test:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: False
+      allowed_splits: [test]
+
+
+trainer:
+  gradient_clip_val: 1
+  devices: [0,1,2,3,4,5]
+  precision: bf16-mixed
+  max_epochs: 250
+  check_val_every_n_epoch: 1
+
+batch_size: 650
+matmul_precision: high

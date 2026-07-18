@@ -1,0 +1,83 @@
+# @package _global_
+# Large Aggressive on EgoEMG: 22-dim output with the large_aggressive decoder.
+defaults:
+  - /module: emgformer
+  - override /module/featurizer: tds_slim
+  - override /module/decoder: transformer/preset/large_aggressive
+  - override /dataset: egoemg_angle_regression
+  - override /lr_scheduler: cosine
+  - override /transforms: emgformer_regression_aug_best
+  - _self_
+
+# checkpoint: /home/xiziheng/develop/emg2pose/logs/2026-04-23/18-48-20_emg2pose/regression_emgformer_large_aggressive_egoemg/version_0/checkpoints/egoemg-large-epoch=090-val_mae=0.2566.ckpt
+pretrained_checkpoint: null
+pretrained_strict: false
+
+egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_emg_layout: emg2pose_interpolate16
+egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
+egoemg_channel_interpolate: false
+module:
+  out_channels: 22
+  provide_initial_pos: false
+  decoder:
+    causal: false
+    preset: large_aggressive
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
+    model_dim: 384
+    num_heads: 12
+    num_layers: 8
+    ffn_dim: 1536
+  head:
+    in_channels: 384
+    out_channels: 22
+
+ignore_head_tail_dims: 0
+
+num_workers: 12
+
+datamodule:
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: false
+  window_length: 7_790
+  val_test_window_length: 7_790
+  stride: 780
+  val_test_stride: 7_790
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  skip_ik_failures: false
+
+optimizer:
+  lr: 0.0005
+trainer:
+  gradient_clip_val: 1
+  devices: [0,1,2,3,4,5]
+  precision: bf16-mixed
+  max_epochs: 300
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 5
+
+batch_size: 400
+matmul_precision: high
+
+loss_weights:
+  mae: 1.0
+  fingertip_distance: 0.01
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "egoemg-large-{epoch:03d}-{val_mae:.4f}"
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: regression_emgformer_large_aggressive_egoemg
+  version: null
+  default_hp_metric: false

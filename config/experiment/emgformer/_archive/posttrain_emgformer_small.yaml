@@ -1,0 +1,61 @@
+# @package _global_
+defaults:
+  - /module: emgformer
+  - override /module/featurizer: tds_no_out
+  - override /module/decoder: transformer/preset/small
+  - override /lr_scheduler: cosine
+  - override /transforms: emgformer_regression_aug_best
+  - override /dataset: train_only
+  - _self_
+
+checkpoint:
+pretrained_checkpoint: null
+pretrained_strict: false
+
+eval: false
+monitor_metric: train_mae
+monitor_mode: min
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelSummary
+    max_depth: 2
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    save_top_k: 3
+    save_last: true
+    verbose: true
+    filename: "best-${monitor_metric}={${monitor_metric}:.4f}"
+
+module:
+  provide_initial_pos: False
+  decoder:
+    causal: true
+    preset: small
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
+  head:
+    in_channels: 128
+
+num_workers: 6
+optimizer:
+  lr: .001
+datamodule:
+  # Adding 1790 samples, which is the left_context of the tds network
+  window_length: 7_790
+  val_test_window_length: 7_790
+  max_open_files: 4
+  norm_mode: batch
+  norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
+  skip_ik_failures: False
+
+trainer:
+  gradient_clip_val: 1
+  devices: [0]
+  precision: bf16-mixed
+  max_epochs: 200
+
+batch_size: 830
+matmul_precision: high

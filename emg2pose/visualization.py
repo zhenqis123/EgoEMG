@@ -71,7 +71,7 @@ def skin_vertices(
     ), "dense bone weights should not be none"
 
     if wrist_transforms is None:
-        leading_dims = joint_angles.shape[1:]
+        leading_dims = joint_angles.shape[:-1]
         affine_identity = torch.eye(4, device=joint_angles.device)
         wrist_transforms = torch.broadcast_to(
             affine_identity, leading_dims + affine_identity.shape

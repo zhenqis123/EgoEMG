@@ -1,0 +1,88 @@
+# @package _global_
+# Full angle-supervised pretrain: middle_aggressive architecture
+# All angle datasets: EgoEMG + emg2pose + NinaPro + PimForce
+# 300 epochs, per-dataset norm, GPUs 3,4,5
+defaults:
+  - /module: emgformer_pretrain
+  - override /module/featurizer: tds_slim
+  - override /module/decoder: transformer/preset/middle
+  - override /lr_scheduler: warmup_cosine
+  - override /dataset: pretrain_angle_all_with_egoemg
+  - override /transforms: emgformer_regression_aug_best
+  - _self_
+
+data_root: /home/xiziheng/develop/emg2pose/data/emg_corpus
+data_location: ${data_root}/emg2pose_v3
+
+checkpoint: /home/xiziheng/develop/emg2pose/logs/pretrain/2026-04-23/00-52-37/pretrain_angle_all_middle_aggressive/version_0/checkpoints/last.ckpt
+
+module:
+  decoder:
+    causal: false
+    preset: middle
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
+    model_dim: 256
+    num_heads: 8
+    num_layers: 6
+    ffn_dim: 1024
+  recon_head: null
+  angle_head:
+    _target_: emg2pose.models.heads.mlp.MLPHead
+    in_channels: 256
+    out_channels: 22
+    hidden_sizes: [512]
+    activation: relu
+    dropout: 0.1
+  gesture_head: null
+  keystroke_head: null
+
+loss_weights:
+  recon: 0.0
+  angle: 1.0
+  gesture: 0.0
+  keystroke: 0.0
+
+num_workers: 12
+
+datamodule:
+  window_length: 7_790
+  val_test_window_length: 7_790
+  stride: 7_790
+  val_test_stride: 7_790
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  skip_ik_failures: false
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: true
+
+optimizer:
+  lr: 0.0001
+
+trainer:
+  gradient_clip_val: 1
+  devices: [3,4,5]
+  precision: bf16-mixed
+  max_epochs: 200
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 50
+
+batch_size: 700
+matmul_precision: high
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_loss
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "pretrain-{epoch:03d}-{val_loss:.4f}"
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: pretrain_angle_all_middle_aggressive
+  version: null
+  default_hp_metric: false

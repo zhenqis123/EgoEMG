@@ -1,0 +1,3 @@
+# @package _global_
+defaults:
+  - /experiment/emgformer/supervised_pretrain_angle_memmap

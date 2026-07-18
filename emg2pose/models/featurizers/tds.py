@@ -444,6 +444,27 @@ class TdsNetwork(nn.Module):
     def forward(self, x):
         return self.layers(x)
 
+    def get_output_length(self, input_length: int) -> int:
+        """Compute output temporal length for a given input length.
+
+        Walks the same conv blocks and TDS stages to compute how many
+        time steps survive after all strided convolutions and TDS blocks.
+        Each TDSConv2dBlock reduces length by (kernel_width - 1) when
+        time_padding is 0.
+        """
+        length = input_length
+        for module in self.layers:
+            if isinstance(module, Conv1dBlock):
+                length = (length - module.kernel_size) // module.stride + 1
+            elif isinstance(module, TdsStage):
+                conv_block = module.layers.conv1dblock
+                length = (length - conv_block.kernel_size) // conv_block.stride + 1
+                # TDS blocks shrink the temporal dim by (kernel_width - 1) each
+                tds_block = module.layers.tds_block
+                for _ in range(tds_block.num_blocks):
+                    length -= tds_block.kernel_width - 1
+        return length
+
     def _get_left_context(self, conv_blocks, tds_stages) -> int:
         left, stride = 0, 1
 

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="EgoEMG: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation — Xi et al.">
+  <meta name="description" content="EgoEMG synchronizes bilateral wristband EMG, egocentric RGB, external RGB-D and mocap-derived MANO labels across 41 participants and 60 gestures for bimanual hand pose estimation.">
+  <meta name="keywords" content="EMG, hand pose estimation, egocentric vision, dataset, MANO, EMGFormer, EMG+vision fusion, multimodal, bimanual, benchmark">
+  <meta name="author" content="Ziheng Xi, Jiayi Yu, Yitao Wang, Yanbo Duan, Jianjiang Feng, Jie Zhou">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="English">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Tsinghua University — Department of Automation">
+  <meta property="og:title" content="EgoEMG: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation">
+  <meta property="og:description" content="A 41-participant, 60-gesture egocentric dataset that pairs bilateral wristband EMG with first-person vision for bimanual hand pose estimation.">
+  <meta property="og:url" content="https://zhenqis123.github.io/EMG2PP/egoemg_academic_homepage_horwitz/">
+  <meta property="og:image" content="static/images/sample_data.png">
+  <meta property="og:image:alt" content="Synchronized EgoEMG sample: GT hand pose, bilateral EMG, egocentric RGB, and external RGB-D.">
+  <meta property="article:published_time" content="">
+  <meta property="article:author" content="Ziheng Xi">
+  <meta property="article:section" content="Research">
+  <meta property="article:tag" content="EMG">
+  <meta property="article:tag" content="hand pose">
+  <meta property="article:tag" content="multimodal dataset">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="EgoEMG: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation">
+  <meta name="twitter:description" content="A 41-participant, 60-gesture egocentric dataset that pairs bilateral wristband EMG with first-person vision for bimanual hand pose estimation.">
+  <meta name="twitter:image" content="static/images/sample_data.png">
+
+  <!-- Academic/Research Specific -->
+  <meta name="citation_title" content="EgoEMG: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation">
+  <meta name="citation_author" content="Xi, Ziheng">
+  <meta name="citation_author" content="Yu, Jiayi">
+  <meta name="citation_author" content="Wang, Yitao">
+  <meta name="citation_author" content="Duan, Yanbo">
+  <meta name="citation_author" content="Feng, Jianjiang">
+  <meta name="citation_author" content="Zhou, Jie">
+  <meta name="citation_publication_date" content="2026">
+  <meta name="citation_pdf_url" content="static/pdfs/egoemg_paper.pdf">
+
+  <meta name="theme-color" content="#2563eb">
+  <meta name="msapplication-TileColor" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://ajax.googleapis.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+  <title>EgoEMG | Multimodal Egocentric EMG and Vision Dataset</title>
+
+  <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+  <link rel="apple-touch-icon" href="static/images/favicon.ico">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+
+  <style>
+    /* Page-specific overrides on top of the Horwitz template. */
+    .egoemg-stat { color: #2563eb; }
+    .egoemg-methods code { font-weight: 600; }
+  </style>
+
+  <link rel="preload" href="static/css/bulma-carousel.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="static/css/bulma-slider.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="static/css/fontawesome.all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="preload" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+
+  <noscript>
+    <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+    <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  </noscript>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script defer src="static/js/bulma-carousel.min.js"></script>
+  <script defer src="static/js/bulma-slider.min.js"></script>
+  <script defer src="static/js/index.js"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "headline": "EgoEMG: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation",
+    "description": "A 41-participant, 60-gesture egocentric dataset that pairs bilateral wristband EMG with first-person vision for bimanual hand pose estimation under a unified 22-DoF joint-angle target.",
+    "author": [
+      {"@type": "Person", "name": "Ziheng Xi",  "affiliation": {"@type": "Organization", "name": "Tsinghua University"}},
+      {"@type": "Person", "name": "Jiayi Yu",  "affiliation": {"@type": "Organization", "name": "Tsinghua University"}},
+      {"@type": "Person", "name": "Yitao Wang","affiliation": {"@type": "Organization", "name": "Tsinghua University"}},
+      {"@type": "Person", "name": "Yanbo Duan","affiliation": {"@type": "Organization", "name": "Tsinghua University"}},
+      {"@type": "Person", "name": "Jianjiang Feng","affiliation": {"@type": "Organization", "name": "Tsinghua University"}},
+      {"@type": "Person", "name": "Jie Zhou",  "affiliation": {"@type": "Organization", "name": "Tsinghua University"}}
+    ],
+    "datePublished": "2026",
+    "publisher": {"@type": "Organization", "name": "Tsinghua University"},
+    "url": "https://zhenqis123.github.io/EgoEMG/",
+    "image": "static/images/sample_data.png",
+    "keywords": ["EMG", "hand pose estimation", "egocentric vision", "multimodal dataset", "MANO", "EMGFormer", "EMG+vision fusion", "bimanual"],
+    "abstract": "We present EgoEMG, the first dataset jointly providing bilateral wristband EMG and IMU, egocentric RGB, external RGB-D, bimanual MANO annotations with wrist joint angles, and per-frame gesture class labels. It covers 41 participants performing 60 gesture classes (30 single-hand, 30 bimanual) over more than 10 hours of recording, with a learning-based markers2mano pipeline that brings the invalid-frame rate down to 3.6%, a 4.3 mm mean marker-to-mesh alignment error, and a unified 22-DoF joint-angle target (20 finger + 2 wrist angles). The accompanying benchmark evaluates three tasks under one label space — EMG-to-pose, vision-to-pose, and EMG+vision fusion — across cross-gesture, cross-user, and combined generalization splits.",
+    "isAccessibleForFree": true,
+    "license": "https://creativecommons.org/licenses/by-nc/4.0/"
+  }
+  </script>
+</head>
+<body>
+
+  <button class="scroll-to-top" onclick="scrollToTop()" title="Scroll to top" aria-label="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <div class="more-works-container">
+    <button class="more-works-btn" onclick="toggleMoreWorks()" title="View More Works from Our Lab">
+      <i class="fas fa-flask"></i>
+      More Works
+      <i class="fas fa-chevron-down dropdown-arrow"></i>
+    </button>
+    <div class="more-works-dropdown" id="moreWorksDropdown">
+      <div class="dropdown-header">
+        <h4>Related work from the lab</h4>
+        <button class="close-btn" onclick="toggleMoreWorks()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="works-list">
+        <a href="https://github.com/zhenqis123/EgoEMG" class="work-item" target="_blank" rel="noopener noreferrer">
+          <div class="work-info">
+            <h5>EMGFormer (code repository)</h5>
+            <p>EMG-to-pose Transformer with TDS-style temporal frontend and RoPE decoder; the code release for this paper.</p>
+            <span class="work-venue">GitHub, 2026</span>
+          </div>
+          <i class="fas fa-external-link-alt"></i>
+        </a>
+        <a href="https://emg2pose.github.io" class="work-item" target="_blank" rel="noopener noreferrer">
+          <div class="work-info">
+            <h5>EMG2Pose</h5>
+            <p>Prior large-scale bilateral EMG pose dataset. We re-implement vemg2pose on EgoEMG and report 22% MAE improvement at smaller model size.</p>
+            <span class="work-venue">EMBC 2024</span>
+          </div>
+          <i class="fas fa-external-link-alt"></i>
+        </a>
+        <a href="https://github.com/ThunderVVV/wilor" class="work-item" target="_blank" rel="noopener noreferrer">
+          <div class="work-info">
+            <h5>WiLoR</h5>
+            <p>Hand-specialized MANO-based vision baseline; the strongest single-frame visual reference in our benchmark.</p>
+            <span class="work-venue">2024</span>
+          </div>
+          <i class="fas fa-external-link-alt"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <main id="main-content">
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">
+              EgoEMG: A Multimodal Egocentric Dataset<br>with Bilateral EMG and Vision for Hand Pose Estimation
+            </h1>
+            <div class="is-size-5 publication-authors">
+              <span class="author-block"><a href="#" target="_blank">Ziheng Xi</a><sup>*</sup>,</span>
+              <span class="author-block"><a href="#" target="_blank">Jiayi Yu</a>,</span>
+              <span class="author-block"><a href="#" target="_blank">Yitao Wang</a>,</span>
+              <span class="author-block"><a href="#" target="_blank">Yanbo Duan</a>,</span>
+              <span class="author-block"><a href="#" target="_blank">Jianjiang Feng</a>,</span>
+              <span class="author-block"><a href="#" target="_blank">Jie Zhou</a></span>
+            </div>
+
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">Department of Automation, Tsinghua University<br>Preprint, 2026</span>
+              <span class="eql-cntrb"><small><br><sup>*</sup>First author</small></span>
+            </div>
+
+            <div class="column has-text-centered">
+              <div class="publication-links">
+                <span class="link-block">
+                  <a href="#" target="_blank" rel="noopener noreferrer"
+                     class="external-link button is-normal is-rounded is-dark"
+                     title="arXiv ID not yet assigned">
+                    <span class="icon"><i class="ai ai-arxiv"></i></span>
+                    <span>arXiv (TBA)</span>
+                  </a>
+                </span>
+
+                <span class="link-block">
+                  <a href="https://github.com/zhenqis123/EgoEMG" target="_blank" rel="noopener noreferrer"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fab fa-github"></i></span>
+                    <span>Code</span>
+                  </a>
+                </span>
+
+                <span class="link-block">
+                  <a href="https://drive.google.com/drive/folders/1ON2CXvW2qbndW3b2AmCDI4jZlOJEBf5N" target="_blank" rel="noopener noreferrer"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fas fa-database"></i></span>
+                    <span>Sample data</span>
+                  </a>
+                </span>
+
+                <span class="link-block">
+                  <a href="https://drive.google.com/drive/folders/12C6Q1CD1uihJhx4s0Rm2s7Um76Kh8rG1" target="_blank" rel="noopener noreferrer"
+                     class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fas fa-database"></i></span>
+                    <span>Full dataset</span>
+                  </a>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Teaser image (replaces video) -->
+  <section class="hero teaser">
+    <div class="container is-max-desktop">
+      <div class="hero-body">
+        <div class="publication-banner">
+          <img src="static/images/sample_data.png" alt="Synchronized EgoEMG samples: bilateral EMG, egocentric RGB, external RGB-D, and mocap-derived MANO hand pose labels." />
+        </div>
+        <h2 class="subtitle has-text-centered">
+          Synchronized samples from EgoEMG: bilateral wristband EMG, head-mounted egocentric wide-angle RGB (60 Hz), external ZED 2i RGB-D (30 Hz), and mocap-derived MANO hand pose labels, all on a common timeline.
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <!-- Abstract -->
+  <section class="section hero">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              We present <strong>EgoEMG</strong>, the first dataset jointly
+              providing bilateral wristband EMG and IMU, egocentric RGB,
+              external RGB-D, bimanual MANO annotations with wrist joint
+              angles, and per-frame gesture class labels. It covers
+              41 participants performing 60 gesture classes (30 single-hand,
+              30 bimanual) over more than 10 hours of recording,
+              with a learning-based <em>markers2mano</em> pipeline that
+              brings the invalid-frame rate down to 3.6%, a 4.3&nbsp;mm
+              mean marker-to-mesh alignment error, and a unified 22-DoF
+              joint-angle target (20 finger + 2 wrist angles).
+            </p>
+            <p>
+              The accompanying benchmark evaluates three tasks under one
+              label space — EMG-to-pose, vision-to-pose, and EMG+vision
+              fusion — across cross-gesture, cross-user, and combined
+              generalization splits. Across all three, EMGFormer sets a
+              strong EMG reference and a residual fusion model improves
+              over matched lightweight vision-only baselines, with the
+              largest gains on the gesture split and a positive correlation
+              between hand self-occlusion and fusion gain in the
+              occlusion-stratified analysis.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dataset stats band -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Dataset at a glance</h2>
+      <div class="columns is-multiline is-centered has-text-centered">
+        <div class="column is-one-quarter"><div class="box"><p class="is-size-1 has-text-weight-bold egoemg-stat">41</p><p>participants</p></div></div>
+        <div class="column is-one-quarter"><div class="box"><p class="is-size-1 has-text-weight-bold egoemg-stat">60</p><p>gesture classes</p></div></div>
+        <div class="column is-one-quarter"><div class="box"><p class="is-size-1 has-text-weight-bold egoemg-stat">10&nbsp;h</p><p>recorded motion</p></div></div>
+        <div class="column is-one-quarter"><div class="box"><p class="is-size-1 has-text-weight-bold egoemg-stat">16</p><p>EMG channels (8 per wrist)</p></div></div>
+        <div class="column is-one-quarter"><div class="box"><p class="is-size-1 has-text-weight-bold egoemg-stat">2&nbsp;kHz</p><p>EMG sample rate<small class="has-text-grey">&nbsp;·&nbsp;60 Hz ego / 30 Hz ext. / 120 Hz mocap</small></p></div></div>
+        <div class="column is-one-quarter"><div class="box"><p class="is-size-1 has-text-weight-bold egoemg-stat">22&nbsp;DoF</p><p>joint angles per hand</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Image carousel: capture / qualitative / statistics / occlusion -->
+  <section class="hero is-small">
+    <div class="hero-body">
+      <div class="container">
+        <div id="results-carousel" class="carousel results-carousel">
+          <div class="item">
+            <img src="static/images/capture_setup_card.png" alt="EgoEMG capture setup: bilateral EMG wristbands, head-mounted egocentric RGB, external ZED 2i RGB-D, and an FZMotion optical motion-capture rack with reflective hand markers." loading="lazy" />
+            <h2 class="subtitle has-text-centered">
+              <strong>Capture setup.</strong> Bilateral EMG wristbands (with
+              co-located IMU), head-mounted GoPro egocentric wide-angle RGB
+              (60 Hz), external ZED 2i RGB-D (30 Hz), and FZMotion optical
+              motion capture with 21 reflective markers per hand,
+              synchronized to a common timeline.
+            </h2>
+          </div>
+          <div class="item">
+            <img src="static/images/quality_card.png" alt="Per-gesture-family fusion gain: rows are gesture families grouped by self-occlusion, depth ambiguity, and motion blur; columns are the Δ (vision MAE − fusion MAE) for EMG-only, Vision-only, and EMG+Vision." loading="lazy" />
+            <h2 class="subtitle has-text-centered">
+              <strong>Per-gesture-family fusion gain.</strong> Rows group
+              gesture families by self-occlusion, depth ambiguity, and
+              motion blur; the Δ column shows the MAE improvement of
+              EMG+Vision over Vision-only within each family.
+            </h2>
+          </div>
+          <div class="item">
+            <img src="static/images/occlusion_fusion_gain_card.png" alt="Fusion gain versus hand self-occlusion." loading="lazy" />
+            <h2 class="subtitle has-text-centered">
+              <strong>Occlusion-stratified analysis.</strong> Fusion gain
+              (MAE<sub>vision</sub> − MAE<sub>fused</sub>) increases with hand
+              self-occlusion, supporting the claim that EMG contributes most
+              when visual evidence is degraded.
+            </h2>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benchmark: three tasks -->
+  <section class="section hero">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Benchmark — three tasks, one label space</h2>
+      <div class="columns is-centered">
+        <div class="column">
+          <div class="box">
+            <h3 class="title is-5">01 — EMG-to-pose</h3>
+            <p>
+              EMGFormer maps a 200&nbsp;ms sliding window of raw bilateral
+              EMG to the 22-DoF target, with a TDS-style temporal convolutional
+              frontend and a RoPE Transformer decoder. Predicts every frame
+              in the window.
+            </p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box">
+            <h3 class="title is-5">02 — Vision-to-pose</h3>
+            <p>
+              Six generic backbones (ResNet-{18, 50, 152} with ImageNet
+              init; ViT-{S, B, L} with DINOv2 init) and the hand-specialized
+              WiLoR baseline regress the same 22-DoF target from a single
+              256×256 egocentric hand crop at the window center.
+            </p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box">
+            <h3 class="title is-5">03 — EMG+vision fusion</h3>
+            <p>
+              A residual fusion model predicts a corrective offset to a
+              vision-only estimate (initialized from a vision-only
+              checkpoint) from a paired EMG window. The residual head is
+              zero-initialized so the model starts at the vision baseline.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <article class="message egoemg-note mt-5">
+        <div class="message-body">
+          <strong>Cross-modality note.</strong> EMGFormer is evaluated on every
+          predicted frame, while vision and fusion baselines are evaluated on
+          the window-center frame only — the two columns are not directly
+          comparable. Fusion improves matched lightweight generic vision
+          baselines; whether EMG also helps a larger visual backbone is an
+          open question.
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Results tables -->
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Results</h2>
+      <p class="content has-text-centered">
+        On <strong>EMG-to-pose</strong>, EMGFormer-M and EMGFormer-L tie for
+        the best average MAE (14.2°), with M matching L using less than half
+        the parameters. On <strong>vision-to-pose</strong>, the V-RN
+        family sets a clean visual reference (5.9° → 5.3° → 5.1° as
+        backbone capacity grows). On <strong>fusion</strong>, F-RN18+S
+        improves over its matched lightweight V-RN18 baseline (5.4° vs
+        5.9°) but does not yet match the larger V-RN50/V-RN152 — fusion
+        gain concentrates in the high-occlusion regime and on lightweight
+        backbones.
+      </p>
+
+      <h3 class="title is-5">EMG-to-pose MAE (degrees per joint, lower is better)</h3>
+      <p class="is-size-6 has-text-grey-dark">Single-seed runs (seed 0). Avg. is the per-sample weighted mean across all test splits. Highlighted rows are ours.</p>
+      <div class="table-container">
+      <table class="table is-fullwidth is-striped is-hoverable">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Params</th>
+            <th>Gesture</th>
+            <th>User</th>
+            <th>Both</th>
+            <th>Avg.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="is-selected">
+            <td><strong>EMGFormer-M</strong></td>
+            <td>6.6M</td><td>11.8</td><td>15.6</td><td>17.4</td><td>14.2</td>
+          </tr>
+          <tr class="is-selected">
+            <td><strong>EMGFormer-S</strong></td>
+            <td>3.5M</td><td>12.8</td><td>15.6</td><td>17.4</td><td>14.7</td>
+          </tr>
+          <tr class="is-selected">
+            <td><strong>EMGFormer-L</strong></td>
+            <td>16.3M</td><td>11.7</td><td>15.7</td><td>17.7</td><td>14.2</td>
+          </tr>
+          <tr><td>vemg2pose</td><td>6.0M</td><td>15.0</td><td>16.3</td><td>17.3</td><td>15.9</td></tr>
+          <tr><td>NeuroPose</td><td>6.4M</td><td>15.8</td><td>15.7</td><td>16.3</td><td>16.1</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h3 class="title is-5 mt-5">Vision-only and EMG+vision MAE (degrees per joint, lower is better)</h3>
+      <p class="is-size-6 has-text-grey-dark">Vision and fusion are evaluated on the window-center frame only. Highlighted row is the fusion result.</p>
+      <div class="table-container">
+      <table class="table is-fullwidth is-striped is-hoverable">
+        <thead>
+          <tr>
+            <th>Input</th>
+            <th>Method</th>
+            <th>Gesture</th>
+            <th>User</th>
+            <th>Both</th>
+            <th>Avg.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Vision</td><td>V-RN18</td><td>5.1</td><td>6.8</td><td>6.8</td><td>5.9</td></tr>
+          <tr><td>Vision</td><td>V-RN50</td><td>4.5</td><td>6.2</td><td>6.2</td><td>5.3</td></tr>
+          <tr><td>Vision</td><td>V-RN152</td><td>4.3</td><td>6.1</td><td>6.1</td><td>5.1</td></tr>
+          <tr class="is-selected">
+            <td>EMG+Vision</td><td><strong>F-RN18+S</strong></td>
+            <td>4.6</td><td>6.4</td><td>6.4</td><td>5.4</td>
+          </tr>
+          <tr><td>Vision</td><td>V-WiLoR</td><td>3.9</td><td>5.6</td><td>5.7</td><td>4.7</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <details class="mt-4 egoemg-methods" open>
+        <summary><strong>Method glossary</strong></summary>
+        <ul class="content mt-3">
+          <li><code>EMGFormer-{S,M,L}</code> — our model family (S=3.5M, M=6.6M, L=16.3M params).</li>
+          <li><code>vemg2pose</code> — Salter et al. 2024 recurrent EMG-to-pose baseline (TDS+LSTM), re-implemented for 22-DoF.</li>
+          <li><code>NeuroPose</code> — Liu et al. 2021 convolutional encoder–decoder EMG baseline.</li>
+          <li><code>V-RN{18,50,152}</code> — ImageNet-pretrained ResNet regressors on the center-frame crop (11.5M / 23.5M / 58.2M params).</li>
+          <li><code>V-WiLoR</code> — WiLoR fine-tuned from a MANO-based hand-pose checkpoint, the strongest single-frame visual reference (4.7° Avg).</li>
+          <li><code>F-RN18+S</code> — residual fusion: V-RN18 (initialized from a vision-only checkpoint) + EMGFormer-S residual head, zero-initialized so training starts at the vision baseline (15.5M params).</li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <!-- Resources & data access -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop content">
+      <h2 class="title is-3 has-text-centered">Resources &amp; data access</h2>
+      <div class="columns is-centered">
+        <div class="column">
+          <div class="box">
+            <h3 class="title is-5">Code</h3>
+            <p>Released under the <strong>MIT License</strong>. The MANO model
+              and WiLoR checkpoint are not redistributed — obtain them from
+              the original releases and point the configs at them.</p>
+          </div>
+        </div>
+        <div class="column">
+          <div class="box">
+            <h3 class="title is-5">Dataset</h3>
+            <p>Released under <strong>CC-BY-NC 4.0</strong> for research use
+              only. All recordings were collected with informed consent
+              under an IRB-approved protocol at Tsinghua University, with
+              participants compensated at a standard hourly rate. Facial
+              regions in egocentric and external video are automatically
+              blurred, and participant identifiers are replaced with
+              anonymous numeric IDs. The dataset will be mirrored on a
+              stable platform (e.g.&nbsp;Zenodo) with a DOI and versioned
+              releases.</p>
+          </div>
+        </div>
+      </div>
+      <p class="has-text-centered">
+        Correspondence: <a href="mailto:[email protected]">[email protected]</a>
+      </p>
+    </div>
+  </section>
+
+  <!--BibTeX-->
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <div class="bibtex-header">
+        <h2 class="title">BibTeX</h2>
+        <button class="copy-bibtex-btn" onclick="copyBibTeX()" title="Copy BibTeX to clipboard">
+          <i class="fas fa-copy"></i>
+          <span class="copy-text">Copy</span>
+        </button>
+      </div>
+      <pre id="bibtex-code"><code>@misc{xi2026egoemg,
+  title        = {{EgoEMG: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation}},
+  author       = {Xi, Ziheng and Yu, Jiayi and Wang, Yitao and Duan, Yanbo and Feng, Jianjiang and Zhou, Jie},
+  year         = {2026},
+  howpublished = {arXiv preprint (under review)},
+  institution  = {Tsinghua University},
+  url          = {https://zhenqis123.github.io/EMG2PP/egoemg_academic_homepage_horwitz/}
+}</code></pre>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-8">
+          <div class="content">
+            <p>
+              This page was built using the
+              <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank" rel="noopener noreferrer">Academic Project Page Template</a>
+              which was adopted from the
+              <a href="https://nerfies.github.io" target="_blank" rel="noopener noreferrer">Nerfies</a>
+              project page. You are free to borrow the source code of this
+              website; we just ask that you link back to the template in
+              the footer. This website is licensed under a
+              <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+            </p>
+            <p>
+              EgoEMG 2026. Data CC-BY-NC 4.0 (research use only); code MIT.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+  </main>
+</body>
+</html>

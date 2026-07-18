@@ -1,0 +1,112 @@
+# @package _global_
+# Same as regression_egoemg_incre_small but WITHOUT Incre Ep 0,1,2 in training.
+# EgoEMG full (all splits) + Incre train (Ep 3-5 前80%) → Incre val (Ep 3-5 后20%)
+# Small model + best batch augmentation (trial #81)
+defaults:
+  - /experiment/emgformer/regression_egoemg
+  - override /module/decoder: transformer/preset/small
+  - override /transforms: emgformer_regression_aug_extended
+  - _self_
+
+checkpoint:
+
+val_episode_name_mapping:
+  sess_20260530_102930: xzh_glove
+  sess_20260530_140912: xzh_bare
+  sess_20260530_143229: dyb_bare
+
+datamodule:
+  window_length: 12_000
+  val_test_window_length: 12_000
+  stride: 1_200
+  val_test_stride: 12_000
+  norm_mode: null
+
+dataset:
+  train:
+    # ── EgoEMG left hand (all splits) ──
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train, user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: filtered_paper
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      jitter: true
+    # ── EgoEMG right hand (all splits) ──
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train, user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      excluded_episode_ids: [episode_000029, episode_000030]
+      emg_field_preference: filtered_paper
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      jitter: true
+    # ── Incre train (Ep 3-5 前80%, EXCLUDING Ep 0-2) ──
+    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+      memmap_dir: ${egoemg_incre_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      target_hand: right
+      emg_field_preference: filtered_paper
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      dataset_name: egoemg_incre
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      jitter: true
+      excluded_episode_ids:
+        - data_20260526_172725
+        - data_20260526_230859
+        - data_20260527_124150
+
+  val:
+    # ── Incre val (Ep 3-5 后20%) ──
+    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+      memmap_dir: ${egoemg_incre_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [val]
+      target_hand: right
+      emg_field_preference: filtered_paper
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      dataset_name: egoemg_incre
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+
+  test: []
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    save_top_k: 3
+    save_last: true
+    filename: "egoemg-incre-small-no012-{epoch:03d}-{${monitor_metric}:.4f}"
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: regression_egoemg_incre_small_no012
+  version: null
+  default_hp_metric: false

@@ -1,0 +1,231 @@
+data_location: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+seed: 42
+matmul_precision: high
+default_model_summary: true
+model_summary_max_depth: 2
+batch_size: 650
+num_workers: 12
+train: true
+eval: true
+checkpoint: /home/xiziheng/develop/emg2pose/test_results/emg2pose_small_aggressive/checkpoints/best.ckpt
+pretrained_checkpoint: null
+pretrained_strict: true
+freeze_backbone: false
+stage2_vision_checkpoint: null
+component_lr_scales: {}
+ignore_head_tail_dims: 0
+monitor_metric: val_mae
+monitor_mode: min
+loss_weights:
+  mae: 1
+  fingertip_distance: 0.01
+trainer:
+  max_epochs: 150
+  devices:
+  - 3
+  - 4
+  - 5
+  log_every_n_steps: 1
+  precision: bf16-mixed
+  enable_model_summary: false
+  gradient_clip_val: 1
+  check_val_every_n_epoch: 1
+callbacks:
+- _target_: pytorch_lightning.callbacks.ModelSummary
+  max_depth: 2
+- _target_: pytorch_lightning.callbacks.LearningRateMonitor
+- _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  monitor: ${monitor_metric}
+  mode: ${monitor_mode}
+  save_top_k: 3
+  save_last: true
+  verbose: true
+  filename: best-${monitor_metric}={${monitor_metric}:.4f}
+- _target_: pytorch_lightning.callbacks.EarlyStopping
+  monitor: ${monitor_metric}
+  mode: ${monitor_mode}
+  patience: 200
+  check_on_train_epoch_end: false
+  verbose: true
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: emg2pose
+  version: null
+  default_hp_metric: false
+dataset:
+  train:
+  - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+    memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+    window_length: 7790
+    stride: null
+    padding:
+    - 0
+    - 0
+    jitter: true
+    skip_ik_failures: false
+    allowed_splits:
+    - train
+  val:
+  - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+    memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+    window_length: 7790
+    stride: null
+    padding:
+    - 0
+    - 0
+    jitter: false
+    skip_ik_failures: false
+    allowed_splits:
+    - val
+  test:
+  - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+    memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+    window_length: 7790
+    stride: null
+    padding:
+    - 0
+    - 0
+    jitter: false
+    skip_ik_failures: false
+    allowed_splits:
+    - test
+datamodule:
+  _target_: emg2pose.datamodule.WindowedEmgDataModule
+  dataset_conf: ${dataset}
+  window_length: 7790
+  val_test_window_length: 7790
+  stride: null
+  val_test_stride: null
+  padding:
+  - 0
+  - 0
+  pin_memory: true
+  persistent_workers: true
+  prefetch_factor: 2
+  skip_ik_failures: false
+  max_open_files: 32
+  norm_mode: per-dataset
+  norm_stats_path: null
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  norm_eps: 1.0e-06
+optimizer:
+  _target_: torch.optim.AdamW
+  lr: 0.0001
+  betas:
+  - 0.9
+  - 0.999
+  eps: 1.0e-08
+  weight_decay: 0.01
+  amsgrad: false
+lr_scheduler:
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    T_max: ${trainer.max_epochs}
+    eta_min: 5.0e-06
+  interval: epoch
+  frequency: 1
+data_split:
+  _target_: emg2pose.utils.load_splits
+  metadata_file: ${data_location}/metadata.csv
+  subsample: 1
+to_tensor:
+  _target_: emg2pose.transforms.ExtractToTensor
+  field: emg
+transforms:
+  train:
+  - _target_: emg2pose.transforms.ExtractField
+    field: emg
+  - _target_: emg2pose.transforms.RotationAugmentation
+    channel_dim: -1
+  - _target_: emg2pose.transforms.ToFloatTensor
+  - _target_: emg2pose.transforms.RandomChannelMask
+    mask_prob: 0.25
+    min_masked: 0
+    max_masked: null
+    channel_dim: -1
+    mask_value: 0.0
+  - _target_: emg2pose.transforms.RandomTimeMask
+    max_mask_size: 500
+    num_masks: 0
+    min_mask_size: 0
+    time_dim: 0
+    mask_value: 0.0
+  - _target_: emg2pose.transforms.RandomFrequencyMask
+    max_mask_size: 128
+    num_masks: 3
+    min_mask_size: 0
+    time_dim: 0
+  - _target_: emg2pose.transforms.RandomGaussianNoise
+    min_snr_db: 25
+    max_snr_db: 35
+    apply_prob: 0.5
+    time_dim: 0
+  val:
+  - ${to_tensor}
+  test: ${transforms.val}
+module:
+  featurizer:
+    _target_: emg2pose.models.featurizers.tds.TdsNetwork
+    se:
+      enable: true
+      reduction: 4
+      residual: true
+      mode: global
+    conv_blocks:
+    - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+      in_channels: 16
+      out_channels: 256
+      kernel_size: 11
+      stride: 5
+    - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+      in_channels: 256
+      out_channels: 256
+      kernel_size: 5
+      stride: 2
+    tds_stages:
+    - _target_: emg2pose.models.featurizers.tds.TdsStage
+      in_channels: 256
+      in_conv_kernel_width: 9
+      in_conv_stride: 5
+      num_blocks: 1
+      channels: 8
+      feature_width: 32
+      kernel_width: 5
+    - _target_: emg2pose.models.featurizers.tds.TdsStage
+      in_channels: 256
+      in_conv_kernel_width: 3
+      in_conv_stride: 1
+      num_blocks: 1
+      channels: 8
+      feature_width: 32
+      kernel_width: 3
+  decoder:
+    _target_: emg2pose.models.decoders.transformer.TransformerDecoder
+    in_channels: 256
+    model_dim: 256
+    num_heads: 4
+    num_layers: 3
+    ffn_dim: 512
+    dropout: 0.15
+    causal: false
+    activation: relu
+    norm_first: true
+    pos_encoding: rope
+    out_proj: true
+    preset: small
+  head:
+    _target_: emg2pose.models.heads.mlp.MLPHead
+    in_channels: 256
+    out_channels: 20
+    hidden_sizes:
+    - 512
+    activation: relu
+    dropout: 0.1
+  _target_: emg2pose.models.modules.emgformer.Emg2PoseFormer
+  out_channels: 20
+  provide_initial_pos: false
+per_user: true

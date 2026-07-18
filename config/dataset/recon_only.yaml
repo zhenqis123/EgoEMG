@@ -1,0 +1,50 @@
+# @package _global_
+# Only emg2pose + emg2qwerty for recon loss debugging
+dataset:
+  train:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2pose
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        root_dir: ${data_root}/emg2pose_v3
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        skip_ik_failures: ${datamodule.skip_ik_failures}
+        allowed_splits: [train]
+        skip_fields: [joint_angles, time]
+        memmap_dir: ${data_root}/emg2pose_v3_memmap
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2qwerty
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.emg2qwerty_dataset.Emg2QwertyDataset
+        root_dir: ${data_root}/emg2qwerty_v3
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        memmap_dir: ${data_root}/emg2qwerty_v3_memmap
+
+  val:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2pose
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        root_dir: ${data_root}/emg2pose_v3
+        window_length: ${datamodule.val_test_window_length}
+        stride: ${datamodule.val_test_window_length}
+        padding: ${datamodule.padding}
+        jitter: false
+        skip_ik_failures: ${datamodule.skip_ik_failures}
+        allowed_splits: [val]
+        memmap_dir: ${data_root}/emg2pose_v3_memmap
+
+  test: []

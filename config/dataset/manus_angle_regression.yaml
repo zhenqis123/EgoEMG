@@ -1,0 +1,43 @@
+# @package _global_
+# Dataset config for Manus glove angle regression.
+# Single right-hand dataset with 8-channel EMG and 20-dim fitted joint angles.
+dataset:
+  train:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${manus_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      emg_field_preference: filtered
+      emg_layout: target_hand
+      dataset_name: manus
+      jitter: true
+      center_target_only: ${oc.select:center_target_only,false}
+
+  val:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${manus_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [train]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      emg_field_preference: filtered
+      emg_layout: target_hand
+      dataset_name: manus
+      center_target_only: ${oc.select:center_target_only,false}
+
+  test:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${manus_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [train]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      emg_field_preference: filtered
+      emg_layout: target_hand
+      dataset_name: manus
+      center_target_only: ${oc.select:center_target_only,false}

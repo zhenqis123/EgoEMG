@@ -1,0 +1,3 @@
+- experiment=emgformer/regression_emgformer_middle_aggressive_egoemg
+- checkpoint=/home/xiziheng/develop/emg2pose/test_results/egoemg_middle_best.ckpt
+- +per_group_stats=true

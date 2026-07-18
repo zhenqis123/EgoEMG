@@ -1,6 +1,7 @@
 # @package _global_
 datamodule:
-  _target_: emg2pose.lightning.WindowedEmgDataModule
+  _target_: emg2pose.datamodule.WindowedEmgDataModule
+  dataset_conf: ${dataset}
   window_length: 2_000  # 1 second windows for 2kHz EMG
   val_test_window_length: 10_000  # 20 sec windows for 2kHz EMG
   stride: null
@@ -8,9 +9,10 @@ datamodule:
   padding: [0, 0]
   pin_memory: true
   persistent_workers: true
-  prefetch_factor: 1
+  prefetch_factor: 4
   skip_ik_failures: False
   max_open_files: 32
-  norm_mode: null
+  norm_mode: null  # null | batch | instance | per-dataset
   norm_stats_path: null
+  per_dataset_norm_stats_path: assets/per_dataset_norm_stats.json
   norm_eps: 1e-6

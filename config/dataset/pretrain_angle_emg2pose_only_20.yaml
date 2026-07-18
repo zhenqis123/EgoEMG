@@ -1,0 +1,19 @@
+# @package _global_
+dataset:
+  train:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2pose
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 20
+      base:
+        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        memmap_dir: ${data_root}/emg2pose_v3_memmap
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        skip_ik_failures: ${datamodule.skip_ik_failures}
+        allowed_splits: [train]
+
+  val: []
+  test: []

@@ -1,0 +1,34 @@
+# @package _global_
+# Uses legacy HDF5-based dataset that scans a directory for .hdf5 files.
+# Set data_location to the HDF5 directory (e.g. data/emg2pose_data).
+dataset:
+  train:
+    - _target_: emg2pose.datasets.multisession_emg2pose_dataset_legacy.SplitFilteredHdf5Dataset
+      data_dir: ${data_location}
+      allowed_splits: [train]
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      padding: ${datamodule.padding}
+      jitter: true
+      skip_ik_failures: ${datamodule.skip_ik_failures}
+      max_open_files: 32
+  val:
+    - _target_: emg2pose.datasets.multisession_emg2pose_dataset_legacy.SplitFilteredHdf5Dataset
+      data_dir: ${data_location}
+      allowed_splits: [val]
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      padding: ${datamodule.padding}
+      jitter: false
+      skip_ik_failures: ${datamodule.skip_ik_failures}
+      max_open_files: 32
+  test:
+    - _target_: emg2pose.datasets.multisession_emg2pose_dataset_legacy.SplitFilteredHdf5Dataset
+      data_dir: ${data_location}
+      allowed_splits: [test]
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: ${datamodule.skip_ik_failures}
+      max_open_files: 32

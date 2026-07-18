@@ -1,0 +1,135 @@
+# @package _global_
+# F-RN18+S denalign STAGE 2: resume from denalign epoch100 (val_mae=0.1022),
+# train 100 MORE epochs on GPU 1-5 with cosine LR warm-restart from 6e-4.
+#
+# Weight init: last.ckpt (epoch100). Optimizer/scheduler fresh (no Lightning resume),
+# so cosine T_max=100 restarts from peak lr. Epoch counts 0->99 (=epochs 101->200).
+#
+# Usage:
+#   python -m emg2pose.train experiment=fusion/fusion_rn18_s_center_8ch_denalign_stage2 \
+#     trainer.devices=[1,2,3,4,5] trainer.max_epochs=100
+defaults:
+  - /module: mid_fusion
+  - override /dataset: egoemg_angle_regression
+  - override /datamodule: default
+  - override /transforms: emgformer_regression_aug_extended
+  - override /lr_scheduler: cosine
+  - override /module/featurizer: tds_slim
+  - _self_
+
+# ── Data paths ───────────────────────────────────────────────────────────────
+egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_emg_layout: target_hand
+egoemg_emg2pose_channel_indices: null
+egoemg_channel_interpolate: false
+egoemg_emg_field_preference: filtered_paper
+
+# ── Vision (ResNet18, pre-crops) ─────────────────────────────────────────────
+per_episode_crops_dir: /mnt/nvme/xiziheng/EgoEMG_v2_crops
+vision_num_frames: 1
+vision_frame_selection: center
+vision_patch_size: 256
+skip_emg_loading: false
+center_target_only: true
+
+# ── Checkpoints ──────────────────────────────────────────────────────────────
+vision_resnet_checkpoint: /home/xiziheng/develop/emg2pose/logs/fusion/vision_resnet/version_9/checkpoints/last.ckpt
+pretrained_emg_checkpoint: /home/xiziheng/develop/emg2pose/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
+# STAGE 2: load weights from denalign epoch100, then fresh optimizer (cosine restart)
+checkpoint: /home/xiziheng/develop/emg2pose/runs_local/denalign/fusion_rn18_s_8ch_denalign/version_0/checkpoints/last.ckpt
+
+# ── Not used (config compatibility) ──────────────────────────────────────────
+wilor_checkpoint_path: /home/xiziheng/WiLoR/pretrained_models/wilor_final.ckpt
+mano_model_path: /home/xiziheng/WiLoR/mano_data
+
+# ── Training ─────────────────────────────────────────────────────────────────
+seed: 42
+train: true
+eval: true
+batch_size: 200
+val_batch_size: 100
+num_workers: 10
+matmul_precision: high
+
+trainer:
+  gradient_clip_val: 1
+  devices: [1, 2, 3, 4, 5]
+  precision: bf16-mixed
+  max_epochs: 100   # 100 MORE epochs (cosine T_max auto-binds to this -> restart from 6e-4)
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 1
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 6.0e-4
+  weight_decay: 1.0e-4
+
+datamodule:
+  window_length: 12_000
+  val_test_window_length: 12_000
+  stride: 400            # same as denalign (dense, aligned)
+  val_test_stride: 12_000
+  dataset_repeat: 2      # same as denalign
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
+  skip_ik_failures: false
+  persistent_workers: true
+  prefetch_factor: 2
+  pin_memory: true
+
+loss_weights:
+  mae: 1.0
+  fingertip_distance: 0.01
+  delta_reg: 0.0
+
+# ── Module (identical to denalign) ───────────────────────────────────────────
+module:
+  vision_backbone_type: resnet18
+  vision_embed_dim: 512
+  vision_pretrained_checkpoint: ${vision_resnet_checkpoint}
+  skip_vision_backbone: false
+  fusion_mode: center_supervised
+  moddrop_prob: 0.0
+  force_zero_emg: false
+  out_channels: 22
+  provide_initial_pos: false
+  emg_feat_dim: 256
+  fusion_proj_dim: 256
+  decoder:
+    causal: false
+    pos_encoding: rope
+    in_channels: 256
+    model_dim: 256
+    num_heads: 4
+    num_layers: 3
+    ffn_dim: 512
+    dropout: 0.1
+  head:
+    in_channels: 256
+    out_channels: 22
+
+component_lr_scales:
+  featurizer: 1.0
+  decoder: 1.0
+  vision_backbone: 1.0
+  vision_proj: 1.0
+  fusion_proj: 1.0
+  head: 1.0
+  head_vision: 1.0
+
+ignore_head_tail_dims: 0
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "rn18-s-8ch-denalign-s2-{epoch:03d}-{val_mae:.4f}"
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: runs_local/denalign_stage2
+  name: fusion_rn18_s_8ch_denalign_stage2
+  version: null
+  default_hp_metric: false

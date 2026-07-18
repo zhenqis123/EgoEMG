@@ -1,6 +1,6 @@
 _target_: emg2pose.models.decoders.transformer.TransformerDecoder
 
-in_channels: 64
+in_channels: 256  # Match featurizer output
 model_dim: 64
 num_heads: 4
 num_layers: 2

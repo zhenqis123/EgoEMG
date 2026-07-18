@@ -1,0 +1,7 @@
+db,study,trial_id,trial,state,value,datetime_start,datetime_complete,run_dir,param:window_length,attr:batch_size
+assets/optuna_window_length.db,egoemg-window-v3,2,1,COMPLETE,0.241102,2026-05-20 22:16:01.528449,2026-05-20 22:16:01.528449,,14409.0,198
+assets/optuna_window_length.db,egoemg-window-v3,8,7,COMPLETE,0.2428,2026-05-20 23:48:05.449767,2026-05-21 00:25:49.383163,logs/optuna_window/egoemg-window-v3/trial_0007_2026-05-20_23-48-05,14409.0,
+assets/optuna_window_length.db,egoemg-window-v3,3,2,COMPLETE,0.247526,2026-05-20 22:16:01.534231,2026-05-20 22:16:01.534231,,11784.0,268
+assets/optuna_window_length.db,egoemg-window-v3,4,3,COMPLETE,0.250305,2026-05-20 22:16:01.539393,2026-05-20 22:16:01.539393,,10184.0,334
+assets/optuna_window_length.db,egoemg-window-v3,1,0,COMPLETE,0.256669,2026-05-20 22:16:01.516723,2026-05-20 22:16:01.516723,,7494.0,529
+assets/optuna_window_length.db,egoemg-window-v3,7,6,COMPLETE,0.25858274102211,2026-05-20 22:16:15.666531,2026-05-20 23:48:05.438860,logs/optuna_window/egoemg-window-v3/trial_0006_2026-05-20_22-16-15,7494.0,

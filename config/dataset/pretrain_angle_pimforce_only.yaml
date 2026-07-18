@@ -1,0 +1,20 @@
+# @package _global_
+dataset:
+  train:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: pimforce
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.pimforce_memmap_dataset.PimforceMemmapDataset
+        root_dir: ${data_root}/pimforce_v3_memmap
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        channel_alignment_mode: interpolate
+        pose_in_degrees: true
+        return_joint_angles: true
+
+  val: []
+  test: []

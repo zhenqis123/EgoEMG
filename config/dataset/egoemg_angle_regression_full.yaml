@@ -1,0 +1,176 @@
+# @package _global_
+# Full-dataset training: train on ALL splits (train+user+gesture+both).
+# Val set is the same as train (for checkpoint monitoring only).
+dataset:
+  train:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train, user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: filtered
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      jitter: true
+      mano_npy_dir: ${oc.select:egoemg_mano_npy_dir,null}
+      video_root: ${oc.select:video_root,null}
+      allintra_root: ${oc.select:allintra_root,null}
+      vision_patch_size: ${oc.select:vision_patch_size,256}
+      vision_num_frames: ${oc.select:vision_num_frames,0}
+      vision_frame_stride: ${oc.select:vision_frame_stride,1}
+      vision_frame_selection: ${oc.select:vision_frame_selection,center}
+      per_episode_crops_dir: ${oc.select:per_episode_crops_dir,null}
+      cached_vit_features_dir: ${oc.select:cached_vit_features_dir,null}
+      preload_features: ${oc.select:preload_features,false}
+      skip_emg_loading: ${oc.select:skip_emg_loading,false}
+      center_target_only: ${oc.select:center_target_only,false}
+      skip_fields: ${oc.select:egoemg_skip_fields,null}
+
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train, user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      emg_field_preference: filtered
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      jitter: true
+      mano_npy_dir: ${oc.select:egoemg_mano_npy_dir,null}
+      video_root: ${oc.select:video_root,null}
+      allintra_root: ${oc.select:allintra_root,null}
+      vision_patch_size: ${oc.select:vision_patch_size,256}
+      vision_num_frames: ${oc.select:vision_num_frames,0}
+      vision_frame_stride: ${oc.select:vision_frame_stride,1}
+      vision_frame_selection: ${oc.select:vision_frame_selection,center}
+      per_episode_crops_dir: ${oc.select:per_episode_crops_dir,null}
+      cached_vit_features_dir: ${oc.select:cached_vit_features_dir,null}
+      preload_features: ${oc.select:preload_features,false}
+      skip_emg_loading: ${oc.select:skip_emg_loading,false}
+      center_target_only: ${oc.select:center_target_only,false}
+      skip_fields: ${oc.select:egoemg_skip_fields,null}
+
+  val:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [train, user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: filtered
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      mano_npy_dir: ${oc.select:egoemg_mano_npy_dir,null}
+      video_root: ${oc.select:video_root,null}
+      allintra_root: ${oc.select:allintra_root,null}
+      vision_patch_size: ${oc.select:vision_patch_size,256}
+      vision_num_frames: ${oc.select:vision_num_frames,0}
+      vision_frame_stride: ${oc.select:vision_frame_stride,1}
+      vision_frame_selection: ${oc.select:vision_frame_selection,center}
+      per_episode_crops_dir: ${oc.select:per_episode_crops_dir,null}
+      cached_vit_features_dir: ${oc.select:cached_vit_features_dir,null}
+      preload_features: ${oc.select:preload_features,false}
+      skip_emg_loading: ${oc.select:skip_emg_loading,false}
+      center_target_only: ${oc.select:center_target_only,false}
+      skip_fields: ${oc.select:egoemg_skip_fields,null}
+
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [train, user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      emg_field_preference: filtered
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      mano_npy_dir: ${oc.select:egoemg_mano_npy_dir,null}
+      video_root: ${oc.select:video_root,null}
+      allintra_root: ${oc.select:allintra_root,null}
+      vision_patch_size: ${oc.select:vision_patch_size,256}
+      vision_num_frames: ${oc.select:vision_num_frames,0}
+      vision_frame_stride: ${oc.select:vision_frame_stride,1}
+      vision_frame_selection: ${oc.select:vision_frame_selection,center}
+      per_episode_crops_dir: ${oc.select:per_episode_crops_dir,null}
+      cached_vit_features_dir: ${oc.select:cached_vit_features_dir,null}
+      preload_features: ${oc.select:preload_features,false}
+      skip_emg_loading: ${oc.select:skip_emg_loading,false}
+      center_target_only: ${oc.select:center_target_only,false}
+      skip_fields: ${oc.select:egoemg_skip_fields,null}
+
+  test:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [train, user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: filtered
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      mano_npy_dir: ${oc.select:egoemg_mano_npy_dir,null}
+      video_root: ${oc.select:video_root,null}
+      allintra_root: ${oc.select:allintra_root,null}
+      vision_patch_size: ${oc.select:vision_patch_size,256}
+      vision_num_frames: ${oc.select:vision_num_frames,0}
+      vision_frame_stride: ${oc.select:vision_frame_stride,1}
+      vision_frame_selection: ${oc.select:vision_frame_selection,center}
+      per_episode_crops_dir: ${oc.select:per_episode_crops_dir,null}
+      cached_vit_features_dir: ${oc.select:cached_vit_features_dir,null}
+      preload_features: ${oc.select:preload_features,false}
+      skip_emg_loading: ${oc.select:skip_emg_loading,false}
+      center_target_only: ${oc.select:center_target_only,false}
+      skip_fields: ${oc.select:egoemg_skip_fields,null}
+
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [train, user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      emg_field_preference: filtered
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: per-dataset
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      mano_npy_dir: ${oc.select:egoemg_mano_npy_dir,null}
+      video_root: ${oc.select:video_root,null}
+      allintra_root: ${oc.select:allintra_root,null}
+      vision_patch_size: ${oc.select:vision_patch_size,256}
+      vision_num_frames: ${oc.select:vision_num_frames,0}
+      vision_frame_stride: ${oc.select:vision_frame_stride,1}
+      vision_frame_selection: ${oc.select:vision_frame_selection,center}
+      per_episode_crops_dir: ${oc.select:per_episode_crops_dir,null}
+      cached_vit_features_dir: ${oc.select:cached_vit_features_dir,null}
+      preload_features: ${oc.select:preload_features,false}
+      skip_emg_loading: ${oc.select:skip_emg_loading,false}
+      center_target_only: ${oc.select:center_target_only,false}
+      skip_fields: ${oc.select:egoemg_skip_fields,null}

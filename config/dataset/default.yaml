@@ -1,0 +1,30 @@
+# @package _global_
+dataset:
+  # Each split is a list of datasets to concatenate.
+  train:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: ${data_location}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      padding: ${datamodule.padding}
+      jitter: true
+      skip_ik_failures: ${datamodule.skip_ik_failures}
+      allowed_splits: [train]
+  val:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: ${data_location}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      padding: ${datamodule.padding}
+      jitter: false
+      skip_ik_failures: ${datamodule.skip_ik_failures}
+      allowed_splits: [val]
+  test:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: ${data_location}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: ${datamodule.skip_ik_failures}
+      allowed_splits: [test]

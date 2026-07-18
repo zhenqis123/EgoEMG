@@ -7,75 +7,98 @@
 # pyre-unsafe
 
 import logging
+import os
 import pprint
+import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any
 
 import hydra
 import pytorch_lightning as pl
-from emg2pose import transforms
 
+warnings.filterwarnings(
+    "ignore",
+    message="The given NumPy array is not writable",
+    category=UserWarning,
+)
+
+from emg2pose.datamodule import make_data_module
 from emg2pose.lightning import EmgPredictionModule
-from emg2pose.transforms import Transform
 from hydra.core.hydra_config import HydraConfig
 from hydra.utils import instantiate
-from omegaconf import DictConfig, ListConfig, OmegaConf
+from omegaconf import DictConfig, OmegaConf
 import torch
 
 
 log = logging.getLogger(__name__)
 
 
-def make_data_module(config: DictConfig):
-    """Create datamodule from experiment config."""
+def _ensure_model_summary_callback(
+    callbacks: list[pl.Callback], config: DictConfig
+) -> list[pl.Callback]:
+    """Ensure a ModelSummary callback is present unless explicitly disabled."""
+    wants_summary = bool(config.get("default_model_summary", True))
+    if not wants_summary:
+        return callbacks
 
-    # Dataset session paths
-    def _full_paths(root: str, dataset: ListConfig) -> list[Path]:
-        # sessions = [session["session"] for session in dataset]
-        sessions = dataset
-        return [
-            Path(root).expanduser().joinpath(f"{session}.hdf5") for session in sessions
-        ]
+    if any(isinstance(cb, pl.callbacks.ModelSummary) for cb in callbacks):
+        return callbacks
 
-    splits = instantiate(config.data_split)
-    train_sessions = _full_paths(config.data_location, splits["train"])
-    val_sessions = _full_paths(config.data_location, splits["val"])
-    test_sessions = _full_paths(config.data_location, splits["test"])
-
-    datamodule = instantiate(
-        config.datamodule,
-        batch_size=config.batch_size,
-        num_workers=config.num_workers,
-        train_sessions=train_sessions,
-        val_sessions=val_sessions,
-        test_sessions=test_sessions,
-        
-    )
-
-    # Instantiate transforms
-    def _build_transform(configs: Sequence[DictConfig]) -> Transform[Any, Any]:
-        return transforms.Compose([instantiate(cfg) for cfg in configs])
-
-    datamodule.train_transforms = _build_transform(config.transforms.train)
-    datamodule.val_transforms = _build_transform(config.transforms.val)
-    datamodule.test_transforms = _build_transform(config.transforms.test)
-
-    return datamodule
+    max_depth = int(config.get("model_summary_max_depth", 2))
+    return [pl.callbacks.ModelSummary(max_depth=max_depth), *callbacks]
 
 
 def make_lightning_module(config: DictConfig):
     """Create lightning module from experiment config."""
+    module_target = str(config.module.get("_target_", ""))
+    if module_target == "emg2pose.models.modules.emgformer_pretrain.EmgformerPretrain":
+        raise ValueError(
+            "This experiment config targets EmgformerPretrain and must be run via "
+            "`python -m emg2pose.train_pretrain ...`, not `python -m emg2pose.train ...`."
+        )
     return EmgPredictionModule(
         module_conf=config.module,
         optimizer_conf=config.optimizer,
         lr_scheduler_conf=config.lr_scheduler,
         loss_weights=config.loss_weights,
-        task_type=config.get("task_type", "regression"),
-        ignore_index=config.get("ignore_index", -100),
-        label_smoothing=config.get("label_smoothing", 0.0),
-        gumbel_recon=config.get("gumbel_recon"),
+        pretrained_checkpoint=config.get("pretrained_checkpoint"),
+        pretrained_strict=config.get("pretrained_strict", False),
+        freeze_backbone=config.get("freeze_backbone", False),
+        pretrained_emg_checkpoint=config.get("pretrained_emg_checkpoint"),
+        stage2_vision_checkpoint=config.get("stage2_vision_checkpoint"),
+        component_lr_scales=config.get("component_lr_scales"),
+        ignore_head_tail_dims=config.get("ignore_head_tail_dims", 0),
+        datamodule=config.datamodule,
+        batch_augmentation=config.get("batch_augmentation"),
+        val_episode_name_mapping=config.get("val_episode_name_mapping"),
     )
+
+def _extract_state_dict(checkpoint: object) -> dict[str, torch.Tensor] | None:
+    if isinstance(checkpoint, dict):
+        if "state_dict" in checkpoint and isinstance(checkpoint["state_dict"], dict):
+            return checkpoint["state_dict"]
+        if "model_state_dict" in checkpoint and isinstance(
+            checkpoint["model_state_dict"], dict
+        ):
+            return checkpoint["model_state_dict"]
+        if all(isinstance(k, str) for k in checkpoint.keys()):
+            return checkpoint  # raw state dict
+    return None
+
+
+def _is_pretrain_checkpoint(state_dict: dict[str, torch.Tensor] | None) -> bool:
+    if not state_dict:
+        return False
+    pretrain_prefixes = (
+        "model.recon_head.",
+        "model.gesture_head.",
+        "model.keystroke_head.",
+        "model.angle_head.",  # Pretrain uses angle_head, regular uses head
+        "model.quantizer.",
+        "model.mask_embedding",
+        "model.projection.",
+    )
+    return any(key.startswith(pretrain_prefixes) for key in state_dict.keys())
 
 
 def train(
@@ -100,13 +123,19 @@ def train(
 
     if config.checkpoint is not None:
         log.info(f"Loading from checkpoint {config.checkpoint}")
-        module = EmgPredictionModule.load_from_checkpoint(
-            config.checkpoint,
-            module_conf=config.module,
-            optimizer_conf=config.optimizer,
-            lr_scheduler_conf=config.lr_scheduler,
-            loss_weights=config.loss_weights,
-        )
+        ckpt_path = Path(config.checkpoint).expanduser()
+        checkpoint = torch.load(ckpt_path, map_location="cpu")
+        state_dict = _extract_state_dict(checkpoint)
+        strict = bool(config.get("pretrained_strict", False))
+
+        if _is_pretrain_checkpoint(state_dict):
+            log.info("Detected pretrain checkpoint. Loading backbone and angle head.")
+        else:
+            log.info("Detected regular checkpoint. Loading backbone and matching head weights.")
+
+        module = make_lightning_module(config)
+        module._load_pretrained_backbone(str(ckpt_path), strict=strict)
+        module._load_pretrained_angle_head(str(ckpt_path), strict=strict)
     else:
         log.info(f"Instantiating LightningModule {EmgPredictionModule}")
         module = make_lightning_module(config)
@@ -117,13 +146,19 @@ def train(
     # Instantiate callbacks
     callback_configs = config.get("callbacks", [])
     callbacks = [instantiate(cfg) for cfg in callback_configs]
+    callbacks = _ensure_model_summary_callback(callbacks, config)
 
     if extra_callbacks is not None:
         callbacks.extend(extra_callbacks)
 
+    logger = None
+    if "logger" in config:
+        logger = instantiate(config.logger)
+
     trainer = pl.Trainer(
         **config.trainer,
-        callbacks=callbacks
+        callbacks=callbacks,
+        logger=logger,
     )
 
     results = {}
@@ -132,12 +167,17 @@ def train(
         # Train
         trainer.fit(module, datamodule)
 
-        # Load the best checkpoint
+        # Load the best checkpoint (skip if no val data to select best)
         checkpoint_callback = trainer.checkpoint_callback
         if checkpoint_callback is None:
             raise RuntimeError("No checkpoint callback found in trainer")
         best_checkpoint_path = checkpoint_callback.best_model_path
-        module = module.__class__.load_from_checkpoint(best_checkpoint_path)
+        if best_checkpoint_path and os.path.isfile(best_checkpoint_path):
+            module = module.__class__.load_from_checkpoint(best_checkpoint_path)
+        else:
+            best_checkpoint_path = checkpoint_callback.last_model_path
+            if best_checkpoint_path and os.path.isfile(best_checkpoint_path):
+                module = module.__class__.load_from_checkpoint(best_checkpoint_path)
 
         results["best_checkpoint"] = best_checkpoint_path
 

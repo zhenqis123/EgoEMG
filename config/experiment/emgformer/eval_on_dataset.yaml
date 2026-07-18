@@ -1,0 +1,136 @@
+# @package _global_
+# Evaluate any checkpoint on an arbitrary memmap dataset.
+#
+# Usage:
+#   conda run -n emg2pose_env python -m emg2pose.train \
+#     experiment=emgformer/eval_on_dataset \
+#     checkpoint=/path/to/checkpoint.ckpt \
+#     eval_memmap_dir=/path/to/memmap_dir \
+#     'trainer.devices=[0]'
+#
+# Overridable:
+#   checkpoint           : path to checkpoint (REQUIRED)
+#   eval_memmap_dir       : path to memmap dataset
+#   eval_target_hand      : left, right, or both (default: right)
+#   eval_dataset_name     : norm-stats key (default: egoemg)
+#   eval_allowed_splits   : which splits to load (default: [test])
+#   ignore_head_tail_dims : tail dims to strip (default: 2)
+
+defaults:
+  - /module: emgformer
+  - override /module/featurizer: tds_slim
+  - override /module/decoder: transformer/preset/small
+  - override /transforms: emgformer_regression_no_aug
+  - _self_
+
+eval_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+eval_target_hand: right
+eval_dataset_name: egoemg
+eval_allowed_splits: [test]
+
+checkpoint: null
+pretrained_checkpoint: null
+pretrained_strict: false
+
+module:
+  provide_initial_pos: false
+  featurizer:
+    conv_blocks:
+      0:
+        in_channels: 8  # default for 8ch models; override to 16 for 16ch checkpoints
+  decoder:
+    causal: false
+
+ignore_head_tail_dims: 2
+
+num_workers: 2
+
+datamodule:
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: false
+  window_length: 7790
+  val_test_window_length: 7790
+  stride: 780
+  val_test_stride: 7790
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+
+optimizer:
+  lr: 0.0005
+
+trainer:
+  gradient_clip_val: 1
+  precision: bf16-mixed
+  max_epochs: 1
+  devices: [0]
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 5
+
+matmul_precision: high
+
+loss_weights:
+  mae: 1.0
+  fingertip_distance: 0.01
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: /tmp
+  name: eval_on_dataset
+  version: null
+  default_hp_metric: false
+
+dataset:
+  train:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${eval_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: ${eval_allowed_splits}
+      modalities: [emg, joint_angles, labels]
+      target_hand: ${eval_target_hand}
+      emg_field_preference: filtered
+      emg_layout: emg2pose_interpolate16
+      emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
+      channel_interpolate: false
+      dataset_name: ${eval_dataset_name}
+      jitter: false
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      center_target_only: false
+
+  val:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${eval_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: ${eval_allowed_splits}
+      modalities: [emg, joint_angles, labels]
+      target_hand: ${eval_target_hand}
+      emg_field_preference: filtered
+      emg_layout: emg2pose_interpolate16
+      emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
+      channel_interpolate: false
+      dataset_name: ${eval_dataset_name}
+      jitter: false
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      center_target_only: false
+
+  test:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${eval_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: ${eval_allowed_splits}
+      modalities: [emg, joint_angles, labels]
+      target_hand: ${eval_target_hand}
+      emg_field_preference: filtered
+      emg_layout: emg2pose_interpolate16
+      emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
+      channel_interpolate: false
+      dataset_name: ${eval_dataset_name}
+      jitter: false
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      center_target_only: false

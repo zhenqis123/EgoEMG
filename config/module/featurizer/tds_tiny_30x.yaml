@@ -1,0 +1,30 @@
+_target_: emg2pose.models.featurizers.tds.TdsNetwork
+
+se:
+  enable: true
+  reduction: 4
+  residual: true
+  mode: global
+
+conv_blocks:
+  - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+    in_channels: 8
+    out_channels: 256
+    kernel_size: 11
+    stride: 5
+  - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+    in_channels: 256
+    out_channels: 256
+    kernel_size: 5
+    stride: 2
+
+tds_stages:
+  - _target_: emg2pose.models.featurizers.tds.TdsStage
+    in_channels: 256
+    in_conv_kernel_width: 9
+    in_conv_stride: 3
+    num_blocks: 1
+    channels: 4
+    feature_width: 16
+    kernel_width: 5
+    out_channels: 256

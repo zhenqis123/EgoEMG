@@ -1087,6 +1087,8 @@ class RotationAugmentation:
         rotation = np.random.choice([-1, 0, 1])
         if rotation == 0:
             return data
+        if torch.is_tensor(data):
+            return torch.roll(data, shifts=rotation, dims=self.channel_dim)
         return np.roll(data, rotation, axis=self.channel_dim)
 
 

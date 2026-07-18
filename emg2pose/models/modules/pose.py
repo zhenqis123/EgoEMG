@@ -119,9 +119,10 @@ class VEMG2PoseWithInitialState(BaseModule):
 
     def forward(
         self, batch: dict[str, torch.Tensor]
-    ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         emg = batch["emg"]
         joint_angles = batch["joint_angles"]
+        mask = batch["label_valid_mask"]
 
         # Get initial position
         initial_pos = joint_angles[..., self.left_context]
@@ -129,9 +130,21 @@ class VEMG2PoseWithInitialState(BaseModule):
             initial_pos = torch.zeros_like(initial_pos)
 
         preds = self._predict_pose(emg, initial_pos)
-        if self.head is None:
-            return preds
-        return self.head(preds)
+        if self.head is not None:
+            preds = self.head(preds)
+
+        # Slice joint angles to match the span of the predictions
+        start = self.left_context
+        stop = None if self.right_context == 0 else -self.right_context
+        joint_angles = joint_angles[..., slice(start, stop)]
+        mask = mask[..., slice(start, stop)]
+
+        # Match the sample rate of the predictions to that of the joint angles
+        n_time = joint_angles.shape[-1]
+        preds = self.align_predictions(preds, n_time)
+        mask = self.align_mask(mask, n_time)
+
+        return preds, joint_angles, mask
 
     def _predict_pose(self, emg: torch.Tensor, initial_pos: torch.Tensor):
         features = self.featurizer(emg)  # BCT

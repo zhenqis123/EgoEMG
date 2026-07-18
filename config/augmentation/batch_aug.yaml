@@ -1,0 +1,36 @@
+# @package _global_
+# GPU batch-level augmentation defaults (v5 best trial #81, val_mae=0.250691).
+# Override individual sub-keys via Hydra, e.g.
+#   batch_augmentation.random_gain.min_gain=0.5
+batch_augmentation:
+  random_gain:
+    min_gain: 0.5291
+    max_gain: 0.6739
+    mask_prob: 0.1422
+  mag_warping:
+    sigma: 0.1770
+    num_knots: 15
+    mask_prob: 0.0
+  baseline_drift:
+    mask_prob: 0.3544
+    min_freq: 0.0114
+    max_freq: 0.4625
+    min_amp_ratio: 0.0154
+    max_amp_ratio: 0.0572
+  powerline_noise:
+    mask_prob: 0.0800
+    min_amp_ratio: 0.0141
+    max_amp_ratio: 0.0628
+    max_harmonic: 5
+  channel_mask:
+    mask_prob: 0.0
+  time_mask:
+    num_masks: 6
+    max_mask_size: 500
+  freq_mask:
+    num_masks: 4
+    max_mask_size: 128
+  gaussian_noise:
+    min_snr_db: 44.0937
+    max_snr_db: 50.0000
+    apply_prob: 0.7761

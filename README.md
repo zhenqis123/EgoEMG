@@ -181,6 +181,17 @@ checkpoint="${HOME}/emg2pose_model_checkpoints/tracking_vemg2pose.ckpt"
 Check out the Jupyter Notebook in `notebooks/getting_started.ipynb` for a brief walkthrough of data
 loading, inference, and data visualization.
 
+For EgoEMG vision supervision and WiLoR fine-tuning, see
+`docs/egoemg_wilor_training.md`. This covers the memmap dataset, all-intra
+video decoding, sidecar vision index generation, dataset visualization, and the
+`emg2pose.train_vision` training/evaluation flow.
+
+## Workspace Organization
+
+For local workspace hygiene, curated evaluation outputs, and guidance on what
+should remain versioned versus local-only, see
+`docs/workspace_organization.md`.
+
 ## License
 
 emg2pose is CC-BY-NC-SA-4.0 licensed, as found in the LICENSE file.

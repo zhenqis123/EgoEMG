@@ -1,0 +1,46 @@
+# @package _global_
+# EMG2Pose + EMG2Qwerty only for SSL pretraining ablation
+dataset:
+  train:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2pose
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        root_dir: ${data_root}/emg2pose_v3
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        skip_ik_failures: ${datamodule.skip_ik_failures}
+        allowed_splits: [train]
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2qwerty
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.emg2qwerty_dataset.Emg2QwertyDataset
+        root_dir: ${data_root}/emg2qwerty_v3
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+
+  val:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2pose
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        root_dir: ${data_root}/emg2pose_v3
+        window_length: ${datamodule.val_test_window_length}
+        stride: ${datamodule.val_test_window_length}
+        padding: ${datamodule.padding}
+        jitter: false
+        skip_ik_failures: ${datamodule.skip_ik_failures}
+        allowed_splits: [val]
+
+  test: []

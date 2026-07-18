@@ -9,7 +9,7 @@ def test_angular_derivatives_supports_single_timestep():
     target = torch.zeros(2, 20, 1)
     mask = torch.ones(2, 1, dtype=torch.bool)
     out = metric(pred, target, mask, stage="test")
-    assert "test_vel" in out and "test_acc" in out and "test_jerk" in out
+    assert "test_derivatives/vel" in out and "test_derivatives/acc" in out and "test_derivatives/jerk" in out
 
 
 def test_angular_derivatives_supports_two_timesteps():
@@ -18,4 +18,4 @@ def test_angular_derivatives_supports_two_timesteps():
     target = torch.zeros(2, 20, 2)
     mask = torch.ones(2, 2, dtype=torch.bool)
     out = metric(pred, target, mask, stage="test")
-    assert "test_vel" in out and "test_acc" in out and "test_jerk" in out
+    assert "test_derivatives/vel" in out and "test_derivatives/acc" in out and "test_derivatives/jerk" in out

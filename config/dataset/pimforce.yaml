@@ -1,0 +1,14 @@
+# @package _global_
+dataset:
+  train:
+    - _target_: emg2pose.datasets.pimforce_dataset.PimforceDataset
+      root_dirs: [${data_location}]
+      window_start: 0
+      window_stop: null
+      window_stride: 1
+      clip_to_valid: false
+      pose_mode: last
+      repeat_pose: true
+      pose_in_degrees: true
+  val: []
+  test: []

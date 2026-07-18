@@ -1,0 +1,99 @@
+# @package _global_
+# Reproduce the EgoEMG window-length ablation recipe, with WL controlled by CLI.
+# Reference: logs/optuna_window/short_window_sweep/wl_11000/hydra_configs/config.yaml
+defaults:
+  - /module: emgformer
+  - /augmentation: batch_aug
+  - override /module/featurizer: tds_slim
+  - override /module/decoder: transformer/preset/middle_aggressive
+  - override /dataset: egoemg_angle_regression
+  - override /lr_scheduler: cosine
+  - override /transforms: emgformer_regression_aug_extended
+  - override /datamodule: egoemg
+  - _self_
+
+checkpoint:
+pretrained_checkpoint: null
+pretrained_strict: false
+
+egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_emg_field_preference: filtered_paper
+egoemg_emg_layout: target_hand
+egoemg_channel_interpolate: false
+
+module:
+  out_channels: 22
+  provide_initial_pos: false
+  featurizer:
+    conv_blocks:
+      - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+        in_channels: 8
+        out_channels: 256
+        kernel_size: 11
+        stride: 5
+      - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+        in_channels: 256
+        out_channels: 256
+        kernel_size: 5
+        stride: 2
+  decoder:
+    causal: false
+    pos_encoding: rope
+  head:
+    in_channels: 256
+    out_channels: 22
+
+ignore_head_tail_dims: 0
+
+num_workers: 12
+
+datamodule:
+  pin_memory: false
+  persistent_workers: true
+  prefetch_factor: 2
+  window_length: 12_000
+  val_test_window_length: 12_000
+  stride: 1_200
+  val_test_stride: 12_000
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  skip_ik_failures: false
+  eval_multiprocessing_context: forkserver
+
+optimizer:
+  lr: 0.0005
+
+lr_scheduler:
+  scheduler:
+    eta_min: 5e-6
+
+trainer:
+  gradient_clip_val: 1
+  devices: [0, 1, 2, 3, 4, 5]
+  precision: bf16-mixed
+  max_epochs: 150
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 5
+
+batch_size: 260
+matmul_precision: high
+
+loss_weights:
+  mae: 1.0
+  landmark/fingertip: 0.0
+  fingertip_distance: 0.01
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "egoemg-middle-wl12000-{epoch:03d}-{val_mae:.4f}"
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: regression_egoemg_window_ablation_wl12000
+  version: null
+  default_hp_metric: false

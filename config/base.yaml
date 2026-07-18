@@ -1,16 +1,20 @@
 defaults:
   - _self_
+  - dataset: default
   - datamodule: default
   - optimizer: adamw
   - lr_scheduler: cosine
   - data_split: full_split
   - transforms: rotation_augmentation
-  - experiment: emgformer/regression_emgformer_small
+  - experiment: emgformer/regression_egoemg
 
-data_location: /home/xiziheng/develop/emg2pose/data/emg2pose_data
+data_location: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+manus_memmap_dir: data/manus_memmap
 
 seed: 42
-matmul_precision: null  # one of: highest, high, medium
+matmul_precision: high  # one of: highest, high, medium
+default_model_summary: True
+model_summary_max_depth: 2
 
 batch_size: 320
 num_workers: 4  # Number of workers for dataloading
@@ -18,17 +22,25 @@ num_workers: 4  # Number of workers for dataloading
 train: True  # Whether to run training
 eval: True  # Whether to run evaluation on validation and test splits
 checkpoint: null
+pretrained_checkpoint: null  # For loading backbone from pretrained model
+pretrained_strict: false
+freeze_backbone: false
+stage2_vision_checkpoint: null  # For Stage 2: load vision_proj/fusion_proj/head from vision_only ckpt
+component_lr_scales: {}  # Per-component LR scales, e.g. {featurizer: 1.0, vision_proj: 0.0}
+ignore_head_tail_dims: 0
+
+batch_augmentation: null  # GPU batch augmentation config; null = disabled
 
 monitor_metric: val_mae
 monitor_mode: min
 
 loss_weights:
   mae: 1
-  fingertip_distance: 0.01
+  landmark/fingertip: 0.01
 
 trainer:
   max_epochs: 200
-  devices: [0]
+  devices: [1,2,4]
   log_every_n_steps: 1
   precision: 32
   enable_model_summary: False
@@ -48,15 +60,22 @@ callbacks:
   - _target_: pytorch_lightning.callbacks.EarlyStopping
     monitor: ${monitor_metric}
     mode: ${monitor_mode}
-    patience: 100
+    patience: 200
     check_on_train_epoch_end: False
     verbose: True
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: emg2pose
+  version: null
+  default_hp_metric: false
 
 # Customize hydra directory outputs
 # see: https://hydra.cc/docs/0.11/configure_hydra/workdir/
 hydra:
   run:
-    dir: logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    dir: logs/${now:%Y-%m-%d}/${now:%H-%M-%S}_${hydra.job.name}
   sweep:
     dir: ${hydra.run.dir}
     subdir: ${hydra.job.num}_${hydra.job.override_dirname}/seed=${seed}

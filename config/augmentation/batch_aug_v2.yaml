@@ -1,0 +1,45 @@
+# @package _global_
+# GPU batch-level augmentation (v2): best trial 54 config + 3 new augmentations.
+# Base config from optuna decoupled-v3 sweep trial #54 (val_mae=0.2481).
+# New augmentations: channel_rotation (electrode shift), mixup (inter-sample),
+# per-channel time_mask (per-electrode dropout).
+batch_augmentation:
+  random_gain:
+    min_gain: 0.1996
+    max_gain: 0.9486
+    mask_prob: 0.0295
+  mag_warping:
+    sigma: 0.7302
+    num_knots: 15
+    mask_prob: 0.0049
+  baseline_drift:
+    mask_prob: 0.6998
+    min_freq: 0.0114
+    max_freq: 0.4625
+    min_amp_ratio: 0.0
+    max_amp_ratio: 0.1296
+  powerline_noise:
+    mask_prob: 0.2413
+    min_amp_ratio: 0.0
+    max_amp_ratio: 0.0628
+    max_harmonic: 7
+  channel_mask:
+    mask_prob: 0.0016
+  time_mask:
+    num_masks: 2
+    max_mask_size: 243
+    per_channel: true        # NEW: per-electrode independent masks
+  freq_mask:
+    num_masks: 14
+    max_mask_size: 46
+  gaussian_noise:
+    min_snr_db: 45.9044
+    max_snr_db: 50.0
+    apply_prob: 0.1126
+  # ── NEW augmentations (v2) ──────────────────────────────────────
+  channel_rotation:
+    mask_prob: 0.3           # 30% of samples get electrode ring shift
+    max_shift: 2             # rotate by k ∈ {-2,-1,0,+1,+2} positions
+  mixup:
+    mask_prob: 0.15          # 15% of samples get frequency-domain MixUp
+    alpha: 0.2               # Beta(0.2, 0.2) mixing coefficient

@@ -1,0 +1,148 @@
+# @package _global_
+# Co-training: EgoEMG (target_hand 8ch) + emg2pose (16ch → 8ch via channel_indices)
+# Both datasets use per-dataset normalization to handle 12x signal amplitude difference.
+# emg2pose joint_angles padded 20→22 to match EgoEMG (wrist pitch/yaw are zero-padded).
+# Augmentation from Optuna trial #54 (best val_user_mae=0.278829).
+#
+# Usage:
+#   python -m emg2pose.train \
+#     experiment=emgformer/regression_egoemg_cotrain \
+#     egoemg_memmap_dir=/path/to/EgoEMG_memmap \
+#     emg2pose_memmap_dir=/path/to/emg2pose_v3_memmap \
+#     'trainer.devices=[0,1,2,3,4,5]' \
+#     +trainer.strategy=ddp \
+#     batch_size=300
+defaults:
+  - /experiment/emgformer/regression_egoemg
+  - override /transforms: emgformer_regression_aug_extended
+  - _self_
+
+emg2pose_memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+
+checkpoint: /home/xiziheng/develop/emg2pose/logs/regression/egoemg_cotrain/regression_egoemg/version_3/checkpoints/last.ckpt
+
+datamodule:
+  window_length: 12_000
+  val_test_window_length: 12_000
+  stride: 12_000
+  val_test_stride: 12_000
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+
+trainer:
+  check_val_every_n_epoch: 1
+
+# Augmentation from Optuna trial #54 (best val_user_mae=0.278829)
+batch_augmentation:
+  random_gain:
+    min_gain: 0.6230
+    max_gain: 0.8254
+    mask_prob: 0.2624
+  mag_warping:
+    sigma: 0.1789
+    num_knots: 6
+    mask_prob: 0.4703
+  baseline_drift:
+    mask_prob: 0.7358
+    min_freq: 0.1359
+    max_freq: 0.6686
+    min_amp_ratio: 0.0036
+    max_amp_ratio: 0.0669
+  powerline_noise:
+    mask_prob: 0.4449
+    min_amp_ratio: 0.0155
+    max_amp_ratio: 0.0588
+    max_harmonic: 2
+  channel_mask:
+    mask_prob: 0.4589
+  time_mask:
+    num_masks: 1
+    max_mask_size: 500
+  freq_mask:
+    num_masks: 16
+    max_mask_size: 128
+  gaussian_noise:
+    min_snr_db: 11.4545
+    max_snr_db: 32.1066
+    apply_prob: 0.8802
+
+dataset:
+  train:
+    # ── EgoEMG left hand (target_hand 8ch) ──────────────────────────
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: filtered_paper
+      emg_layout: target_hand
+      channel_interpolate: false
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      jitter: true
+
+    # ── EgoEMG right hand (target_hand 8ch) ─────────────────────────
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      excluded_episode_ids: [episode_000029, episode_000030]
+      emg_field_preference: filtered_paper
+      emg_layout: target_hand
+      channel_interpolate: false
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      jitter: true
+
+    # ── emg2pose (16ch, both hands) ─
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      memmap_dir: ${emg2pose_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.val_test_stride}  # stride=WL to balance sample count (~55K)
+      allowed_splits: [train]
+      channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
+      pad_joint_angles_to: 22
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: emg2pose_8ch_aligned
+      jitter: true
+
+  val:
+    # ── EgoEMG val only (user/gesture/both generalization splits) ──
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: filtered_paper
+      emg_layout: target_hand
+      channel_interpolate: false
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      excluded_episode_ids: [episode_000029, episode_000030]
+      emg_field_preference: filtered_paper
+      emg_layout: target_hand
+      channel_interpolate: false
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+
+  test: []

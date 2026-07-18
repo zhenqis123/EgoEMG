@@ -1,0 +1,8 @@
+db,study,trial_id,trial,state,value,datetime_start,datetime_complete,run_dir,param:window_length
+assets/optuna_window_length.db,egoemg-window-v4,10,1,COMPLETE,0.2089959681034088,2026-05-21 04:20:31.476645,2026-05-21 05:43:23.598059,logs/optuna_window/egoemg-window-v4/trial_0001_2026-05-21_04-20-31,24458.0
+assets/optuna_window_length.db,egoemg-window-v4,11,2,COMPLETE,0.2155579775571823,2026-05-21 05:43:23.606726,2026-05-21 07:07:59.911446,logs/optuna_window/egoemg-window-v4/trial_0002_2026-05-21_05-43-23,22052.0
+assets/optuna_window_length.db,egoemg-window-v4,12,3,COMPLETE,0.2176811695098877,2026-05-21 07:07:59.920560,2026-05-21 08:32:59.285875,logs/optuna_window/egoemg-window-v4/trial_0003_2026-05-21_07-07-59,20585.0
+assets/optuna_window_length.db,egoemg-window-v4,9,0,COMPLETE,0.22550736367702484,2026-05-21 02:56:08.912357,2026-05-21 04:20:31.464600,logs/optuna_window/egoemg-window-v4/trial_0000_2026-05-21_02-56-08,18120.0
+assets/optuna_window_length.db,egoemg-window-v4,14,5,COMPLETE,0.2330423891544342,2026-05-21 10:00:47.868798,2026-05-21 11:25:39.757240,logs/optuna_window/egoemg-window-v4/trial_0005_2026-05-21_10-00-47,15716.0
+assets/optuna_window_length.db,egoemg-window-v4,13,4,COMPLETE,0.23470258712768555,2026-05-21 08:32:59.294077,2026-05-21 10:00:47.859590,logs/optuna_window/egoemg-window-v4/trial_0004_2026-05-21_08-32-59,15716.0
+assets/optuna_window_length.db,egoemg-window-v4,15,6,COMPLETE,0.24008367955684662,2026-05-21 11:25:39.764813,2026-05-21 12:50:53.922075,logs/optuna_window/egoemg-window-v4/trial_0006_2026-05-21_11-25-39,14638.0

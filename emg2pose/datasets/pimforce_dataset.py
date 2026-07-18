@@ -2,11 +2,39 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Sequence
 
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+
+import zarr
+
+from emg2pose.datasets.layout_utils import circular_interpolate
+
+
+def _decode_bytes(values: np.ndarray) -> list[str]:
+    decoded: list[str] = []
+    for v in values:
+        if isinstance(v, (bytes, np.bytes_)):
+            decoded.append(v.decode("utf-8", errors="replace").rstrip("\x00"))
+        else:
+            decoded.append(str(v))
+    return decoded
+
+
+def _circular_interpolate(data: np.ndarray, target_channels: int) -> np.ndarray:
+    return circular_interpolate(data, target_channels)
+
+
+def _convert_emg_layout(emg: np.ndarray) -> np.ndarray:
+    """Random flip then interpolate to 16 channels."""
+    # emg: (C, T)
+    if np.random.rand() < 0.5:
+        emg = emg[::-1, :]
+    emg_tc = emg.T  # (T, C)
+    emg_tc = _circular_interpolate(emg_tc, 16)
+    return emg_tc.T
 
 
 def _pimforce_to_emg2pose_angles(
@@ -19,304 +47,299 @@ def _pimforce_to_emg2pose_angles(
     emg2pose order: see emg2pose/constants.py
     """
     pose = pose.copy()
-    # Match PiMforce kinematics: thumb CMC angles are offset in the raw data.
     if pose_in_degrees:
-        pose[0] -= 20.0  # thumb spread/AA
-        pose[1] -= 60.0  # thumb flexion/FE
+        pose[0] -= 20.0
+        pose[1] -= 60.0
     else:
         pose[0] -= np.deg2rad(20.0)
         pose[1] -= np.deg2rad(60.0)
     if pose_in_degrees:
         pose = np.deg2rad(pose)
 
-    # Only thumb swaps AA/FE order; other fingers are already spread->AA then flex.
     idx_map = np.array(
         [
-            1, 0, 2, 3,  # thumb: FE, AA, FE, FE
-            4, 5, 6, 7,  # index: AA, FE, FE, FE
-            8, 9, 10, 11,  # middle
-            12, 13, 14, 15,  # ring
-            16, 17, 18, 19,  # pinky
+            1, 0, 2, 3,
+            4, 5, 6, 7,
+            8, 9, 10, 11,
+            12, 13, 14, 15,
+            16, 17, 18, 19,
         ],
         dtype=np.int64,
     )
     return pose[idx_map, ...]
 
 
-def _resolve_window(
-    total_len: int,
-    valid_len: int | None,
-    *,
-    window_start: int | None,
-    window_stop: int | None,
-    window_stride: int,
-    clip_to_valid: bool,
-) -> tuple[int, int, int]:
-    if window_stride <= 0:
-        raise ValueError(f"window_stride must be > 0, got {window_stride}")
-    start = 0 if window_start is None else window_start
-    stop = window_stop
-    if start < 0:
-        start = max(total_len + start, 0)
-    if stop is None or stop <= 0:
-        stop = total_len
-    elif stop < 0:
-        stop = max(total_len + stop, 0)
-    if clip_to_valid and valid_len is not None:
-        stop = min(stop, valid_len)
-    start = min(max(start, 0), total_len)
-    stop = min(max(stop, 0), total_len)
-    if stop < start:
-        stop = start
-    return start, stop, window_stride
-
-
-def _slice_time(sample: np.ndarray, start: int, stop: int, stride: int) -> np.ndarray:
-    if sample.ndim <= 1:
-        return sample
-    if start == 0 and stop == sample.shape[1] and stride == 1:
-        return sample
-    return sample[:, start:stop:stride]
-
-
-def _valid_window_length(
-    valid_len: int | None, start: int, stop: int, stride: int
-) -> int | None:
-    if valid_len is None:
-        return None
-    valid_stop = min(valid_len, stop)
-    span = max(valid_stop - start, 0)
-    return (span + stride - 1) // stride
-
-
-class PiMforceSessionData:
-    def __init__(
-        self,
-        root_dir: Path,
-        emg_file: str = "emg_train.npy",
-        lengths_file: str | None = None,
-    ):
+class _ZarrPimforceStore:
+    def __init__(self, root_dir: Path) -> None:
         self.root_dir = Path(root_dir)
-        self.emg_path = self.root_dir / emg_file
-        self.emg = np.load(self.emg_path, mmap_mode="r")
-        lengths_name = (
-            lengths_file
-            if lengths_file is not None
-            else f"{Path(emg_file).stem}_lengths.npy"
-        )
-        self.lengths_path = self.root_dir / lengths_name
-        self.lengths: np.ndarray | None = None
-        if self.lengths_path.exists():
-            self.lengths = np.load(self.lengths_path)
-            if self.lengths.ndim != 1:
-                raise ValueError(
-                    f"Expected 1D lengths array at {self.lengths_path}, "
-                    f"got {self.lengths.shape}"
-                )
-            if len(self.lengths) != len(self.emg):
-                raise ValueError(
-                    f"Lengths size {len(self.lengths)} does not match "
-                    f"{len(self.emg)} samples in {self.emg_path}"
-                )
-
-    def __len__(self) -> int:
-        return len(self.emg)
-
-    def __getitem__(self, idx: int) -> np.ndarray:
-        return self.emg[idx]
+        self.root = zarr.open_group(str(self.root_dir), mode="r")
+        self.emg = self.root["emg"]
+        self.joint = self.root["joint_angles"]
+        self.force = self.root["force"]
+        self.valid = self.root["valid_mask"]
+        sessions = self.root["sessions"]
+        self.session_id = np.asarray(sessions["session_id"], dtype=np.int32)
+        self.user_id = np.asarray(sessions["user_id"], dtype=np.int32)
+        self.file_id = np.asarray(sessions["file_id"], dtype=np.int32)
+        self.session_name = _decode_bytes(np.asarray(sessions["session_name"]))
+        self.filename = _decode_bytes(np.asarray(sessions["filename"]))
+        self.start_idx = np.asarray(sessions["start_idx"], dtype=np.int64)
+        self.length = np.asarray(sessions["length"], dtype=np.int64)
+        self.end_idx = np.asarray(sessions["end_idx"], dtype=np.int64)
+        self.original_length = np.asarray(sessions["original_length"], dtype=np.int64)
+        self.duration = np.asarray(sessions["duration"], dtype=np.float32)
 
 
 @dataclass
-class WindowedPiMforceDataset(Dataset):
-    root_dir: Path
-    emg_file: str = "emg_train.npy"
-    lengths_file: str | None = None
-    window_start: int | None = 0
-    window_stop: int | None = None
-    window_stride: int = 1
-    clip_to_valid: bool = False
-    emg_channels: int = 8
-    pose_channels: int = 20
-    pose_mode: str = "last"  # last | sequence
-    repeat_pose: bool = True
-    pose_in_degrees: bool = True
-    transform: Callable[[dict[str, np.ndarray]], Any] | None = None
+class PimforceDataset(Dataset):
+    """Windowed dataset for PiMForce Zarr store."""
 
-    def __post_init__(self) -> None:
-        self.session = PiMforceSessionData(
-            self.root_dir, emg_file=self.emg_file, lengths_file=self.lengths_file
-        )
-        if self.pose_mode not in {"last", "sequence"}:
-            raise ValueError(f"Unsupported pose_mode={self.pose_mode!r}")
-
-    def __len__(self) -> int:
-        return len(self.session)
-
-    def _extract_emg_pose(
-        self, sample: np.ndarray, valid_len: int | None = None
-    ) -> tuple[np.ndarray, np.ndarray]:
-        emg = sample[: self.emg_channels]
-        pose = sample[self.emg_channels : self.emg_channels + self.pose_channels]
-        if self.pose_mode == "last":
-            last_idx = -1
-            if valid_len is not None and pose.ndim > 1:
-                last_idx = max(min(valid_len, pose.shape[1]), 1) - 1
-            pose = pose[:, last_idx][:, None]
-            if self.repeat_pose and emg.ndim == 2:
-                pose = np.repeat(pose, emg.shape[1], axis=1)
-        return emg, pose
-
-    def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
-        sample = self.session[idx]
-        valid_len = None
-        if self.session.lengths is not None:
-            valid_len = int(self.session.lengths[idx])
-        total_len = int(sample.shape[-1]) if sample.ndim > 1 else 1
-        start, stop, stride = _resolve_window(
-            total_len,
-            valid_len,
-            window_start=self.window_start,
-            window_stop=self.window_stop,
-            window_stride=self.window_stride,
-            clip_to_valid=self.clip_to_valid,
-        )
-        sample = _slice_time(sample, start, stop, stride)
-        valid_len_window = _valid_window_length(valid_len, start, stop, stride)
-        emg, pose = self._extract_emg_pose(sample, valid_len=valid_len_window)
-        joint_angles = _pimforce_to_emg2pose_angles(
-            pose, pose_in_degrees=self.pose_in_degrees
-        )
-
-        if self.transform is not None:
-            transformed = self.transform({"emg": emg, "joint_angles": joint_angles})
-            if isinstance(transformed, tuple) and len(transformed) == 2:
-                emg, joint_angles = transformed
-            elif isinstance(transformed, dict):
-                emg = transformed.get("emg", emg)
-                joint_angles = transformed.get("joint_angles", joint_angles)
-            else:
-                emg = transformed
-
-        emg_t = torch.as_tensor(emg)
-        joint_angles_t = torch.as_tensor(joint_angles)
-        time_len = int(emg_t.shape[-1]) if emg_t.ndim > 1 else 1
-        mask = torch.zeros(time_len, dtype=torch.bool)
-        if valid_len_window is None:
-            mask[:] = True
-        else:
-            mask[: min(valid_len_window, time_len)] = True
-        
-        if valid_len_window is None:
-            window_end = time_len
-        else:
-            window_end = min(valid_len_window, time_len)
-        return {
-            "emg": emg_t,  # CT
-            "joint_angles": joint_angles_t,  # CT
-            "label_valid_mask": mask,  # T (valid steps)
-            "window_start_idx": 0,
-            "window_end_idx": window_end,
-        }
-
-
-@dataclass
-class MultiSessionWindowedPiMforceDataset(Dataset):
     root_dirs: list[Path]
-    emg_file: str = "emg_train.npy"
-    lengths_file: str | None = None
-    window_start: int | None = 0
-    window_stop: int | None = None
-    window_stride: int = 1
-    clip_to_valid: bool = False
-    emg_channels: int = 8
-    pose_channels: int = 20
-    pose_mode: str = "last"
-    repeat_pose: bool = True
+    window_length: int = 10_000
+    stride: int | None = None
+    padding: tuple[int, int] = (0, 0)
+    jitter: bool = False
     pose_in_degrees: bool = True
     transform: Callable[[dict[str, np.ndarray]], Any] | None = None
+    allowed_sessions: Sequence[int] | None = None
+    allowed_users: Sequence[int] | None = None
 
     def __post_init__(self) -> None:
-        self.sessions = [
-            PiMforceSessionData(
-                Path(root), emg_file=self.emg_file, lengths_file=self.lengths_file
-            )
-            for root in self.root_dirs
-        ]
-        self._lengths = np.array([len(s) for s in self.sessions], dtype=np.int64)
-        self._cumsum = np.cumsum(np.insert(self._lengths, 0, 0))
-        if self.pose_mode not in {"last", "sequence"}:
-            raise ValueError(f"Unsupported pose_mode={self.pose_mode!r}")
+        if not self.root_dirs:
+            raise ValueError("root_dirs must contain at least one Zarr root")
+
+        self.store = _ZarrPimforceStore(self.root_dirs[0])
+
+        # Set default stride
+        self.stride = self.stride or self.window_length
+        if self.window_length <= 0 or self.stride <= 0:
+            raise ValueError("window_length and stride must be positive")
+
+        self.left_padding, self.right_padding = self.padding
+        if self.left_padding < 0 or self.right_padding < 0:
+            raise ValueError("padding values must be non-negative")
+
+        self._build_blocks_index()
+
+    def _build_blocks_index(self) -> None:
+        """Build sliding window index across all sessions."""
+        session_ids = self.store.session_id
+        user_ids = self.store.user_id
+        indices = np.arange(len(session_ids), dtype=np.int64)
+
+        # Apply filters
+        if self.allowed_sessions is not None:
+            allowed = np.asarray(self.allowed_sessions, dtype=np.int64)
+            indices = indices[np.isin(session_ids, allowed)]
+
+        if self.allowed_users is not None:
+            allowed = np.asarray(self.allowed_users, dtype=np.int64)
+            indices = indices[np.isin(user_ids, allowed)]
+
+        # Calculate number of windows per session
+        block_session_idx: list[int] = []
+        block_start: list[int] = []
+        block_end: list[int] = []
+        block_lengths: list[int] = []
+
+        for si in indices:
+            slen = int(self.store.length[si])
+            if slen < self.window_length:
+                continue
+
+            # Core formula: number of windows in this session
+            n = (slen - self.window_length) // self.stride + 1
+
+            block_session_idx.append(int(si))
+            block_start.append(0)  # relative start within session
+            block_end.append(slen)
+            block_lengths.append(n)
+
+        # Build cumulative sum array for fast indexing
+        self._block_session_idx = np.asarray(block_session_idx, dtype=np.int32)
+        self._block_start = np.asarray(block_start, dtype=np.int64)
+        self._block_end = np.asarray(block_end, dtype=np.int64)
+        self._block_cumsum = np.cumsum(
+            np.asarray([0] + block_lengths, dtype=np.int64)
+        )
 
     def __len__(self) -> int:
-        return int(self._cumsum[-1])
-
-    def _extract_emg_pose(
-        self, sample: np.ndarray, valid_len: int | None = None
-    ) -> tuple[np.ndarray, np.ndarray]:
-        emg = sample[: self.emg_channels]
-        pose = sample[self.emg_channels : self.emg_channels + self.pose_channels]
-        if self.pose_mode == "last":
-            last_idx = -1
-            if valid_len is not None and pose.ndim > 1:
-                last_idx = max(min(valid_len, pose.shape[1]), 1) - 1
-            pose = pose[:, last_idx][:, None]
-            if self.repeat_pose and emg.ndim == 2:
-                pose = np.repeat(pose, emg.shape[1], axis=1)
-        return emg, pose
+        """Return total number of windows across all sessions."""
+        return int(self._block_cumsum[-1])
 
     def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
         if idx < 0 or idx >= len(self):
             raise IndexError(idx)
-        session_idx = int(np.searchsorted(self._cumsum, idx, side="right") - 1)
-        local_idx = int(idx - self._cumsum[session_idx])
-        sample = self.sessions[session_idx][local_idx]
-        valid_len = None
-        lengths = self.sessions[session_idx].lengths
-        if lengths is not None:
-            valid_len = int(lengths[local_idx])
-        total_len = int(sample.shape[-1]) if sample.ndim > 1 else 1
-        start, stop, stride = _resolve_window(
-            total_len,
-            valid_len,
-            window_start=self.window_start,
-            window_stop=self.window_stop,
-            window_stride=self.window_stride,
-            clip_to_valid=self.clip_to_valid,
+
+        # Binary search to locate session
+        bi = int(np.searchsorted(self._block_cumsum, idx, side="right") - 1)
+        si = int(self._block_session_idx[bi])
+        start_idx = int(self._block_start[bi])
+        end_idx = int(self._block_end[bi])
+
+        # Calculate window offset within session
+        rel = int(idx - self._block_cumsum[bi])
+        offset = start_idx + rel * self.stride
+
+        # Apply jitter if enabled
+        leftover = end_idx - (offset + self.window_length)
+        if leftover < 0:
+            raise IndexError(f"Index {idx} out of bounds")
+        if leftover > 0 and self.jitter:
+            offset += np.random.randint(0, min(self.stride, leftover))
+
+        # Get session's global range
+        session_start = int(self.store.start_idx[si])
+        session_end = int(self.store.end_idx[si])
+
+        # Calculate window's global range (with padding)
+        window_start = max(session_start + offset - self.left_padding, session_start)
+        window_end = min(
+            session_start + offset + self.window_length + self.right_padding,
+            session_end,
         )
-        sample = _slice_time(sample, start, stop, stride)
-        valid_len_window = _valid_window_length(valid_len, start, stop, stride)
-        emg, pose = self._extract_emg_pose(sample, valid_len=valid_len_window)
+        window_start_local = window_start - session_start
+        window_end_local = window_end - session_start
+
+        # Read data from Zarr
+        emg = np.asarray(
+            self.store.emg[window_start:window_end],
+            dtype=np.float32
+        ).T  # (C, T)
+
+        pose = np.asarray(
+            self.store.joint[window_start:window_end],
+            dtype=np.float32
+        ).T  # (C, T)
+
+        # EMG channel conversion (8 → 16)
+        emg = _convert_emg_layout(emg)
+
+        # Angle conversion
         joint_angles = _pimforce_to_emg2pose_angles(
             pose, pose_in_degrees=self.pose_in_degrees
         )
 
+        # Apply transform
         if self.transform is not None:
             transformed = self.transform({"emg": emg, "joint_angles": joint_angles})
-            if isinstance(transformed, tuple) and len(transformed) == 2:
-                emg, joint_angles = transformed
-            elif isinstance(transformed, dict):
+            if isinstance(transformed, dict):
                 emg = transformed.get("emg", emg)
                 joint_angles = transformed.get("joint_angles", joint_angles)
+            elif isinstance(transformed, tuple) and len(transformed) == 2:
+                emg, joint_angles = transformed
             else:
                 emg = transformed
 
+        # Build return dictionary
         emg_t = torch.as_tensor(emg)
         joint_angles_t = torch.as_tensor(joint_angles)
-        time_len = int(emg_t.shape[-1]) if emg_t.ndim > 1 else 1
-        mask = torch.zeros(time_len, dtype=torch.bool)
-        if valid_len_window is None:
-            mask[:] = True
-        else:
-            mask[: min(valid_len_window, time_len)] = True
+        time_len = emg_t.shape[-1]
 
-        if valid_len_window is None:
-            window_end = time_len
-        else:
-            window_end = min(valid_len_window, time_len)
+        # Create validity mask
+        valid_len = int(self.store.original_length[si])
+        mask = torch.zeros(time_len, dtype=torch.bool)
+        valid_end = min(offset + self.window_length, valid_len)
+        if valid_end > offset:
+            mask_start = max(0, offset - (window_start_local - start_idx))
+            mask_end = mask_start + (valid_end - offset)
+            mask[mask_start:mask_end] = True
+
+        # Fields:
+        # emg: EMG window (16, T). Forearm sEMG channels from PiMForce.
+        # joint_angles: converted PiMForce 3D hand posture (20, T). Unit: radians.
+        # label_valid_mask: validity mask (T) based on available length.
+        # window_start_idx/window_end_idx: window indices within session.
+        # session_idx: integer index into sessions table.
+        # user_id: integer subject identifier.
+        # session_id: integer session identifier.
         return {
-            "emg": emg_t,  # CT
-            "joint_angles": joint_angles_t,  # CT
-            "label_valid_mask": mask,  # T (valid steps)
-            "window_start_idx": 0,
-            "window_end_idx": window_end,
+            "emg": emg_t,
+            "joint_angles": joint_angles_t,
+            "label_valid_mask": mask,
+            "window_start_idx": offset,
+            "window_end_idx": offset + self.window_length,
+            "session_idx": si,
+            "user_id": int(self.store.user_id[si]),
+            "session_id": int(self.store.session_id[si]),
         }
+
+
+def _describe_value(value: Any) -> str:
+    if torch.is_tensor(value):
+        return f"tensor shape={tuple(value.shape)} dtype={value.dtype}"
+    if isinstance(value, np.ndarray):
+        return f"ndarray shape={value.shape} dtype={value.dtype}"
+    return f"{type(value).__name__}"
+
+
+def _print_sample(sample: dict[str, Any]) -> None:
+    for key in sorted(sample.keys()):
+        print(f"  {key}: {_describe_value(sample[key])}")
+
+
+def _parse_padding(text: str) -> tuple[int, int]:
+    parts = text.split(",")
+    if len(parts) != 2:
+        raise ValueError("padding must be 'left,right'")
+    return int(parts[0]), int(parts[1])
+
+
+def main() -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Quick smoke test for PimforceDataset (Zarr)."
+    )
+    parser.add_argument(
+        "--root-dir",
+        type=Path,
+        required=True,
+        help="Path to the Pimforce Zarr root.",
+    )
+    parser.add_argument("--window-length", type=int, default=10_000)
+    parser.add_argument("--stride", type=int, default=None)
+    parser.add_argument(
+        "--padding",
+        type=_parse_padding,
+        default=(0, 0),
+        help="Left,right padding (e.g., 0,0).",
+    )
+    parser.add_argument("--jitter", action="store_true")
+    parser.add_argument("--pose-in-degrees", action="store_true")
+    parser.add_argument("--num-samples", type=int, default=3)
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--sequential", action="store_true")
+    args = parser.parse_args()
+
+    dataset = PimforceDataset(
+        root_dirs=[args.root_dir],
+        window_length=args.window_length,
+        stride=args.stride,
+        padding=args.padding,
+        jitter=args.jitter,
+        pose_in_degrees=args.pose_in_degrees,
+    )
+
+    print(f"Sessions: {len(dataset.store.session_id)}")
+    print(f"Total windows: {len(dataset)}")
+    
+    if len(dataset) == 0:
+        print("Dataset is empty with current filters.")
+        return
+
+    n = min(args.num_samples, len(dataset))
+    if args.sequential:
+        indices = list(range(n))
+    else:
+        rng = np.random.default_rng(args.seed)
+        indices = rng.integers(0, len(dataset), size=n).tolist()
+
+    for i, idx in enumerate(indices):
+        print(f"Sample {i} (idx={idx}):")
+        sample = dataset[int(idx)]
+        _print_sample(sample)
+
+
+if __name__ == "__main__":
+    main()

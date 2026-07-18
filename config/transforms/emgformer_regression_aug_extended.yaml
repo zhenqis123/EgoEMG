@@ -1,0 +1,23 @@
+# @package _global_
+# Dataset-only transforms — augmentation moved to GPU batch pipeline.
+# Steps 0-1: ExtractField + RotationAugmentation (non-tunable, always on).
+# Step 2-5: NEW augmentations moved to batch_augmentation.
+# Step 6: ToFloatTensor.
+# Steps 7-10: OLD augmentations moved to batch_augmentation.
+to_tensor:
+  _target_: emg2pose.transforms.ExtractToTensor
+  field: emg
+
+transforms:
+  train:
+  # 0 ── Extract EMG field from structured array ────────────────────────
+  - _target_: emg2pose.transforms.ExtractField
+    field: emg
+  # 1 ── Channel rotation (non-tunable, always on) ──────────────────────
+  - _target_: emg2pose.transforms.RotationAugmentation
+    channel_dim: -1
+  # 2 ── ToFloatTensor (all other augmentation runs on GPU) ─────────────
+  - _target_: emg2pose.transforms.ToFloatTensor
+  val:
+  - ${to_tensor}
+  test: ${transforms.val}

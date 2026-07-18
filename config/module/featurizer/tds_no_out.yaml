@@ -8,7 +8,7 @@ se:
 
 conv_blocks:
   - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
-    in_channels: 16
+    in_channels: 8
     out_channels: 256
     kernel_size: 11
     stride: 5

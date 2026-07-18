@@ -1,0 +1,80 @@
+# @package _global_
+defaults:
+  - /module: emgformer_pretrain
+  - override /transforms: emgformer_regression_aug_best
+  - override /dataset: pretrain_angle_egoemg_emg2pose
+  - override /module/featurizer: tds_no_out
+  - override /module/decoder: transformer/preset/small
+  - _self_
+
+module:
+  recon_head: null
+  angle_head:
+    _target_: emg2pose.models.heads.mlp.MLPHead
+    in_channels: 128
+    out_channels: 22
+    hidden_sizes: [512]
+    activation: relu
+    dropout: 0.1
+  gesture_head: null
+  keystroke_head: null
+
+checkpoint: null
+
+data_root: /home/xiziheng/develop/emg2pose/data/emg_corpus
+data_location: ${data_root}/emg2pose_v3_memmap
+egoemg_memmap_dir: /mnt/nvme/xiziheng/EgoEMG_v2_memmap
+egoemg_emg_layout: emg2pose_interpolate16
+egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
+
+gesture_spaces: []
+
+num_workers: 12
+optimizer:
+  lr: 0.0005
+
+datamodule:
+  window_length: 7_790
+  val_test_window_length: 7_790
+  stride: 7_790
+  val_test_stride: 7_790
+  norm_mode: per-dataset
+  skip_ik_failures: false
+  prefetch_factor: 3
+  persistent_workers: true
+  pin_memory: true
+
+trainer:
+  gradient_clip_val: 1
+  precision: 32
+  max_epochs: 100
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 50
+  strategy: ddp_find_unused_parameters_true
+
+batch_size: 600
+matmul_precision: high
+
+loss_weights:
+  recon: 0.0
+  angle: 1.0
+  gesture: 0.0
+  keystroke: 0.0
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelSummary
+    max_depth: 2
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_angle_loss
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "supervised-pretrain-angle-memmap-small-egoemg-emg2pose-{epoch:03d}-{val_angle_loss:.4f}"
+    verbose: true
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: supervised_pretrain_angle_memmap_small_egoemg_emg2pose
+  version: null
+  default_hp_metric: false

@@ -7,7 +7,7 @@ defaults:
 _target_: emg2pose.models.modules.emgformer.Emg2PoseFormer
 
 # Common settings
-out_channels: 20
+out_channels: 22
 decoder:
   causal: true
   activation: relu

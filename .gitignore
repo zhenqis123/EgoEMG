@@ -163,8 +163,19 @@ cython_debug/
 
 # EMG2Pose Specific
 logs/
+logs
+logs_temp/
+logs_temp
 lightning_logs/
+outputs/
+local_artifacts/
+tensorboard/
+checkpoints/
+*.ckpt
+*.pt
+*.pth
 *.db
+*.bak
 data/
 emg2pose_model_checkpoints/
 vis_dir/
@@ -175,3 +186,80 @@ task.md
 todo.md
 prompt.txt
 third_partys
+
+# Local workspace / editor state
+.vscode/
+.claude/
+.claude_*/
+.codex
+.agents/
+*.settings.json
+cookie
+key
+*.key
+output.log
+markers2mano
+paper-backup-*/
+
+# Local experiment and visualization artifacts
+analysis/test_ckpts/
+ablation_study/checkpoints/
+ablation_study/**/*.log
+ablation_study/**/results/*.npy
+egoemg_mesh_debug/
+fusion_wins_viz/
+incre_fk_check/
+mano_vs_umetrack/
+occlusion_samples/
+per_gesture_test_*/
+refine-logs/
+research-wiki/
+review-stage/
+tensorboard/
+visualizations/
+scripts/viz/emg_verification_samples/
+scripts/viz/verification_samples/
+
+# Paper build products and agent traces
+paper/.aris/
+paper/build/
+paper/build_arxiv/
+paper/**/*.aux
+paper/**/*.bbl
+paper/**/*.blg
+paper/**/*.fdb_latexmk
+paper/**/*.fls
+paper/**/*.log
+paper/**/*.out
+paper/**/*.synctex.gz
+paper/arxiv_submit.tar.gz
+
+# Keep test_results for curated summaries, but ignore bulky run artifacts.
+test_results/**/*.ckpt
+test_results/**/*.log
+test_results/**/checkpoints/
+
+# Top-level temporary files
+*.tar.gz
+output.log
+.codex
+*_pkg/
+experiments/logs/
+
+# Agent working files
+.local_artifacts/
+local_artifacts/
+.claude/
+.agents/
+
+# Symlinked large data (moved to NVMe)
+emg2pose_model_checkpoints
+research-wiki/
+refine-logs/
+notebooks/
+
+# Paper figure generation cache
+figures/
+
+# Local training run outputs (checkpoints, tfevents) — never commit
+runs_local/

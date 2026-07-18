@@ -1,0 +1,81 @@
+# @package _global_
+# Small Ultra: ~3.2M params, featurizer ~21%, decoder ~75%
+defaults:
+  - /module: emgformer
+  - override /module/featurizer: tds_tiny
+  - override /module/decoder: transformer/preset/small
+  - override /lr_scheduler: cosine
+  - override /transforms: emgformer_regression_aug_best
+  - _self_
+
+pretrained_strict: true
+module:
+  provide_initial_pos: False
+  decoder:
+    causal: false
+    preset: small
+    pos_encoding: rope
+    dropout: 0.15
+    in_channels: 256
+    model_dim: 256
+    num_heads: 4
+    num_layers: 3
+    ffn_dim: 1024
+  head:
+    in_channels: 256
+
+num_workers: 12
+datamodule:
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: true
+  window_length: 7_790
+  val_test_window_length: 7_790
+  norm_mode: batch
+  norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
+  skip_ik_failures: False
+
+optimizer:
+  lr: .0005
+
+dataset:
+  train:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: true
+      skip_ik_failures: False
+      allowed_splits: [train]
+  val:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: False
+      allowed_splits: [val]
+  test:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 7_790
+      stride: null
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: False
+      allowed_splits: [test]
+
+trainer:
+  gradient_clip_val: 1
+  devices: [3,4]
+  precision: bf16-mixed
+  max_epochs: 200
+  check_val_every_n_epoch: 1
+
+batch_size: 650
+matmul_precision: high

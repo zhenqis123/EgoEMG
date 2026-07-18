@@ -1,0 +1,91 @@
+# @package _global_
+# Pure angle-supervised pretraining using only memmap-backed datasets.
+dataset:
+  train:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2pose
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        memmap_dir: ${data_root}/emg2pose_v3_memmap
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        skip_ik_failures: ${datamodule.skip_ik_failures}
+        allowed_splits: [train]
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: ninapro
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.ninapro_memmap_dataset.NinaproDB1MemmapDataset
+        root_dir: ${data_root}/Ninapro_relabeled_memmap
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        channel_alignment_mode: interpolate
+        return_joint_angles: true
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: ninapro
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.ninapro_memmap_dataset.NinaproDB2MemmapDataset
+        root_dir: ${data_root}/Ninapro_relabeled_memmap
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        channel_alignment_mode: interpolate
+        return_joint_angles: true
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: ninapro
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.ninapro_memmap_dataset.NinaproDB5MemmapDataset
+        root_dir: ${data_root}/Ninapro_relabeled_memmap
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        channel_alignment_mode: interpolate
+        return_joint_angles: true
+
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: pimforce
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.pimforce_memmap_dataset.PimforceMemmapDataset
+        root_dir: ${data_root}/pimforce_v3_memmap
+        window_length: ${datamodule.window_length}
+        stride: ${datamodule.stride}
+        padding: ${datamodule.padding}
+        jitter: true
+        channel_alignment_mode: interpolate
+        pose_in_degrees: true
+        return_joint_angles: true
+
+  val:
+    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+      name: emg2pose
+      gesture_spaces: ${gesture_spaces}
+      angle_dim: 22
+      base:
+        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        memmap_dir: ${data_root}/emg2pose_v3_memmap
+        window_length: ${datamodule.val_test_window_length}
+        stride: ${datamodule.val_test_stride}
+        padding: ${datamodule.padding}
+        jitter: false
+        skip_ik_failures: ${datamodule.skip_ik_failures}
+        allowed_splits: [val]
+
+  test: []

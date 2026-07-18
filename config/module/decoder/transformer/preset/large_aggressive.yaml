@@ -1,0 +1,8 @@
+_target_: emg2pose.models.decoders.transformer.TransformerDecoder
+
+in_channels: 256  # Match tds_slim featurizer output
+model_dim: 384
+num_heads: 12
+num_layers: 8
+ffn_dim: 1536
+dropout: 0.15

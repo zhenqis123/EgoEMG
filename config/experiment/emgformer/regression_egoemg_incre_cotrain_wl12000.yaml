@@ -1,0 +1,196 @@
+# @package _global_
+# EgoEMG + EgoEMG_incre cotrain at WL=12000 with V2 best augmentation.
+# Adds incre right-hand data to the training set alongside main EgoEMG.
+# Val/test remain EgoEMG-only for fair comparison.
+#
+# Usage:
+#   python -m emg2pose.train experiment=emgformer/regression_egoemg_incre_cotrain_wl12000 \
+#     augmentation=batch_aug_best_v2 \
+#     trainer.devices=[2,3,4,5] trainer.max_epochs=150
+
+defaults:
+  - /module: emgformer
+  - /augmentation: batch_aug
+  - override /module/featurizer: tds_slim
+  - override /module/decoder: transformer/preset/middle_aggressive
+  - override /dataset: egoemg_angle_regression
+  - override /lr_scheduler: cosine
+  - override /transforms: emgformer_regression_aug_extended
+  - override /datamodule: egoemg
+  - _self_
+
+checkpoint:
+pretrained_checkpoint: null
+pretrained_strict: false
+
+egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_incre_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_incre/data_right_merged
+egoemg_emg_field_preference: filtered_paper
+egoemg_emg_layout: target_hand
+egoemg_channel_interpolate: false
+egoemg_emg2pose_channel_indices: null
+
+module:
+  out_channels: 22
+  provide_initial_pos: false
+  featurizer:
+    conv_blocks:
+      - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+        in_channels: 8
+        out_channels: 256
+        kernel_size: 11
+        stride: 5
+      - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+        in_channels: 256
+        out_channels: 256
+        kernel_size: 5
+        stride: 2
+  decoder:
+    causal: false
+    pos_encoding: rope
+  head:
+    in_channels: 256
+    out_channels: 22
+
+ignore_head_tail_dims: 0
+
+num_workers: 12
+
+# Append incre dataset to the train list (EgoEMG left + right + incre right).
+# Val/test stay EgoEMG-only.
+dataset:
+  train:
+    # ── EgoEMG main: left hand ──
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: ${egoemg_emg_field_preference}
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      jitter: true
+
+    # ── EgoEMG main: right hand ──
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      emg_field_preference: ${egoemg_emg_field_preference}
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      jitter: true
+
+    # ── EgoEMG_incre: right hand (train only) ──
+    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+      memmap_dir: ${egoemg_incre_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      target_hand: right
+      emg_field_preference: filtered_paper
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      dataset_name: egoemg_incre
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      jitter: true
+
+  # Val/test: EgoEMG only (left + right), no incre — fair comparison.
+  val:
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: ${egoemg_emg_field_preference}
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      emg_field_preference: ${egoemg_emg_field_preference}
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+
+  test: ${dataset.val}
+
+datamodule:
+  pin_memory: false
+  persistent_workers: true
+  prefetch_factor: 2
+  window_length: 12_000
+  val_test_window_length: 12_000
+  stride: 1_200
+  val_test_stride: 12_000
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
+  skip_ik_failures: false
+  eval_multiprocessing_context: forkserver
+
+optimizer:
+  lr: 0.0005
+
+lr_scheduler:
+  scheduler:
+    eta_min: 5e-6
+
+trainer:
+  gradient_clip_val: 1
+  devices: [0, 1, 2, 3, 4, 5]
+  precision: bf16-mixed
+  max_epochs: 150
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 5
+
+batch_size: 260
+matmul_precision: high
+
+loss_weights:
+  mae: 1.0
+  landmark/fingertip: 0.0
+  fingertip_distance: 0.01
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "egoemg-incre-cotrain-wl12000-{epoch:03d}-{val_mae:.4f}"
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: regression_egoemg_incre_cotrain_wl12000
+  version: null
+  default_hp_metric: false

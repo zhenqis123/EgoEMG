@@ -1,0 +1,28 @@
+defaults:
+  - featurizer: tds
+  - decoder: transformer/preset/middle
+  - head: mlp
+  - _self_
+
+_target_: emg2pose.models.modules.mid_fusion.MidFusionPoseFormer
+
+out_channels: 22
+provide_initial_pos: false
+vision_embed_dim: 1280
+emg_feat_dim: null
+fusion_proj_dim: 256
+vision_pretrained_checkpoint: null
+mano_model_path: null
+vision_freeze: {}
+fusion_mode: fusion  # fusion | emg_only | vision_only | center_supervised
+skip_vision_backbone: false  # set true when using cached ViT features
+moddrop_prob: 0.0  # probability of dropping EMG during training (0=off)
+input_emg_length: null  # pre-compute featurizer output T in vision_only mode
+force_zero_emg: false  # always zero EMG (vision-only fair baseline, train+eval)
+
+decoder:
+  causal: false
+  activation: relu
+  norm_first: true
+  pos_encoding: rope
+  out_proj: true

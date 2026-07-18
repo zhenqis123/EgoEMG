@@ -1,0 +1,76 @@
+{
+  "pipeline": "unified_filter_align",
+  "fs_hz": 2000.0,
+  "filter_stages": [
+    {
+      "step": 1,
+      "name": "high_pass_20Hz",
+      "frequency_hz": 20.0,
+      "order": 4
+    },
+    {
+      "step": 2,
+      "name": "low_pass_850Hz",
+      "frequency_hz": 850.0,
+      "order": 4
+    },
+    {
+      "step": 3,
+      "name": "high_pass_40Hz",
+      "frequency_hz": 40.0,
+      "order": 4
+    }
+  ],
+  "noise_floor_percentile": 1.0,
+  "noise_floor_window_ms": 100.0,
+  "noise_floor": [
+    0.20663154703820982,
+    0.4506581124067573,
+    0.1747040774784117,
+    0.27043118610147415,
+    0.25725022671584913,
+    0.20483059055773223,
+    0.1538460463585672,
+    0.4449335286200831
+  ],
+  "sources": [
+    {
+      "name": "EgoEMG",
+      "hands": [
+        "left",
+        "right"
+      ],
+      "dir": "/mnt/nvme/xiziheng/EgoEMG_v2_memmap"
+    },
+    {
+      "name": "Incre",
+      "hands": [
+        "right"
+      ],
+      "dir": "/mnt/nvme/xiziheng/EgoEMG_incre/data_right_merged"
+    }
+  ],
+  "results": {
+    "EgoEMG_left": {
+      "hand": "left",
+      "filtered_mean": 0.021772459149360657,
+      "filtered_std": 21.570091247558594,
+      "aligned_mean": 0.12287238985300064,
+      "aligned_std": 97.82312774658203
+    },
+    "EgoEMG_right": {
+      "hand": "right",
+      "filtered_mean": -0.0020456775091588497,
+      "filtered_std": 21.889368057250977,
+      "aligned_mean": 0.02465902268886566,
+      "aligned_std": 88.69477844238281
+    },
+    "Incre_right": {
+      "hand": "right",
+      "filtered_mean": -0.0008269328973256052,
+      "filtered_std": 32.675716400146484,
+      "aligned_mean": 0.012491005472838879,
+      "aligned_std": 129.28515625
+    }
+  }
+}

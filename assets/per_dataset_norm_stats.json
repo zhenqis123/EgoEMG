@@ -1,0 +1,132 @@
+{
+  "emg2pose": {
+    "mean": 0.0,
+    "std": 18.49
+  },
+  "egoemg": {
+    "mean": 0.028774764388799667,
+    "std": 94.73531341552734,
+    "n_samples": 8000000,
+    "note": "LEGACY: equals egoemg__raw. Prefer the field-aware egoemg__<field> keys."
+  },
+  "pimforce": {
+    "mean": 0.004,
+    "std": 0.039
+  },
+  "ninapro_db1": {
+    "mean": 0.165,
+    "std": 0.361
+  },
+  "ninapro_db2": {
+    "mean": 0.0,
+    "std": 0.0001
+  },
+  "ninapro_db5": {
+    "mean": -0.946,
+    "std": 10.14
+  },
+  "emg2qwerty_left": {
+    "mean": 0.0,
+    "std": 10.56
+  },
+  "emg2qwerty_right": {
+    "mean": 0.0,
+    "std": 12.38
+  },
+  "manus": {
+    "mean": 0.0,
+    "std": 2.245
+  },
+  "manus_8ch_raw": {
+    "mean": -56.27375478270442,
+    "std": 82.76718838155233
+  },
+  "manus_8ch_filt": {
+    "mean": 0.002437413960260796,
+    "std": 11.531840717659751
+  },
+  "manus_8ch_filt_paper": {
+    "mean": -1.2357056675682543e-06,
+    "std": 9.363601684570312
+  },
+  "manus_8ch_aligned_172725": {
+    "mean": 6.9e-05,
+    "std": 13.280278
+  },
+  "manus_8ch_aligned_230859": {
+    "mean": 1.9e-05,
+    "std": 22.267096
+  },
+  "manus_8ch_aligned_124150": {
+    "mean": 0.000102,
+    "std": 5.445843
+  },
+  "manus_8ch_aligned_egoemg": {
+    "mean": 0.001152,
+    "std": 24.421355
+  },
+  "egoemg_8ch_filtered": {
+    "mean": 0.004620735067874193,
+    "std": 16.805246353149414
+  },
+  "egoemg_incre": {
+    "mean": 0.057350195944309235,
+    "std": 127.9839859008789,
+    "n_samples": 4000000
+  },
+  "emg2pose_8ch_aligned": {
+    "mean": 0.0005527348988058865,
+    "std": 38.9715235944618
+  },
+  "egoemg__raw": {
+    "mean": 0.028774764388799667,
+    "std": 94.73531341552734,
+    "n_samples": 8000000,
+    "note": "LEGACY: equals egoemg__raw. Prefer the field-aware egoemg__<field> keys."
+  },
+  "egoemg__filtered": {
+    "mean": 0.000832,
+    "std": 8.6551,
+    "n_samples": 8000000,
+    "note": "Post-layout pooled mean/std from emg_{left,right}_filtered. Use for emg_field_preference=filtered."
+  },
+  "egoemg__filtered_left": {
+    "mean": 0.001169,
+    "std": 2.808,
+    "n_samples": 4000000,
+    "note": "left hand only, post-layout. Use when per-hand norm is desired."
+  },
+  "egoemg__filtered_right": {
+    "mean": 0.000494,
+    "std": 11.9137,
+    "n_samples": 4000000,
+    "note": "right hand only, post-layout. Use when per-hand norm is desired."
+  },
+  "egoemg__filtered_paper": {
+    "note": "placeholder \u2014 recompute via scripts/data/compute_per_dataset_norm_stats.py with --emg-fields filtered_paper"
+  },
+  "egoemg_8ch__filtered": {
+    "mean": 0.0016636336222290993,
+    "std": 12.275496274662686,
+    "n_samples": 8000000,
+    "note": "8ch raw (emg_layout=target_hand), computed from emg_*_filtered"
+  },
+  "egoemg_8ch__filtered_left": {
+    "mean": 0.002338695339858532,
+    "std": 3.981320858001709,
+    "n_samples": 4000000,
+    "note": "8ch left only, emg_layout=target_hand"
+  },
+  "egoemg_8ch__filtered_right": {
+    "mean": 0.0009885719045996666,
+    "std": 16.897476196289062,
+    "n_samples": 4000000,
+    "note": "8ch right only, emg_layout=target_hand"
+  },
+  "egoemg_8ch": {
+    "mean": 0.0016636336222290993,
+    "std": 12.275496274662686,
+    "n_samples": 8000000,
+    "note": "LEGACY alias for egoemg_8ch__filtered (8ch layout)."
+  }
+}

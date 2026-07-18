@@ -1,0 +1,84 @@
+\begin{table}[h]
+\centering
+\caption{Full per-gesture modality breakdown on \dataset{} using F-RN18+S fusion. MAE is in degrees.
+$\Delta = \text{MAE}_\text{vis} - \text{MAE}_\text{fus}$.
+Gestures are grouped by family and sorted by descending $\Delta$ within each family. Gesture descriptions are provided in Appendix~\ref{app:gesture_vocabulary}.}
+\label{tab:per_gesture_full}
+\scriptsize
+\setlength{\tabcolsep}{3.0pt}
+\renewcommand{\arraystretch}{1.02}
+\begin{tabular}{rlrrrrr}
+\toprule
+ID & Name & $N$ & Vis. & EMG & Fus. & $\Delta$ \\
+\midrule
+
+\multicolumn{7}{l}{\textit{Single-hand gestures}} \\
+6  & ASL7                    & 36  & 7.2 & 16.1 & 6.2 & +0.96 \\
+8  & ASL9                    & 38  & 5.7 & 17.5 & 5.0 & +0.71 \\
+12 & ILY                     & 40  & 7.3 & 19.2 & 6.6 & +0.70 \\
+13 & IndexBow                & 34  & 6.3 & 20.7 & 5.6 & +0.66 \\
+20 & PinchMiddle             & 324 & 5.3 & 12.2 & 4.7 & +0.64 \\
+26 & Thumb                   & 40  & 7.9 & 24.8 & 7.3 & +0.62 \\
+7  & ASL8                    & 42  & 7.0 & 14.8 & 6.4 & +0.61 \\
+28 & nocontact\_free          & 292 & 6.8 & 14.2 & 6.2 & +0.61 \\
+18 & Nine                    & 320 & 7.0 & 18.1 & 6.4 & +0.59 \\
+17 & MiddleBow               & 92  & 4.1 & 11.1 & 3.5 & +0.57 \\
+16 & JoystickSlide           & 38  & 5.6 & 19.5 & 5.0 & +0.56 \\
+23 & RingAndThumb            & 36  & 7.2 & 16.5 & 6.7 & +0.55 \\
+9  & Claw3                   & 38  & 7.7 & 17.3 & 7.2 & +0.54 \\
+27 & nocontact\_disperse\_palm & 92 & 4.9 & 12.2 & 4.5 & +0.46 \\
+15 & JoystickCircle          & 308 & 4.5 & 12.2 & 4.0 & +0.45 \\
+2  & ASL3                    & 30  & 7.3 & 19.6 & 6.8 & +0.44 \\
+11 & FreeAction              & 38  & 6.5 & 15.8 & 6.1 & +0.41 \\
+5  & ASL6                    & 40  & 6.9 & 18.1 & 6.5 & +0.39 \\
+14 & IndexMiddleClaw         & 92  & 5.0 & 12.9 & 4.6 & +0.39 \\
+1  & ASL2                    & 34  & 6.9 & 17.7 & 6.5 & +0.38 \\
+19 & PalmYaw                 & 82  & 3.2 & 9.8  & 2.8 & +0.36 \\
+4  & ASL5                    & 28  & 4.5 & 14.6 & 4.2 & +0.35 \\
+24 & RingBow                 & 38  & 7.3 & 16.9 & 7.0 & +0.34 \\
+0  & ASL1                    & 44  & 7.9 & 17.6 & 7.7 & +0.26 \\
+10 & Claw5                   & 36  & 6.0 & 15.6 & 5.7 & +0.25 \\
+22 & Rest                    & 30  & 7.1 & 17.4 & 6.9 & +0.20 \\
+21 & PinkyBow                & 40  & 7.5 & 16.6 & 7.4 & +0.18 \\
+3  & ASL4                    & 32  & 6.2 & 18.0 & 6.1 & +0.14 \\
+29 & nocontact\_grab          & 36  & 7.4 & 18.6 & 7.4 & +0.06 \\
+25 & Rock                    & 36  & 9.5 & 17.5 & 9.7 & -0.22 \\
+
+\addlinespace[3pt]
+\multicolumn{7}{l}{\textit{Symmetric bimanual gestures}} \\
+38 & HandClasp       & 30  & 8.7 & 16.4 & 8.0 & +0.75 \\
+52 & MiddleOppo      & 226 & 5.3 & 12.3 & 4.8 & +0.59 \\
+39 & HandRub         & 32  & 5.9 & 16.0 & 5.3 & +0.55 \\
+36 & FistBump        & 256 & 9.2 & 23.7 & 8.7 & +0.51 \\
+44 & Prayer          & 78  & 3.9 & 9.5  & 3.4 & +0.46 \\
+42 & PalmStack       & 262 & 4.6 & 10.2 & 4.2 & +0.41 \\
+47 & SymSwing        & 28  & 6.6 & 15.7 & 6.2 & +0.36 \\
+40 & IndexTapping    & 32  & 5.3 & 13.0 & 5.0 & +0.30 \\
+37 & Gaming          & 26  & 7.8 & 15.9 & 7.5 & +0.24 \\
+46 & SymOpen         & 30  & 5.0 & 12.6 & 4.8 & +0.22 \\
+51 & Kiss            & 78  & 4.0 & 10.4 & 3.7 & +0.21 \\
+48 & ThumbWrestle    & 34  & 5.5 & 14.6 & 5.3 & +0.18 \\
+35 & FingerTipTouch  & 76  & 3.6 & 7.5  & 3.4 & +0.16 \\
+32 & CrossStretch    & 26  & 5.3 & 11.9 & 5.3 & +0.01 \\
+31 & CrossHand       & 26  & 5.6 & 12.8 & 5.7 & -0.01 \\
+30 & Clap            & 14  & 6.7 & 14.3 & 6.8 & -0.12 \\
+49 & Typing          & 34  & 5.3 & 11.9 & 5.5 & -0.21 \\
+
+\addlinespace[3pt]
+\multicolumn{7}{l}{\textit{Asymmetric bimanual gestures}} \\
+34 & FingerPullRight & 28  & 7.1 & 13.6 & 6.1 & +0.96 \\
+58 & PinchWring      & 32  & 7.5 & 17.8 & 6.8 & +0.71 \\
+55 & PairClaw        & 36  & 8.1 & 17.4 & 7.4 & +0.66 \\
+43 & PinkyHook       & 32  & 7.0 & 16.0 & 6.5 & +0.51 \\
+53 & Beijing         & 30  & 10.1 & 19.2 & 9.6 & +0.44 \\
+41 & PalmRoll        & 54  & 4.4 & 12.1 & 4.0 & +0.36 \\
+59 & ThumbOppo       & 30  & 7.1 & 17.5 & 6.7 & +0.34 \\
+45 & Squeeze         & 230 & 6.2 & 12.4 & 5.8 & +0.32 \\
+54 & Checky          & 22  & 9.6 & 21.1 & 9.4 & +0.26 \\
+56 & PairOK          & 32  & 7.6 & 15.6 & 7.5 & +0.07 \\
+57 & Picture         & 32  & 7.1 & 16.7 & 7.1 & +0.03 \\
+33 & FingerPullLeft  & 26  & 6.0 & 13.6 & 6.0 & -0.04 \\
+
+\bottomrule
+\end{tabular}
+\end{table}

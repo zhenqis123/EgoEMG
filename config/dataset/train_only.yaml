@@ -1,0 +1,13 @@
+# @package _global_
+dataset:
+  train:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: ${data_location}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      padding: ${datamodule.padding}
+      jitter: true
+      skip_ik_failures: ${datamodule.skip_ik_failures}
+      allowed_splits: [train]
+  val: []
+  test: []

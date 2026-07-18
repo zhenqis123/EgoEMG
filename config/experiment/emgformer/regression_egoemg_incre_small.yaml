@@ -1,0 +1,151 @@
+# @package _global_
+# EgoEMG全量（all splits）+ Incre train → Incre val 评估
+# Small model, no augmentation
+defaults:
+  - /experiment/emgformer/regression_egoemg
+  - override /module/decoder: transformer/preset/small
+  - override /transforms: emgformer_regression_no_aug
+  - _self_
+
+checkpoint:
+
+batch_augmentation:
+  random_gain:
+    min_gain: 0.5291
+    max_gain: 0.6739
+    mask_prob: 0.1422
+  mag_warping:
+    sigma: 0.177
+    num_knots: 15
+    mask_prob: 0.0
+  baseline_drift:
+    mask_prob: 0.3544
+    min_freq: 0.0114
+    max_freq: 0.4625
+    min_amp_ratio: 0.0154
+    max_amp_ratio: 0.0572
+  powerline_noise:
+    mask_prob: 0.08
+    min_amp_ratio: 0.0141
+    max_amp_ratio: 0.0628
+    max_harmonic: 5
+  channel_mask:
+    mask_prob: 0.0
+  time_mask:
+    num_masks: 6
+    max_mask_size: 500
+  freq_mask:
+    num_masks: 4
+    max_mask_size: 128
+  gaussian_noise:
+    min_snr_db: 44.0937
+    max_snr_db: 50.0
+    apply_prob: 0.7761
+
+val_episode_name_mapping:
+  sess_20260530_140912: xzh_bare
+  sess_20260530_143229: dyb_bare
+  sess_20260531_142701: xzh_bare_2
+  sess_20260531_150809: dyb_bare_2
+
+datamodule:
+  window_length: 12_000
+  val_test_window_length: 12_000
+  stride: 1_200
+  val_test_stride: 12_000
+  norm_mode: null
+
+dataset:
+  train:
+    # ── EgoEMG left hand (all splits) ──
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train, user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: filtered_paper
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      jitter: true
+    # ── EgoEMG right hand (all splits) ──
+    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train, user, gesture, both]
+      modalities: [emg, joint_angles, labels]
+      target_hand: right
+      excluded_episode_ids: [episode_000029, episode_000030]
+      emg_field_preference: filtered_paper
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      jitter: true
+    # ── Incre train (Ep 4-5 前80% only; Ep 0-3 excluded) ──
+    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+      memmap_dir: ${egoemg_incre_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      target_hand: right
+      emg_field_preference: filtered_paper
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      dataset_name: egoemg_incre
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      jitter: true
+      excluded_episode_ids:
+        - data_20260526_172725
+        - data_20260526_230859
+        - data_20260527_124150
+        - sess_20260530_102930
+
+  val:
+    # ── Incre val (Ep 4-5 后20% only; Ep 0-3 excluded) ──
+    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+      memmap_dir: ${egoemg_incre_memmap_dir}
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      allowed_splits: [val]
+      target_hand: right
+      emg_field_preference: filtered_paper
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      dataset_name: egoemg_incre
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      excluded_episode_ids:
+        - data_20260526_172725
+        - data_20260526_230859
+        - data_20260527_124150
+        - sess_20260530_102930
+
+  test: []
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    save_top_k: 3
+    save_last: true
+    filename: "egoemg-incre-small-{epoch:03d}-{${monitor_metric}:.4f}"
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: regression_egoemg_incre_small
+  version: null
+  default_hp_metric: false
