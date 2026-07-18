@@ -260,28 +260,17 @@ class EMG2PoseEvaluation:
             model_target = self.config.module._target_
             map_location = "cpu"
 
-            if "emgconformer" in model_target.lower():
-                from emg2pose.lightning_emgconformer import EmgConformerLightningModule
-                module = EmgConformerLightningModule.load_from_checkpoint(
-                    ckpt_path,
-                    model_conf=self.config.module,
-                    optimizer_conf=self.config.optimizer,
-                    lr_scheduler_conf=self.config.lr_scheduler,
-                    loss_weights=self.config.loss_weights,
-                    map_location=map_location,
-                )
-            else:
-                module = make_lightning_module(self.config)
-                kwargs = dict(
-                    module_conf=self.config.module,
-                    optimizer_conf=self.config.optimizer,
-                    lr_scheduler_conf=self.config.lr_scheduler,
-                    loss_weights=self.config.loss_weights,
-                    map_location=map_location,
-                )
-                if hasattr(self.config, 'datamodule') and self.config.datamodule is not None:
-                    kwargs['datamodule'] = self.config.datamodule
-                module = module.__class__.load_from_checkpoint(ckpt_path, **kwargs)
+            module = make_lightning_module(self.config)
+            kwargs = dict(
+                module_conf=self.config.module,
+                optimizer_conf=self.config.optimizer,
+                lr_scheduler_conf=self.config.lr_scheduler,
+                loss_weights=self.config.loss_weights,
+                map_location=map_location,
+            )
+            if hasattr(self.config, 'datamodule') and self.config.datamodule is not None:
+                kwargs['datamodule'] = self.config.datamodule
+            module = module.__class__.load_from_checkpoint(ckpt_path, **kwargs)
 
         module.eval()
         return module
