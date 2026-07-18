@@ -1,61 +1,54 @@
 # @package _global_
 # L1 lineage: Classic baselines (emg2pose / neuropose / vemg2pose original architectures)
 #
-# Encapsulates shared defaults for config/experiment/emg2pose/* experiments that
-# reproduce the upstream EMG2Pose / NeuroPose / VEMG2Pose architectures on EgoEMG.
+# Encapsulates shared framework defaults for config/experiment/emg2pose/*
+# experiments that reproduce upstream EMG2Pose / NeuroPose / VEMG2Pose on EgoEMG.
 # These use pose / pose_stateful modules which expect an inlined `network:` block
-# in the experiment (the featurizer definition). This lineage does NOT touch
-# `network` — experiments keep inlining it as before.
+# in the experiment (the featurizer definition); this lineage does NOT touch it.
 #
-# Statistics-derived defaults (8 active experiments):
-#   wl=7790 (7/8), stride=780 (6/8), lr=1e-3 (7/8), max_epochs=100 (8/8).
+# Uniform across classic experiments (verified):
+#   matmul_precision=high, ignore_head_tail_dims=0, persistent_workers=True,
+#   prefetch_factor=2, pin_memory=False, skip_ik_failures=False, stride=780,
+#   val_test_stride=7790, max_epochs=100, log_every_n_steps=50,
+#   loss_weights.{mae=1, fingertip_distance=0.01}.
 defaults:
   - override /dataset: egoemg_angle_regression
   - override /datamodule: default
   - override /transforms: rotation_augmentation
   - override /lr_scheduler: cosine
   - _self_
-  # module is provided by each experiment (pose / pose_stateful), since each
-  # classic baseline has its own network architecture.
+  # module provided by each experiment (pose / pose_stateful), since each
+  # classic baseline inlines its own `network:` architecture block.
 
 # Lineage identifier.
 lineage: classic
 
-# ── Data paths (EgoEMG memmap) ───────────────────────────────────────────────
+# ── Shared data paths (EgoEMG memmap) ───────────────────────────────────────
 egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,/home/xiziheng/develop/emg2pose}/data/EgoEMG_memmap
 
-# ── Datamodule defaults (EgoEMG @2000Hz) ─────────────────────────────────────
+# ── Uniform datamodule defaults ─────────────────────────────────────────────
 datamodule:
   window_length: 7_790
   val_test_window_length: 7_790
   stride: 780
   val_test_stride: 7_790
-  dataset_repeat: 1
-  norm_mode: per-dataset
-  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,/home/xiziheng/develop/emg2pose}/assets/per_dataset_norm_stats.json
-  skip_ik_failures: false
   persistent_workers: true
   prefetch_factor: 2
-  pin_memory: true
+  pin_memory: false
+  skip_ik_failures: false
+  # norm_mode, per_dataset_norm_stats_path, dataset_repeat: NOT pinned (vary).
 
-# ── Training defaults ────────────────────────────────────────────────────────
-batch_size: 256
-val_batch_size: 256
-num_workers: 8
+# ── Uniform training-framework defaults ─────────────────────────────────────
 matmul_precision: high
+ignore_head_tail_dims: 0
 
 trainer:
   gradient_clip_val: 1
-  precision: bf16-mixed
   max_epochs: 100
   check_val_every_n_epoch: 1
-  log_every_n_steps: 1
-  # devices left unset — must be provided by experiment or CLI.
-
-optimizer:
-  _target_: torch.optim.Adam
-  lr: 1.0e-3
-  weight_decay: 0.0
+  log_every_n_steps: 50
+  # precision NOT pinned (bf16-mixed / 16-mixed / 32 all appear).
+  # devices NOT pinned.
 
 loss_weights:
   mae: 1.0

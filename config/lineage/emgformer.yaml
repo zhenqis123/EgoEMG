@@ -1,68 +1,46 @@
 # @package _global_
 # L1 lineage: EMGFormer main line (EMG → pose supervised regression)
 #
-# Encapsulates the shared defaults across config/experiment/emgformer/* experiments.
-# Experiments inherit this via `defaults: [- /lineage/emgformer, ...]` and only
-# express deltas (special window_length/stride, decoder preset, callbacks, etc.).
+# Encapsulates ONLY the framework-level defaults uniformly shared across
+# config/experiment/emgformer/* experiments. Dispersed business params
+# (window_length, stride, lr, max_epochs, etc.) are NOT pinned here — they
+# stay on each experiment or on the datamodule preset, so migrating an
+# experiment to inherit this lineage never changes its resolved config.
 #
-# Active experiments (~17) target EgoEMG memmap with EMGFormer (tds_slim featurizer
-# + transformer decoder). Statistics-derived defaults:
-#   wl=12000 (11/14), stride=1200 (10/13), lr=5e-4 (7/9), precision=bf16-mixed,
-#   max_epochs=150, gradient_clip_val=1, norm_mode=per-dataset.
+# Uniform across all emgformer experiments (verified):
+#   precision=bf16-mixed, gradient_clip_val=1, check_val_every_n_epoch=1,
+#   matmul_precision=high, persistent_workers=True, prefetch_factor=2,
+#   skip_ik_failures=False, loss_weights.{mae,fingertip_distance}.
 defaults:
-  - override /dataset: egoemg_angle_regression
-  - override /datamodule: default
-  - override /transforms: emgformer_regression_aug_extended
-  - override /augmentation: batch_aug
-  - override /lr_scheduler: cosine
   - /module: emgformer
+  - /augmentation: batch_aug
+  - override /dataset: egoemg_angle_regression
+  - override /datamodule: egoemg
+  - override /transforms: emgformer_regression_aug_extended
+  - override /lr_scheduler: cosine
   - override /module/featurizer: tds_slim
   - _self_
 
-# Lineage identifier (used for hydra run.dir namespacing and logging).
+# Lineage identifier (for hydra run.dir namespacing and logging).
 lineage: emgformer
 
-# ── Data paths (EgoEMG memmap, shared across emgformer experiments) ──────────
+# ── Shared data paths (EgoEMG memmap) ────────────────────────────────────────
 egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,/home/xiziheng/develop/emg2pose}/data/EgoEMG_memmap
 egoemg_emg_layout: target_hand
 egoemg_emg2pose_channel_indices: null
 egoemg_channel_interpolate: false
 egoemg_emg_field_preference: filtered_paper
 
-# ── Datamodule defaults (EgoEMG @2000Hz) ─────────────────────────────────────
-datamodule:
-  window_length: 12_000         # 6s context (mainstream: 11/14 experiments)
-  val_test_window_length: 12_000
-  stride: 1_200                 # 90% train overlap (mainstream)
-  val_test_stride: 12_000       # non-overlapping eval
-  dataset_repeat: 1
-  norm_mode: per-dataset
-  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,/home/xiziheng/develop/emg2pose}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
-  skip_ik_failures: false
-  persistent_workers: true
-  prefetch_factor: 2
-  pin_memory: true
-
-# ── Training defaults ────────────────────────────────────────────────────────
-batch_size: 200
-val_batch_size: 100
-num_workers: 10
+# ── Uniform training-framework defaults ──────────────────────────────────────
 matmul_precision: high
+ignore_head_tail_dims: 0
 
 trainer:
   gradient_clip_val: 1
   precision: bf16-mixed
-  max_epochs: 150
   check_val_every_n_epoch: 1
-  log_every_n_steps: 1
-  # devices left unset — must be provided by experiment or CLI.
-
-optimizer:
-  _target_: torch.optim.AdamW
-  lr: 5.0e-4
-  weight_decay: 1.0e-4
+  # max_epochs, log_every_n_steps, devices: NOT pinned (dispersed) — experiment or CLI.
 
 loss_weights:
   mae: 1.0
   fingertip_distance: 0.01
-  delta_reg: 0.0

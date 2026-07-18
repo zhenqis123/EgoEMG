@@ -1,36 +1,38 @@
 # @package _global_
 # L1 lineage: Fusion / Vision main line (vision → pose, EMG+vision fusion)
 #
-# Encapsulates the shared defaults across config/experiment/fusion/* (32 experiments).
-# Experiments inherit via `defaults: [- /lineage/fusion, ...]` and select a module
-# (mid_fusion / resnet_vision / vit_vision / wilor_vit) plus their deltas.
+# Encapsulates ONLY framework-level defaults uniformly shared across
+# config/experiment/fusion/* (32 experiments). Fusion is heterogeneous (mix of
+# vision-only baselines and EMG+vision fusion), so dispersed params are NOT
+# pinned here — each experiment keeps its own module / transforms / optimizer /
+# window_length / stride / lr / dataset_repeat / max_epochs.
 #
-# Fusion is more heterogeneous than emgformer (mix of vision-only baselines and
-# emg+vision fusion), so only truly-uniform params are pinned here:
-#   norm_mode=per-dataset (32/32), precision=bf16-mixed (32/32),
-#   gradient_clip_val=1 (32/32), wl=7790 (26/32 mainstream).
-# Dispersed params (stride, lr, optimizer kind, dataset_repeat, max_epochs,
-# devices) stay on the experiment as explicit deltas.
+# Uniform across all 32 fusion experiments (verified):
+#   norm_mode=per-dataset, persistent_workers=True, prefetch_factor=2,
+#   skip_ik_failures=False, precision=bf16-mixed, gradient_clip_val=1,
+#   matmul_precision=high, ignore_head_tail_dims=0,
+#   loss_weights.{mae=1.0, fingertip_distance=0.01}.
 defaults:
   - override /dataset: egoemg_angle_regression
   - override /datamodule: default
-  - override /transforms: emgformer_regression_aug_best
   - override /lr_scheduler: cosine
   - _self_
-  # module is NOT pinned — each experiment selects mid_fusion / resnet_vision /
-  # vit_vision / wilor_vit via `- /module: <name>`.
+  # module NOT pinned — each experiment selects mid_fusion / resnet_vision /
+  # vit_vision / wilor_vit. transforms NOT pinned (vision-only uses noop,
+  # emg fusion uses emgformer_regression_aug_*).
 
 # Lineage identifier.
 lineage: fusion
 
-# ── Data paths (EgoEMG memmap + vision pre-crops) ────────────────────────────
+# ── Shared data paths (EgoEMG memmap + vision pre-crops) ────────────────────
 egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,/home/xiziheng/develop/emg2pose}/data/EgoEMG_memmap
 egoemg_emg_layout: target_hand
 egoemg_emg2pose_channel_indices: null
 egoemg_channel_interpolate: false
 egoemg_emg_field_preference: filtered_paper
 
-# Vision (pre-cropped per-episode LMDB, all-intra videos).
+# Vision (pre-cropped per-episode LMDB, all-intra videos). Shared by all fusion
+# experiments that load vision frames.
 per_episode_crops_dir: /mnt/nvme/xiziheng/EgoEMG_v2_crops
 vision_num_frames: 1
 vision_frame_selection: center
@@ -42,41 +44,24 @@ center_target_only: true
 wilor_checkpoint_path: /home/xiziheng/WiLoR/pretrained_models/wilor_final.ckpt
 mano_model_path: /home/xiziheng/WiLoR/mano_data
 
-# ── Datamodule defaults (EgoEMG @2000Hz) ─────────────────────────────────────
+# ── Uniform datamodule framework defaults (dispersed wl/stride/repeat/norm_stats
+#    stay on each experiment) ─────────────────────────────────────────────────
 datamodule:
-  window_length: 7_790          # ~3.9s (mainstream: 26/32 experiments)
-  val_test_window_length: 7_790
-  stride: 780                   # 90% train overlap (vision-only mainstream)
-  val_test_stride: 7_790        # non-overlapping eval
-  dataset_repeat: 2
   norm_mode: per-dataset
-  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,/home/xiziheng/develop/emg2pose}/assets/per_dataset_norm_stats.json
-  skip_ik_failures: false
   persistent_workers: true
   prefetch_factor: 2
-  pin_memory: true
+  skip_ik_failures: false
 
-# ── Training defaults ────────────────────────────────────────────────────────
-batch_size: 200
-val_batch_size: 100
-num_workers: 10
+# ── Uniform training-framework defaults ──────────────────────────────────────
 matmul_precision: high
+ignore_head_tail_dims: 0
 
 trainer:
   gradient_clip_val: 1
   precision: bf16-mixed
-  max_epochs: 150
-  check_val_every_n_epoch: 1
-  log_every_n_steps: 1
-  # devices left unset — must be provided by experiment or CLI.
-
-# Default optimizer — many fusion experiments override _target_/lr.
-optimizer:
-  _target_: torch.optim.Adam
-  lr: 1.0e-4
-  weight_decay: 1.0e-4
+  # max_epochs, check_val_every_n_epoch, log_every_n_steps, devices: NOT pinned.
 
 loss_weights:
   mae: 1.0
   fingertip_distance: 0.01
-  delta_reg: 0.0
+  # delta_reg NOT pinned (some experiments set 0.0 explicitly, others omit).
