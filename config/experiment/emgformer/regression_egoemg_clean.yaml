@@ -1,4 +1,6 @@
 # @package _global_
+# Migrated to inherit lineage/emgformer.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # EgoEMG clean training — train split only, val on user/gesture/both
 # Per-split val MAE reported: val_stage_mae, val_user_mae, val_user_stage_mae
 defaults:

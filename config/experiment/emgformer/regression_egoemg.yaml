@@ -1,9 +1,10 @@
 # @package _global_
+# Migrated to inherit lineage/emgformer.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # EgoEMG 回归训练基础模板
 # 用法: 通过 experiments/regression/*.sh 脚本启动，或直接 CLI override
 defaults:
-  - /module: emgformer
-  - /augmentation: batch_aug
+  - /lineage/emgformer
   - override /module/featurizer: tds_slim
   - override /module/decoder: transformer/preset/middle_aggressive
   - override /dataset: egoemg_angle_regression
@@ -24,19 +25,14 @@ module:
   decoder:
     causal: false
 
-ignore_head_tail_dims: 0
 num_workers: 12
 
 optimizer:
   lr: 0.0005
 
 trainer:
-  gradient_clip_val: 1
-  precision: bf16-mixed
   max_epochs: 150
-  check_val_every_n_epoch: 1
   log_every_n_steps: 5
-
 callbacks:
   - _target_: pytorch_lightning.callbacks.LearningRateMonitor
   - _target_: pytorch_lightning.callbacks.ModelCheckpoint

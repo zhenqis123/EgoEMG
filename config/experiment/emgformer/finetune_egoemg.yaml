@@ -1,13 +1,16 @@
 # @package _global_
+# Migrated to inherit lineage/emgformer.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # 从预训练 checkpoint finetune 到 EgoEMG 的基础模板
 # checkpoint 路径由 .sh 脚本通过 CLI override 传入
 defaults:
-  - /module: emgformer
+  - /lineage/emgformer
   - override /transforms: emgformer_regression_aug_best
   - override /module/featurizer: tds_slim
   - override /module/decoder: transformer/preset/middle_aggressive
   - override /dataset: egoemg_angle_regression
   - override /datamodule: egoemg
+  - override /augmentation: none
   - _self_
 
 pretrained_strict: false
@@ -22,7 +25,6 @@ module:
   decoder:
     causal: false
 
-ignore_head_tail_dims: 0
 num_workers: 12
 
 datamodule:
@@ -32,12 +34,8 @@ optimizer:
   lr: 0.00001
 
 trainer:
-  gradient_clip_val: 1
-  precision: bf16-mixed
   max_epochs: 50
-  check_val_every_n_epoch: 1
   log_every_n_steps: 50
-
 callbacks:
   - _target_: pytorch_lightning.callbacks.LearningRateMonitor
   - _target_: pytorch_lightning.callbacks.ModelCheckpoint

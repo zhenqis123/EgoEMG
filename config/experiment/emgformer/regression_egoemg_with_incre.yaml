@@ -1,4 +1,6 @@
 # @package _global_
+# Migrated to inherit lineage/emgformer.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # EgoEMG 全量训练 + Incre Manus 全量验证
 defaults:
   - /experiment/emgformer/regression_egoemg

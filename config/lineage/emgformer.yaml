@@ -3,14 +3,14 @@
 #
 # Encapsulates ONLY the framework-level defaults uniformly shared across
 # config/experiment/emgformer/* experiments. Dispersed business params
-# (window_length, stride, lr, max_epochs, etc.) are NOT pinned here — they
-# stay on each experiment or on the datamodule preset, so migrating an
-# experiment to inherit this lineage never changes its resolved config.
+# (window_length, stride, lr, max_epochs, field_preference, etc.) are NOT
+# pinned here — they stay on each experiment or are inherited from base /
+# the datamodule preset. Migrating an experiment to inherit this lineage
+# must not change its resolved config.
 #
-# Uniform across all emgformer experiments (verified):
+# Uniform across emgformer experiments (verified):
 #   precision=bf16-mixed, gradient_clip_val=1, check_val_every_n_epoch=1,
-#   matmul_precision=high, persistent_workers=True, prefetch_factor=2,
-#   skip_ik_failures=False, loss_weights.{mae,fingertip_distance}.
+#   matmul_precision=high, ignore_head_tail_dims=0.
 defaults:
   - /module: emgformer
   - /augmentation: batch_aug
@@ -24,12 +24,8 @@ defaults:
 # Lineage identifier (for hydra run.dir namespacing and logging).
 lineage: emgformer
 
-# ── Shared data paths (EgoEMG memmap) ────────────────────────────────────────
+# ── Shared data path (EgoEMG memmap). Experiments may override.
 egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,/home/xiziheng/develop/emg2pose}/data/EgoEMG_memmap
-egoemg_emg_layout: target_hand
-egoemg_emg2pose_channel_indices: null
-egoemg_channel_interpolate: false
-egoemg_emg_field_preference: filtered_paper
 
 # ── Uniform training-framework defaults ──────────────────────────────────────
 matmul_precision: high
@@ -39,8 +35,7 @@ trainer:
   gradient_clip_val: 1
   precision: bf16-mixed
   check_val_every_n_epoch: 1
-  # max_epochs, log_every_n_steps, devices: NOT pinned (dispersed) — experiment or CLI.
+  # max_epochs, log_every_n_steps, devices: NOT pinned (dispersed).
 
-loss_weights:
-  mae: 1.0
-  fingertip_distance: 0.01
+# loss_weights intentionally NOT overridden — base.yaml provides the default
+# {mae: 1, landmark/fingertip: 0.01} shared by emgformer experiments.

@@ -1,4 +1,6 @@
 # @package _global_
+# Migrated to inherit lineage/classic.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # EMG2Pose baseline (TDS + MLP, original architecture) trained on EgoEMG from scratch.
 # Faithfully reproduces the original experiment config from upstream commit 8f9a15e.
 # No EMG normalization, only rotation augmentation — identical to original.
@@ -14,6 +16,7 @@
 #     data_location=/path/to/EgoEMG_memmap
 
 defaults:
+  - /lineage/classic
   - /module: pose_stateful
   - override /transforms: rotation_augmentation
   - _self_
@@ -71,7 +74,6 @@ module:
     layer_norm: True
     scale: .01
 
-ignore_head_tail_dims: 0
 
 loss_weights:
   mae: 1
@@ -164,12 +166,7 @@ trainer:
   gradient_clip_val: 1
   devices: [0,1,2,3,4,5]
   precision: bf16-mixed
-  max_epochs: 100
-  check_val_every_n_epoch: 1
-  log_every_n_steps: 50
-
 batch_size: 900
-matmul_precision: high
 
 callbacks:
   - _target_: pytorch_lightning.callbacks.LearningRateMonitor

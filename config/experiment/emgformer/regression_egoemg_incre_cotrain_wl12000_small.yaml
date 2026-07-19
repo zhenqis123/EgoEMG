@@ -1,4 +1,6 @@
 # @package _global_
+# Migrated to inherit lineage/emgformer.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # EMGFormer-S + EgoEMG_incre cotrain at WL=12000 with V2 best augmentation.
 # Same as middle cotrain but with small decoder preset.
 # Usage:
@@ -6,8 +8,7 @@
 #     augmentation=batch_aug_best_v2 trainer.devices=[2,3,4,5] trainer.max_epochs=150
 
 defaults:
-  - /module: emgformer
-  - /augmentation: batch_aug
+  - /lineage/emgformer
   - override /module/featurizer: tds_slim
   - override /module/decoder: transformer/preset/small
   - override /dataset: egoemg_angle_regression
@@ -49,7 +50,6 @@ module:
     in_channels: 256
     out_channels: 22
 
-ignore_head_tail_dims: 0
 num_workers: 12
 
 dataset:
@@ -150,15 +150,10 @@ lr_scheduler:
     eta_min: 5e-6
 
 trainer:
-  gradient_clip_val: 1
   devices: [2, 3, 4, 5]
-  precision: bf16-mixed
   max_epochs: 150
-  check_val_every_n_epoch: 1
   log_every_n_steps: 5
-
 batch_size: 260
-matmul_precision: high
 
 loss_weights:
   mae: 1.0

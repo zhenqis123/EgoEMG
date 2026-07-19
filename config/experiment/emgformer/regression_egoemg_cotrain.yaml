@@ -1,4 +1,6 @@
 # @package _global_
+# Migrated to inherit lineage/emgformer.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # Co-training: EgoEMG (target_hand 8ch) + emg2pose (16ch → 8ch via channel_indices)
 # Both datasets use per-dataset normalization to handle 12x signal amplitude difference.
 # emg2pose joint_angles padded 20→22 to match EgoEMG (wrist pitch/yaw are zero-padded).
@@ -29,10 +31,6 @@ datamodule:
   norm_mode: per-dataset
   per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
 
-trainer:
-  check_val_every_n_epoch: 1
-
-# Augmentation from Optuna trial #54 (best val_user_mae=0.278829)
 batch_augmentation:
   random_gain:
     min_gain: 0.6230

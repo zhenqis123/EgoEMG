@@ -122,6 +122,11 @@ def main():
     p_one = sub.add_parser("snapshot-one", help="Snapshot a single experiment")
     p_one.add_argument("experiment", help="e.g. emgformer/regression_egoemg")
 
+    p_verify = sub.add_parser("verify-one",
+                              help="Diff one experiment against its baseline snapshot")
+    p_verify.add_argument("experiment", help="e.g. emgformer/regression_egoemg")
+    p_verify.add_argument("--baseline", default="/tmp/cfg_baseline.json")
+
     args = parser.parse_args()
 
     if args.cmd == "snapshot":
@@ -174,6 +179,40 @@ def main():
     elif args.cmd == "snapshot-one":
         data = snapshot_one(args.experiment)
         print(json.dumps(data, indent=2, default=str))
+
+    elif args.cmd == "verify-one":
+        baseline = json.loads(Path(args.baseline).read_text())
+        exp = args.experiment
+        if exp in baseline["errors"]:
+            print(f"BASELINE BROKEN — {exp} failed to compose before migration:")
+            print(f"  {baseline['errors'][exp]}")
+            print("Cannot verify equivalence (baseline itself is broken).")
+            sys.exit(2)
+        before = baseline["experiments"].get(exp)
+        if before is None:
+            print(f"BASELINE MISSING — {exp} not in baseline snapshot.")
+            sys.exit(2)
+        try:
+            after = snapshot_one(exp)
+        except Exception as e:
+            print(f"REGRESSION — {exp} now fails to compose:")
+            print(f"  {type(e).__name__}: {str(e)[:300]}")
+            sys.exit(1)
+        all_k = sorted(set(before) | set(after))
+        diffs = [(k, before.get(k), after.get(k)) for k in all_k
+                 if before.get(k) != after.get(k)]
+        if not diffs:
+            print(f"OK — {exp}: identical to baseline ({len(before)} keys).")
+            sys.exit(0)
+        else:
+            print(f"DIFF — {exp}: {len(diffs)} keys differ from baseline:")
+            for k, bv, av in diffs:
+                bvs = str(bv)[:120] if bv is not None else "<MISSING>"
+                avs = str(av)[:120] if av is not None else "<MISSING>"
+                print(f"  {k}:")
+                print(f"    before: {bvs}")
+                print(f"    after:  {avs}")
+            sys.exit(1)
 
 
 if __name__ == "__main__":

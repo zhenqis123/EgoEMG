@@ -3,14 +3,12 @@
 #
 # Encapsulates shared framework defaults for config/experiment/emg2pose/*
 # experiments that reproduce upstream EMG2Pose / NeuroPose / VEMG2Pose on EgoEMG.
-# These use pose / pose_stateful modules which expect an inlined `network:` block
-# in the experiment (the featurizer definition); this lineage does NOT touch it.
+# These use pose / pose_stateful modules with an inlined `network:` block in the
+# experiment (the featurizer definition); this lineage does NOT touch it.
 #
 # Uniform across classic experiments (verified):
-#   matmul_precision=high, ignore_head_tail_dims=0, persistent_workers=True,
-#   prefetch_factor=2, pin_memory=False, skip_ik_failures=False, stride=780,
-#   val_test_stride=7790, max_epochs=100, log_every_n_steps=50,
-#   loss_weights.{mae=1, fingertip_distance=0.01}.
+#   matmul_precision=high, ignore_head_tail_dims=0, max_epochs=100,
+#   log_every_n_steps=50, check_val_every_n_epoch=1.
 defaults:
   - override /dataset: egoemg_angle_regression
   - override /datamodule: default
@@ -23,33 +21,18 @@ defaults:
 # Lineage identifier.
 lineage: classic
 
-# ── Shared data paths (EgoEMG memmap) ───────────────────────────────────────
+# ── Shared data path (EgoEMG memmap). Experiments may override.
 egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,/home/xiziheng/develop/emg2pose}/data/EgoEMG_memmap
-
-# ── Uniform datamodule defaults ─────────────────────────────────────────────
-datamodule:
-  window_length: 7_790
-  val_test_window_length: 7_790
-  stride: 780
-  val_test_stride: 7_790
-  persistent_workers: true
-  prefetch_factor: 2
-  pin_memory: false
-  skip_ik_failures: false
-  # norm_mode, per_dataset_norm_stats_path, dataset_repeat: NOT pinned (vary).
 
 # ── Uniform training-framework defaults ─────────────────────────────────────
 matmul_precision: high
 ignore_head_tail_dims: 0
 
 trainer:
-  gradient_clip_val: 1
   max_epochs: 100
   check_val_every_n_epoch: 1
   log_every_n_steps: 50
-  # precision NOT pinned (bf16-mixed / 16-mixed / 32 all appear).
-  # devices NOT pinned.
+  # precision, gradient_clip_val, devices: NOT pinned (dispersed).
 
-loss_weights:
-  mae: 1.0
-  fingertip_distance: 0.01
+# datamodule.{wl,stride,...}, optimizer, loss_weights: NOT pinned (vary across
+# classic baselines; experiments carry their own).

@@ -1,4 +1,6 @@
 # @package _global_
+# Migrated to inherit lineage/emgformer.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # EgoEMG全量（all splits）+ Incre train → Incre val 评估
 # Small model, no augmentation
 defaults:
