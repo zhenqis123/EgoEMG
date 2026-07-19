@@ -1,4 +1,6 @@
 # @package _global_
+# Migrated to inherit lineage/fusion.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # F-RN18+S: ResNet18 + EMGFormer-S fusion, 8ch target_hand, center-supervised.
 # TEMPORAL-DENSITY ALIGNED variant: wl stays 12000, but train stride=400 + repeat=2
 # to match OLD fusion (vision_resnet_small_emgfusion_center) training density.
@@ -9,6 +11,7 @@
 #   python -m emg2pose.train experiment=fusion/fusion_rn18_s_center_8ch_denalign \
 #     trainer.devices=[2,3,4,5] trainer.max_epochs=150
 defaults:
+  - /lineage/fusion
   - /module: mid_fusion
   - override /dataset: egoemg_angle_regression
   - override /datamodule: default
@@ -48,16 +51,12 @@ eval: true
 batch_size: 200
 val_batch_size: 100
 num_workers: 10
-matmul_precision: high
 
 trainer:
-  gradient_clip_val: 1
   devices: [0]
-  precision: bf16-mixed
   max_epochs: 150
   check_val_every_n_epoch: 1
   log_every_n_steps: 1
-
 optimizer:
   _target_: torch.optim.Adam
   lr: 6.0e-4
@@ -116,7 +115,6 @@ component_lr_scales:
   head: 1.0
   head_vision: 1.0
 
-ignore_head_tail_dims: 0
 
 callbacks:
   - _target_: pytorch_lightning.callbacks.ModelCheckpoint

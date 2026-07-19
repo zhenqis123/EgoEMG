@@ -1,8 +1,11 @@
 # @package _global_
+# Migrated to inherit lineage/fusion.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # ViT-Large (DINOv2) Vision Baseline: pre-cropped 256×256 images → ViT-L/14 → pose.
 # Center-frame supervision only — one image predicts one pose.
 
 defaults:
+  - /lineage/fusion
   - /module: vit_vision
   - override /dataset: egoemg_angle_regression
   - override /transforms: noop
@@ -44,16 +47,12 @@ component_lr_scales:
 batch_size: 50
 val_batch_size: 50
 num_workers: 10
-matmul_precision: high
 
 trainer:
-  gradient_clip_val: 1
   devices: [0,1,2,3,4,5]
-  precision: bf16-mixed
   max_epochs: 150
   check_val_every_n_epoch: 1
   log_every_n_steps: 1
-
 optimizer:
   _target_: torch.optim.AdamW
   lr: 1.0e-4
@@ -86,7 +85,6 @@ module:
   head_hidden: 512
   head_dropout: 0.1
 
-ignore_head_tail_dims: 0
 
 callbacks:
   - _target_: pytorch_lightning.callbacks.ModelCheckpoint

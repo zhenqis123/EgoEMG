@@ -1,9 +1,12 @@
 # @package _global_
+# Migrated to inherit lineage/fusion.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # WiLoR ViT Vision-Only — Random Initialization (no pretrained weights).
 # Identical architecture to vision_wilor_vit but trained from scratch.
 # Purpose: measure the contribution of WiLoR → ViTPose → MAE pretraining.
 
 defaults:
+  - /lineage/fusion
   - /module: wilor_vit
   - override /dataset: egoemg_angle_regression
   - override /transforms: noop
@@ -48,16 +51,12 @@ component_lr_scales:
 batch_size: 18
 val_batch_size: 18
 num_workers: 8
-matmul_precision: high
 
 trainer:
-  gradient_clip_val: 1
   devices: [0,1,2,3,4,5]
-  precision: bf16-mixed
   max_epochs: 50
   check_val_every_n_epoch: 1
   log_every_n_steps: 10
-
 optimizer:
   _target_: torch.optim.AdamW
   lr: 1.0e-4
@@ -88,7 +87,6 @@ module:
   head_hidden: 512
   head_dropout: 0.1
 
-ignore_head_tail_dims: 0
 
 callbacks:
   - _target_: pytorch_lightning.callbacks.ModelCheckpoint

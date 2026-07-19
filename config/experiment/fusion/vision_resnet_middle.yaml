@@ -1,9 +1,12 @@
 # @package _global_
+# Migrated to inherit lineage/fusion.yaml (framework defaults).
+# Business params preserved verbatim; resolved config identical to pre-migration.
 # ResNet34 Vision-Only Baseline (Middle)
 # Pre-cropped 256×256 images → ResNet34 → 512-dim MLP → 22 joint angles
 # Center-frame supervision only — one image predicts one pose.
 
 defaults:
+  - /lineage/fusion
   - /module: resnet_vision
   - override /dataset: egoemg_angle_regression
   - override /datamodule: default
@@ -50,16 +53,12 @@ component_lr_scales:
 batch_size: 700
 val_batch_size: 256
 num_workers: 8
-matmul_precision: high
 
 trainer:
-  gradient_clip_val: 1
   devices: [0,1,2,3,4,5]
-  precision: bf16-mixed
   max_epochs: 100
   check_val_every_n_epoch: 2
   log_every_n_steps: 1
-
 optimizer:
   _target_: torch.optim.AdamW
   lr: 1.0e-4
@@ -91,7 +90,6 @@ module:
   head_hidden: 512
   head_dropout: 0.1
 
-ignore_head_tail_dims: 0
 
 callbacks:
   - _target_: pytorch_lightning.callbacks.ModelCheckpoint
