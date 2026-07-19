@@ -176,9 +176,7 @@ class MidFusionPoseFormer(BaseModule):
         decoded = self.decoder(emg_features)  # (B, C_emg, T')
 
         # Temporal attention pooling: learn which time steps inform center frame
-        attn_scores = self.temporal_attn(decoded.transpose(1, 2))  # (B, T', 1)
-        attn_weights = torch.softmax(attn_scores, dim=1)  # (B, T', 1)
-        emg_pooled = (decoded * attn_weights.squeeze(-1).unsqueeze(1)).sum(dim=-1)  # (B, C)
+        emg_pooled = self.temporal_attn(decoded)  # (B, C)
 
         # Vision validity
         if "vision_valid_mask" in batch:
