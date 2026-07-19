@@ -6,6 +6,9 @@ defaults:
   - lr_scheduler: cosine
   - data_split: full_split
   - transforms: rotation_augmentation
+  # Placeholder experiment so `experiment=<group>/<name>` overrides work. Always
+  # pass `experiment=...` explicitly on the CLI — this default only exists so
+  # Hydra's defaults-list has an `experiment` group entry to override.
   - experiment: emgformer/regression_egoemg
 
 data_location: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3

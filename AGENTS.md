@@ -10,12 +10,18 @@
 ## Project Structure & Module Organization
 - Core package lives in `emg2pose/`: data loading (`datasets/`,
   `datamodule.py`), EMGFormer models (`models/modules/emgformer.py`,
-  `models/modules/emgformer_pretrain.py`), vision/WiLoR modules
-  (`models/wilor_egoemg.py`, `models/vision2pose.py`), Lightning modules, and
-  utilities.
-- Hydra configs live in `config/`. The active experiment areas are
-  `config/experiment/emgformer/` and `config/experiment/vision/`, with
-  `config/vision_base.yaml` for EgoEMG WiLoR fine-tuning.
+  `models/modules/emgformer_pretrain.py`), fusion/vision modules
+  (`models/modules/mid_fusion.py`, `models/modules/wilor_vit.py`,
+  `models/modules/vit_vision.py`, `models/modules/resnet_vision.py`), Lightning
+  modules, and utilities.
+- Hydra configs live in `config/` with a three-layer structure:
+  `config/base.yaml` (L0 framework skeleton) → `config/lineage/{emgformer,
+  fusion,classic}.yaml` (L1 per-main-line shared defaults) →
+  `config/experiment/{emgformer,fusion,emg2pose}/*.yaml` (L2 experiments
+  expressing only deltas). See `docs/config_architecture.md` for details.
+  The active experiment areas are `config/experiment/emgformer/` (EMG→pose),
+  `config/experiment/fusion/` (vision→pose / EMG+vision fusion), and
+  `config/experiment/emg2pose/` (classic baselines).
 - Tests live in `emg2pose/tests/`; scripts live in `scripts/`; reference docs
   live in `docs/`.
 - EgoEMG vision data uses memmaps plus all-intra webcam videos. The sidecar
@@ -24,19 +30,20 @@
 ## Build, Test, and Development Commands
 - Set up environment and editable install:
   `conda env create -f environment.yml && conda activate emg2pose && pip install -e . && pip install -e emg2pose/UmeTrack`.
-- EMGFormer supervised EMG-to-pose training:
-  `python -m emg2pose.train train=True eval=True experiment=emgformer/regression_emgformer_middle_standard data_location=/path/to/emg2pose_memmap`.
-- EMGFormer pretraining or supervised pretraining configs, when used, should
-  come from `config/experiment/emgformer/` and run through the matching
-  EMGFormer entrypoint documented in the config.
-- EgoEMG WiLoR vision-to-pose training:
-  `python -m emg2pose.train_vision data_location=/path/to/EgoEMG_memmap video_root=/path/to/EgoEMG allintra_root=/path/to/EgoEMG_allintra vision_index_dir=/path/to/EgoEMG_memmap/vision_index train=True eval=True`.
+- EMGFormer supervised EMG-to-pose training (single entrypoint for all lines):
+  `python -m emg2pose.train experiment=emgformer/regression_egoemg train=true eval=true trainer.devices=[0]`.
+- EMGFormer pretraining: `python -m emg2pose.train_pretrain` (uses
+  `config_name=pretrain`; experiment configs in `config/experiment/emgformer/`).
+- EgoEMG vision/fusion training (same entrypoint, fusion experiment):
+  `python -m emg2pose.train experiment=fusion/fusion_rn18_s_center_8ch train=true eval=true trainer.devices=[0,1,2,3,4]`.
 - Build the EgoEMG vision sidecar index once:
   `python scripts/data/build_egoemg_vision_index.py --memmap-dir /path/to/EgoEMG_memmap --output-dir /path/to/EgoEMG_memmap/vision_index`.
 - Visualize actual EgoEMG vision dataset samples:
   `python scripts/viz/visualize_egoemg_vision_dataset.py --memmap-dir /path/to/EgoEMG_memmap --video-root /path/to/EgoEMG --allintra-root /path/to/EgoEMG_allintra --vision-index-dir /path/to/EgoEMG_memmap/vision_index --output-dir /tmp/egoemg_vision_dataset_viz --num-samples 16 --target-hand both`.
 - Run unit tests: `pytest emg2pose/tests -q`; add `-k name` to target a
   specific module.
+- Validate Hydra config composition (no training): see
+  `scripts/migrate/compare_resolved.py` (snapshot / verify-one / diff).
 
 ## Coding Style & Naming Conventions
 - Python 3.10+, 4-space indentation, 88-character line limit (`flake8`,
@@ -56,9 +63,14 @@
   running full training loops.
 
 ## Configuration & Experiment Tips
-- EMG-to-pose work should start from `config/experiment/emgformer/`.
-- Vision-to-pose work should start from `config/vision_base.yaml` or
-  `config/experiment/vision/`.
+- EMG-to-pose work should start from `config/experiment/emgformer/`
+  (inherits `config/lineage/emgformer.yaml`).
+- Vision/fusion-to-pose work should start from `config/experiment/fusion/`
+  (inherits `config/lineage/fusion.yaml`).
+- Classic baselines (emg2pose / neuropose / vemg2pose) live in
+  `config/experiment/emg2pose/` (inherit `config/lineage/classic.yaml`).
+- New experiments should inherit the appropriate lineage and express only
+  deltas. See `docs/config_architecture.md` for the layering rules.
 - Keep custom configs under existing Hydra groups. Commit only small,
   reproducible config deltas.
 - For EgoEMG vision, always use all-intra videos and `decord`; do not add a

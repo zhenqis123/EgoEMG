@@ -102,24 +102,20 @@ python scripts/viz/visualize_egoemg_vision_dataset.py \
   --num-samples 16 \
   --target-hand both
 
-# Train and evaluate WiLoR on EgoEMG
-python -m emg2pose.train_vision \
-  data_location=/path/to/EgoEMG_memmap \
-  video_root=/path/to/EgoEMG \
-  allintra_root=/path/to/EgoEMG_allintra \
-  vision_index_dir=/path/to/EgoEMG_memmap/vision_index \
-  mano_model_path=/path/to/mano_data \
-  wilor_checkpoint_path=/path/to/wilor_final.ckpt \
-  train=True \
-  eval=True
+# Train and evaluate fusion / vision-to-pose on EgoEMG (single entrypoint)
+python -m emg2pose.train \
+  experiment=fusion/fusion_rn18_s_center_8ch \
+  train=true eval=true trainer.devices=[0,1,2,3,4]
 
-# Vision-only single-frame baseline (no RefineNet, direct ViT → joint angles)
-python -m emg2pose.train_vision \
-  experiment=vision/vision_only_angle
+# Vision-only single-frame baseline
+python -m emg2pose.train \
+  experiment=fusion/vision_resnet18 \
+  train=true eval=true trainer.devices=[0]
 ```
 
-Full EgoEMG/WiLoR workflow details live in
-`docs/egoemg_wilor_training.md`.
+Vision/fusion config architecture: experiments in `config/experiment/fusion/`
+inherit `config/lineage/fusion.yaml`. See `docs/config_architecture.md` for the
+three-layer structure.
 
 ## Tests And Checks
 
@@ -169,17 +165,21 @@ EgoEMG webcam frame
 
 Key files:
 
-- `emg2pose/train_vision.py`: Hydra entrypoint for EgoEMG/WiLoR training and
-  evaluation.
-- `emg2pose/datasets/egoemg_vision_dataset.py`: EgoEMG memmap + video dataset
-  that emits WiLoR-native samples.
-- `emg2pose/models/wilor_egoemg.py`: `EgoEMGWiLoRModule`.
+- `emg2pose/train.py`: single Hydra entrypoint for all training (EMG, vision,
+  fusion) — `python -m emg2pose.train experiment=<group>/<name>`.
+- `emg2pose/datasets/egoemg_memmap_dataset.py`: EgoEMG memmap dataset that
+  serves both EMG-only and vision (pre-crops + all-intra videos) samples.
+- `emg2pose/models/modules/mid_fusion.py`: `MidFusionPoseFormer` (EMG+vision
+  fusion, center_supervised / vision_only / emg_only modes).
+- `emg2pose/models/modules/{wilor_vit,vit_vision,resnet_vision}.py`:
+  vision-only backbone modules used by fusion experiments.
 - `emg2pose/video_io.py`: all-intra path resolution and `decord` reader cache.
 - `emg2pose/mano.py`: local MANO utilities; datasets should not initialize
   MANO.
 - `scripts/data/build_egoemg_vision_index.py`: one-time sidecar index builder.
 - `scripts/viz/visualize_egoemg_vision_dataset.py`: dataset visualization debug.
-- `config/vision_base.yaml`: base WiLoR fine-tuning config.
+- `config/lineage/fusion.yaml`: L1 shared defaults for vision/fusion
+  experiments (see `docs/config_architecture.md`).
 
 ## Dataset Notes
 
