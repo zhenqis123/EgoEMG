@@ -10,6 +10,7 @@
 #   matmul_precision=high, ignore_head_tail_dims=0, max_epochs=100,
 #   log_every_n_steps=50, check_val_every_n_epoch=1.
 defaults:
+  - /lineage/_base
   - override /dataset: egoemg_angle_regression
   - override /datamodule: default
   - override /transforms: rotation_augmentation
@@ -19,14 +20,11 @@ defaults:
   # classic baseline inlines its own `network:` architecture block.
 
 # Lineage identifier.
-lineage: classic
+lineage: emg2pose
 
 # ── Shared data path (EgoEMG memmap). Experiments may override.
-egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,/home/xiziheng/develop/emg2pose}/data/EgoEMG_memmap
 
 # ── Uniform training-framework defaults ─────────────────────────────────────
-matmul_precision: high
-ignore_head_tail_dims: 0
 
 trainer:
   max_epochs: 100

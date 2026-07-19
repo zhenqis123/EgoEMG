@@ -1,6 +1,4 @@
 # @package _global_
-# Migrated to inherit lineage/emgformer.yaml (framework defaults).
-# Business params preserved verbatim; resolved config identical to pre-migration.
 # Small EMGFormer.
 # Train: EgoEMG train split (left/right, 22-dim including wrist).
 # Val: EgoEMG held-out user/gesture/both splits only.

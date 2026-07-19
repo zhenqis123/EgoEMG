@@ -1,13 +1,10 @@
 # @package _global_
-# Migrated to inherit lineage/emgformer.yaml (framework defaults).
-# Business params preserved verbatim; resolved config identical to pre-migration.
 # Only Incre Ep 4,5 in training (no Ep 0,1,2,3).
 # EgoEMG full (all splits) + Incre train (Ep 4-5 前80%) → Incre val (Ep 3-5 后20%)
 # Small model + best batch augmentation (trial #81)
 defaults:
   - /experiment/emgformer/regression_egoemg
   - override /module/decoder: transformer/preset/small
-  - override /transforms: emgformer_regression_aug_extended
   - _self_
 
 checkpoint:

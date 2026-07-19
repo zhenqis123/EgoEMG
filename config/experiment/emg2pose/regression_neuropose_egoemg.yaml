@@ -1,6 +1,4 @@
 # @package _global_
-# Migrated to inherit lineage/classic.yaml (framework defaults).
-# Business params preserved verbatim; resolved config identical to pre-migration.
 # NeuroPose baseline (original architecture) trained on EgoEMG from scratch.
 # Faithfully reproduces the original experiment config from upstream commit 8f9a15e.
 # No EMG normalization, only rotation augmentation — identical to original.
@@ -13,9 +11,8 @@
 #   python -m emg2pose.train experiment=emg2pose/regression_neuropose_egoemg
 
 defaults:
-  - /lineage/classic
+  - /lineage/emg2pose
   - /module: pose
-  - override /transforms: rotation_augmentation
   - _self_
 
 egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap

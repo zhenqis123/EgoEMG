@@ -1,6 +1,4 @@
 # @package _global_
-# Migrated to inherit lineage/classic.yaml (framework defaults).
-# Business params preserved verbatim; resolved config identical to pre-migration.
 # VEMG2Pose baseline (original architecture) trained on EgoEMG from scratch.
 # Faithfully reproduces the original experiment config from upstream commit 8f9a15e.
 # No EMG normalization, only rotation augmentation — identical to original.
@@ -14,9 +12,8 @@
 #   python -m emg2pose.train experiment=emg2pose/regression_vemg2pose_egoemg
 
 defaults:
-  - /lineage/classic
+  - /lineage/emg2pose
   - /module: vemg_with_initial_state
-  - override /lr_scheduler: cosine
   - override /transforms: emgformer_regression_aug_best
   - _self_
 

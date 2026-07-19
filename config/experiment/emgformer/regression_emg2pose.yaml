@@ -1,5 +1,8 @@
 # @package _global_
 # emg2pose_v3 回归训练基础模板
+# Note: not migrated to lineage/emgformer — uses emg2pose_v3 dataset
+# (not EgoEMG), so doesn't match the EgoEMG emgformer lineage assumptions.
+
 defaults:
   - /module: emgformer
   - override /module/featurizer: tds_slim
@@ -57,6 +60,7 @@ trainer:
   precision: bf16-mixed
   max_epochs: 250
   check_val_every_n_epoch: 1
+  devices: [0]
 
 callbacks:
   - _target_: pytorch_lightning.callbacks.LearningRateMonitor

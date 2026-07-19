@@ -1,4 +1,7 @@
 # @package _global_
+# Note: not migrated to lineage/emg2pose — test variant using emg2pose_v3
+# dataset; stays self-contained.
+
 defaults:
   - /module: vemg_with_initial_state
   - override /lr_scheduler: warmup_cosine

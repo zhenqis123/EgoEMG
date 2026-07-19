@@ -68,7 +68,7 @@
 - Vision/fusion-to-pose work should start from `config/experiment/fusion/`
   (inherits `config/lineage/fusion.yaml`).
 - Classic baselines (emg2pose / neuropose / vemg2pose) live in
-  `config/experiment/emg2pose/` (inherit `config/lineage/classic.yaml`).
+  `config/experiment/emg2pose/` (inherit `config/lineage/emg2pose.yaml`).
 - New experiments should inherit the appropriate lineage and express only
   deltas. See `docs/config_architecture.md` for the layering rules.
 - Keep custom configs under existing Hydra groups. Commit only small,

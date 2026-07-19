@@ -15,6 +15,7 @@
 #   loss_weights, center_target_only, skip_emg_loading, vision_num_frames,
 #   per_episode_crops_dir, max_epochs, devices.
 defaults:
+  - /lineage/_base
   - override /dataset: egoemg_angle_regression
   - override /datamodule: default
   - override /lr_scheduler: cosine
@@ -25,14 +26,11 @@ defaults:
 lineage: fusion
 
 # ── Shared data path (EgoEMG memmap). Experiments may override.
-egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,/home/xiziheng/develop/emg2pose}/data/EgoEMG_memmap
 
 # WiLoR / MANO paths NOT pinned here — only wilor_vit experiments need them,
 # and they set their own. Other fusion experiments (resnet/vit/mid_fusion) don't.
 
 # ── Uniform training-framework defaults ──────────────────────────────────────
-matmul_precision: high
-ignore_head_tail_dims: 0
 
 trainer:
   gradient_clip_val: 1

@@ -41,11 +41,13 @@ loss_weights:
   mae: 1
   landmark/fingertip: 0.01
 
+# Trainer framework fields. precision / devices are intentionally NOT set here
+# — they must be provided by a lineage or the experiment to avoid silent
+# fp32-vs-bf16 or wrong-GPU fallbacks. max_epochs is kept as a fallback because
+# lr_scheduler.cosine.T_max interpolates ${trainer.max_epochs}.
 trainer:
   max_epochs: 200
-  devices: [1,2,4]
   log_every_n_steps: 1
-  precision: 32
   enable_model_summary: False
 
 # By default: static learning rate

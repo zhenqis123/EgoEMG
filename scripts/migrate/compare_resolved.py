@@ -80,9 +80,6 @@ def _list_experiments() -> list[str]:
     for group in EXPERIMENT_GROUPS:
         for yml in sorted(glob.glob(str(CONFIG_DIR / "experiment" / group / "*.yaml"))):
             name = Path(yml).stem
-            # skip _archive contents if any leak to top level
-            if "_archive" in yml:
-                continue
             exps.append(f"{group}/{name}")
     return exps
 

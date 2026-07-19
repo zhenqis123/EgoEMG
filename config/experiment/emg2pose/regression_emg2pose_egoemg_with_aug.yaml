@@ -1,6 +1,4 @@
 # @package _global_
-# Migrated to inherit lineage/classic.yaml (framework defaults).
-# Business params preserved verbatim; resolved config identical to pre-migration.
 # EMG2Pose baseline (TDS + MLP, original architecture) trained on EgoEMG from scratch.
 # Faithfully reproduces the original experiment config from upstream commit 8f9a15e.
 # No EMG normalization, only rotation augmentation — identical to original.
@@ -16,7 +14,7 @@
 #     data_location=/path/to/EgoEMG_memmap
 
 defaults:
-  - /lineage/classic
+  - /lineage/emg2pose
   - /module: pose_stateful
   - override /transforms: emgformer_regression_aug_best
   - _self_

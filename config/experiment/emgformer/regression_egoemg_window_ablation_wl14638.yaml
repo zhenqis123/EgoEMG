@@ -18,11 +18,9 @@
 #   * loss_weights: mae + fingertip_distance only (no landmark/fingertip).
 #   * datamodule: no eval_multiprocessing_context override.
 defaults:
-  - /module: emgformer
-  - override /dataset: egoemg_angle_regression
+  - /lineage/emgformer
   - override /module/featurizer: tds_no_out  # placeholder; overridden below
   - override /module/decoder: transformer/preset/middle_aggressive
-  - override /lr_scheduler: cosine
   - _self_
 
 checkpoint:
@@ -88,7 +86,6 @@ module:
     activation: relu
     dropout: 0.1
 
-ignore_head_tail_dims: 0
 
 num_workers: 12
 
@@ -129,15 +126,10 @@ lr_scheduler:
     eta_min: 5e-6
 
 trainer:
-  gradient_clip_val: 1
   devices: [0, 1, 2, 3, 4, 5]
-  precision: bf16-mixed
   max_epochs: 150
-  check_val_every_n_epoch: 1
   log_every_n_steps: 5
-
 batch_size: 194
-matmul_precision: high
 
 # trial_0006 batch_augmentation (full pipeline, all knobs set explicitly)
 batch_augmentation:

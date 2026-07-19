@@ -12,6 +12,7 @@
 #   precision=bf16-mixed, gradient_clip_val=1, check_val_every_n_epoch=1,
 #   matmul_precision=high, ignore_head_tail_dims=0.
 defaults:
+  - /lineage/_base
   - /module: emgformer
   - /augmentation: batch_aug
   - override /dataset: egoemg_angle_regression
@@ -25,11 +26,8 @@ defaults:
 lineage: emgformer
 
 # ── Shared data path (EgoEMG memmap). Experiments may override.
-egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,/home/xiziheng/develop/emg2pose}/data/EgoEMG_memmap
 
 # ── Uniform training-framework defaults ──────────────────────────────────────
-matmul_precision: high
-ignore_head_tail_dims: 0
 
 trainer:
   gradient_clip_val: 1

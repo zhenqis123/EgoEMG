@@ -1,15 +1,10 @@
 # @package _global_
-# Migrated to inherit lineage/emgformer.yaml (framework defaults).
-# Business params preserved verbatim; resolved config identical to pre-migration.
 # 从预训练 checkpoint finetune 到 EgoEMG 的基础模板
 # checkpoint 路径由 .sh 脚本通过 CLI override 传入
 defaults:
   - /lineage/emgformer
   - override /transforms: emgformer_regression_aug_best
-  - override /module/featurizer: tds_slim
   - override /module/decoder: transformer/preset/middle_aggressive
-  - override /dataset: egoemg_angle_regression
-  - override /datamodule: egoemg
   - override /augmentation: none
   - _self_
 

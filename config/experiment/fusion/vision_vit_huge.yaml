@@ -8,9 +8,7 @@
 defaults:
   - /lineage/fusion
   - /module: vit_vision
-  - override /dataset: egoemg_angle_regression
   - override /transforms: noop
-  - override /lr_scheduler: cosine
   - _self_
 
 # ── EMG data (skipped — vision-only) ───────────────────────────────────────

@@ -1,0 +1,13 @@
+# @package _global_
+# Common defaults shared by all three lineages (emgformer / fusion / classic).
+# Each lineage inherits this via `defaults: [- /lineage/_base, - _self_]`.
+#
+# Keep this minimal: only truly universal framework fields. Per-lineage
+# framework specifics (precision, gradient_clip_val, max_epochs, ...) stay in
+# the individual lineage files.
+matmul_precision: high
+ignore_head_tail_dims: 0
+
+# Shared data path. Override via the EMG2POSE_ROOT env var or CLI; the relative
+# fallback assumes the train entrypoint runs from the repo root.
+egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap

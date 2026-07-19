@@ -1,15 +1,9 @@
 # @package _global_
-# Migrated to inherit lineage/emgformer.yaml (framework defaults).
-# Business params preserved verbatim; resolved config identical to pre-migration.
 # EgoEMG 回归训练基础模板
 # 用法: 通过 experiments/regression/*.sh 脚本启动，或直接 CLI override
 defaults:
   - /lineage/emgformer
-  - override /module/featurizer: tds_slim
   - override /module/decoder: transformer/preset/middle_aggressive
-  - override /dataset: egoemg_angle_regression
-  - override /transforms: emgformer_regression_aug_extended
-  - override /datamodule: egoemg
   - _self_
 
 pretrained_strict: false

@@ -1,6 +1,4 @@
 # @package _global_
-# Migrated to inherit lineage/emgformer.yaml (framework defaults).
-# Business params preserved verbatim; resolved config identical to pre-migration.
 # Co-training: EgoEMG (target_hand 8ch) + emg2pose (16ch → 8ch via channel_indices)
 # Both datasets use per-dataset normalization to handle 12x signal amplitude difference.
 # emg2pose joint_angles padded 20→22 to match EgoEMG (wrist pitch/yaw are zero-padded).
@@ -16,7 +14,6 @@
 #     batch_size=300
 defaults:
   - /experiment/emgformer/regression_egoemg
-  - override /transforms: emgformer_regression_aug_extended
   - _self_
 
 emg2pose_memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap

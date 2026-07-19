@@ -94,7 +94,6 @@ def _is_pretrain_checkpoint(state_dict: dict[str, torch.Tensor] | None) -> bool:
         "model.gesture_head.",
         "model.keystroke_head.",
         "model.angle_head.",  # Pretrain uses angle_head, regular uses head
-        "model.quantizer.",
         "model.mask_embedding",
         "model.projection.",
     )

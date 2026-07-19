@@ -1,6 +1,4 @@
 # @package _global_
-# Migrated to inherit lineage/emgformer.yaml (framework defaults).
-# Business params preserved verbatim; resolved config identical to pre-migration.
 # EgoEMG + EgoEMG_incre cotrain at WL=12000 with V2 best augmentation.
 # Adds incre right-hand data to the training set alongside main EgoEMG.
 # Val/test remain EgoEMG-only for fair comparison.
@@ -12,12 +10,7 @@
 
 defaults:
   - /lineage/emgformer
-  - override /module/featurizer: tds_slim
   - override /module/decoder: transformer/preset/middle_aggressive
-  - override /dataset: egoemg_angle_regression
-  - override /lr_scheduler: cosine
-  - override /transforms: emgformer_regression_aug_extended
-  - override /datamodule: egoemg
   - _self_
 
 checkpoint:

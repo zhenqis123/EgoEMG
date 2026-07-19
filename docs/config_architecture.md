@@ -43,7 +43,7 @@ config.
 |---|---|---|
 | `emgformer.yaml` | precision=bf16-mixed, gradient_clip_val=1, check_val_every_n_epoch=1, matmul_precision=high, ignore_head_tail_dims=0; defaults group selection (module=emgformer, featurizer=tds_slim, dataset=egoemg_angle_regression, datamodule=egoemg, transforms=emgformer_regression_aug_extended, augmentation=batch_aug, lr_scheduler=cosine) | window_length, stride, lr, max_epochs, decoder preset, log_every_n_steps, devices, callbacks, logger |
 | `fusion.yaml` | precision=bf16-mixed, gradient_clip_val=1, matmul_precision=high, ignore_head_tail_dims=0; defaults group selection (dataset=egoemg_angle_regression, datamodule=default, lr_scheduler=cosine) | module (mid_fusion/resnet_vision/vit_vision/wilor_vit), transforms, window_length, stride, dataset_repeat, optimizer, loss_weights, vision fields, max_epochs, devices |
-| `classic.yaml` | matmul_precision=high, ignore_head_tail_dims=0, max_epochs=100, check_val_every_n_epoch=1, log_every_n_steps=50; defaults group selection | module (pose/pose_stateful, each inlines its own `network:` block), precision, gradient_clip_val, datamodule.{wl,stride,norm}, lr, devices |
+| `emg2pose.yaml` | matmul_precision=high, ignore_head_tail_dims=0, max_epochs=100, check_val_every_n_epoch=1, log_every_n_steps=50; defaults group selection | module (pose/pose_stateful, each inlines its own `network:` block), precision, gradient_clip_val, datamodule.{wl,stride,norm}, lr, devices |
 
 ### L2 — `config/experiment/<group>/<name>.yaml` (single experiment)
 

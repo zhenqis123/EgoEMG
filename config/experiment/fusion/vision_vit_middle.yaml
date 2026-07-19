@@ -8,10 +8,7 @@
 defaults:
   - /lineage/fusion
   - /module: mid_fusion
-  - override /dataset: egoemg_angle_regression
-  - override /datamodule: default
   - override /transforms: noop
-  - override /lr_scheduler: cosine
   - override /module/featurizer: tds_slim
   - _self_
 
