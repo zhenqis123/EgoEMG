@@ -1191,7 +1191,7 @@ class EgoEmgMemmapDataset(Dataset):
                     features[pos] = feat
                     valid_mask[pos] = valid
                     joint_angles_all[pos] = self._read_center_ja(
-                        center, ja_mm, pitch_mm, yaw_mm, lv_mm, hand_idx
+                        center, ja_mm, pitch_mm, yaw_mm
                     )
                     label_valid_all[pos] = self._read_center_lv(center, lv_mm, hand_idx)
                     pos += 1

@@ -12,12 +12,6 @@ from torch import nn
 
 
 # DINOv2 ViT variants from timm
-_DINOV2_VARIANTS = {
-    "vit_small": ("vit_small_patch14_dinov2", 384),
-    "vit_base": ("vit_base_patch14_dinov2", 768),
-    "vit_large": ("vit_large_patch14_dinov2", 1024),
-    "vit_huge": ("vit_giant_patch14_dinov2", 1536),
-}
 
 
 class VisionViTPose(nn.Module):

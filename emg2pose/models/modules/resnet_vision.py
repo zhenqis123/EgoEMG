@@ -9,7 +9,6 @@ from __future__ import annotations
 import torch
 from torch import nn
 
-_RESNET_DIMS = {"resnet18": 512, "resnet34": 512, "resnet50": 2048, "resnet152": 2048}
 
 _RESNET_BUILDERS = {
     "resnet18": ("resnet18", "ResNet18_Weights"),

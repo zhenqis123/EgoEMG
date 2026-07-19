@@ -15,7 +15,7 @@ from emg2pose.models.decoders.lstm import SequentialLSTM
 
 class PoseModule(BaseModule):
     """
-    Tracks pose by predicting posititions or velocities,
+    Tracks pose by predicting positions or velocities,
     optionally given the initial state.
     """
 
@@ -42,7 +42,7 @@ class PoseModule(BaseModule):
 
 class StatePoseModule(BaseModule):
     """
-    Tracks pose by predicting posititions or velocities, optionally given the initial
+    Tracks pose by predicting positions or velocities, optionally given the initial
     state and conditioned on the previous state at each time point.
     """
 

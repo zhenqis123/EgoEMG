@@ -9,6 +9,8 @@ import torch
 from torch import nn
 
 from emg2pose.models.modules.base import BaseModule
+from emg2pose.models.modules._vision_constants import DINOV2_VARIANTS as _DINOV2_VARIANTS, RESNET_DIMS as _RESNET_DIMS
+from emg2pose.models.modules._pooling import TemporalAttentionPool
 from emg2pose.models.vit_freeze import apply_vit_freeze
 
 
@@ -19,14 +21,8 @@ if str(WILOR_PATH) not in sys.path:
     sys.path.insert(0, str(WILOR_PATH))
 
 # DINOv2 ViT variants from timm — shared with VisionViTPose
-_DINOV2_VARIANTS = {
-    "vit_small": ("vit_small_patch14_dinov2", 384),
-    "vit_base": ("vit_base_patch14_dinov2", 768),
-    "vit_large": ("vit_large_patch14_dinov2", 1024),
-}
 
 # ResNet backbone → feature dimension
-_RESNET_DIMS = {"resnet18": 512, "resnet34": 512, "resnet50": 2048, "resnet152": 2048}
 
 
 def _init_residual_branch(head: nn.Module) -> None:
@@ -161,12 +157,7 @@ class MidFusionPoseFormer(BaseModule):
 
         # ── center_supervised: temporal attention pooling over EMG decoder ──
         if fusion_mode == "center_supervised":
-            hidden = max(int(feat_dim) // 4, 16)
-            self.temporal_attn = nn.Sequential(
-                nn.Linear(int(feat_dim), hidden),
-                nn.Tanh(),
-                nn.Linear(hidden, 1),
-            )
+            self.temporal_attn = TemporalAttentionPool(feat_dim)
 
     def _forward_center_supervised(
         self,
@@ -455,7 +446,7 @@ class MidFusionPoseFormer(BaseModule):
             feat = feat.view(bsz, num_frames, -1).mean(dim=1)
         return feat
 
-    def forward(self, batch: dict[str, torch.Tensor]) -> torch.Tensor:
+    def forward(self, batch: dict[str, torch.Tensor]) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         if "vision_features" in batch:
             vision_features = batch["vision_features"]
         elif "vision_img" in batch:

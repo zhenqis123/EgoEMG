@@ -638,7 +638,22 @@ class EmgPredictionModule(pl.LightningModule):
         loss = 0.0
         for loss_name, weight in self.loss_weights.items():
             lookup = _LOSS_KEY_COMPAT.get(loss_name, loss_name)
-            loss += metrics.get(f"{stage}_{lookup}", 0.0) * weight
+            full_key = f"{stage}_{lookup}"
+            metric_val = metrics.get(full_key, None)
+            if metric_val is None:
+                # Loss weight specified but no matching metric computed — usually
+                # a typo in loss_weights config or an unsupported loss for this
+                # model. Warn once (non-fatal: weight may legitimately be 0).
+                if weight != 0.0 and not getattr(self, f"_warned_missing_{loss_name}", False):
+                    log.warning(
+                        "loss_weights entry %r (weight=%s) produced no metric "
+                        "(key %r missing); this loss term is silently ignored. "
+                        "Check for typos or unsupported loss for this model.",
+                        loss_name, weight, full_key,
+                    )
+                    setattr(self, f"_warned_missing_{loss_name}", True)
+                metric_val = 0.0
+            loss += metric_val * weight
         mark("loss_reduce")
 
         # ── Delta L2: always report magnitude, optionally regularize ──

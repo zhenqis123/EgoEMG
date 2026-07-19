@@ -104,8 +104,6 @@ def train(
     config: DictConfig,
     extra_callbacks: Sequence[Callable] | None = None,
 ):
-    # import torch
-    # torch.autograd.set_detect_anomaly(True)
     
     log.info(f"\nConfig:\n{OmegaConf.to_yaml(config)}")
 

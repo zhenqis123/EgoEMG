@@ -12,6 +12,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from emg2pose.models.modules.base import BaseModule
+from emg2pose.models.modules._pooling import TemporalAttentionPool
 
 
 def _debug_steps_enabled() -> bool:
@@ -65,12 +66,7 @@ class Emg2PoseFormer(BaseModule):
                     "Cannot determine feature dimension for temporal_attn. "
                     "Ensure decoder.output_proj or featurizer.out_channels is set."
                 )
-            hidden = max(int(feat_dim) // 4, 16)
-            self.temporal_attn = nn.Sequential(
-                nn.Linear(int(feat_dim), hidden),
-                nn.Tanh(),
-                nn.Linear(hidden, 1),
-            )
+            self.temporal_attn = TemporalAttentionPool(feat_dim)
 
     def forward(
         self, batch: dict[str, torch.Tensor]
@@ -104,11 +100,7 @@ class Emg2PoseFormer(BaseModule):
 
         if self.center_supervised:
             # Temporal attention pooling: learn which time steps inform center frame
-            attn_scores = self.temporal_attn(decoded.transpose(1, 2))  # (B, T', 1)
-            attn_weights = torch.softmax(attn_scores, dim=1)  # (B, T', 1)
-            emg_pooled = (
-                decoded * attn_weights.squeeze(-1).unsqueeze(1)
-            ).sum(dim=-1)  # (B, C)
+            emg_pooled = self.temporal_attn(decoded)  # (B, C)
             preds = self.head(emg_pooled.unsqueeze(-1))  # (B, 22, 1)
             mark("head", preds)
 
