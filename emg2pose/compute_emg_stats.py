@@ -4,6 +4,7 @@ import numpy as np
 import json
 import os
 import sys
+from pathlib import Path
 
 
 def load_memmap_field(manifest_path, field="emg"):
@@ -80,16 +81,23 @@ def compute_stats_sequential(arr, name, chunk_size=1_000_000, max_samples=5_000_
 def main():
     results = []
 
+    # EMG corpus root: override via EMG_CORPUS_ROOT env var; defaults to a
+    # sibling ``data/emg_corpus`` directory relative to the repo root.
+    emg_corpus = Path(os.environ.get(
+        "EMG_CORPUS_ROOT",
+        str(Path(__file__).resolve().parents[2] / "data" / "emg_corpus"),
+    ))
+
     datasets = [
-        ("emg2pose_v3", "/mnt/nvme/xiziheng/emg_corpus/emg2pose_v3_memmap/manifest.json", "emg"),
-        ("pimforce_v3", "/mnt/nvme/xiziheng/emg_corpus/pimforce_v3_memmap/manifest.json", "emg"),
-        ("ninapro_DB1", "/mnt/nvme/xiziheng/emg_corpus/Ninapro_relabeled_memmap/DB1/manifest.json", "emg"),
-        ("ninapro_DB2", "/mnt/nvme/xiziheng/emg_corpus/Ninapro_relabeled_memmap/DB2/manifest.json", "emg"),
-        ("ninapro_DB5", "/mnt/nvme/xiziheng/emg_corpus/Ninapro_relabeled_memmap/DB5/manifest.json", "emg"),
+        ("emg2pose_v3", emg_corpus / "emg2pose_v3_memmap" / "manifest.json", "emg"),
+        ("pimforce_v3", emg_corpus / "pimforce_v3_memmap" / "manifest.json", "emg"),
+        ("ninapro_DB1", emg_corpus / "Ninapro_relabeled_memmap" / "DB1" / "manifest.json", "emg"),
+        ("ninapro_DB2", emg_corpus / "Ninapro_relabeled_memmap" / "DB2" / "manifest.json", "emg"),
+        ("ninapro_DB5", emg_corpus / "Ninapro_relabeled_memmap" / "DB5" / "manifest.json", "emg"),
     ]
 
     # emg2qwerty has separate left/right
-    qwerty_manifest = "/mnt/nvme/xiziheng/emg_corpus/emg2qwerty_v3_memmap/manifest.json"
+    qwerty_manifest = emg_corpus / "emg2qwerty_v3_memmap" / "manifest.json"
     with open(qwerty_manifest) as f:
         m = json.load(f)
     for side in ["left", "right"]:
@@ -121,7 +129,7 @@ def main():
             row[f"p{p}"] = v
         rows.append(row)
     df = pd.DataFrame(rows)
-    out_path = "/home/xiziheng/develop/emg2pose/emg_stats_comparison.csv"
+    out_path = "emg_stats_comparison.csv"
     df.to_csv(out_path, index=False)
     print(f"\nSaved to {out_path}", flush=True)
 

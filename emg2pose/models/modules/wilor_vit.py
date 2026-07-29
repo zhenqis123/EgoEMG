@@ -9,6 +9,7 @@ Follows the same pattern as ResNetVisionPose — one image predicts one pose.
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 
 import torch
@@ -16,7 +17,11 @@ from torch import nn
 
 log = logging.getLogger(__name__)
 
-WILOR_PATH = Path(__file__).resolve().parents[3] / ".." / "WiLoR"
+# Resolve the WiLoR dependency.  Prefer an explicit override via the WILOR_PATH
+# environment variable; otherwise fall back to a sibling directory next to this
+# repository (``../WiLoR``), which is the documented install layout.
+_DEFAULT_WILOR = Path(__file__).resolve().parents[3] / ".." / "WiLoR"
+WILOR_PATH = Path(os.environ.get("WILOR_PATH", str(_DEFAULT_WILOR)))
 
 _MANO_COMPONENTS = [
     "pose_emb", "shape_emb", "cam_emb", "decpose", "decshape", "deccam",

@@ -17,6 +17,7 @@ Important:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import cv2
@@ -48,11 +49,20 @@ class EgoEmgVisualizer:
     def __init__(
         self,
         data_root: str | Path,
-        mano_model_path: str | Path = "/home/xiziheng/develop/WiLoR/mano_data/models",
+        mano_model_path: str | Path | None = None,
         device: str = "cuda",
     ):
         self.data_root = Path(data_root)
         self.device = device
+
+        # Resolve MANO model path: explicit arg > WILOR_PATH env var > sibling
+        # ../WiLoR directory next to this repo.
+        if mano_model_path is None:
+            wilor = Path(os.environ.get(
+                "WILOR_PATH",
+                str(Path(__file__).resolve().parents[3] / ".." / "WiLoR"),
+            ))
+            mano_model_path = wilor / "mano_data" / "models"
 
         with open(self.data_root / CALIB_PATH, encoding="utf-8") as f:
             calib = json.load(f)
