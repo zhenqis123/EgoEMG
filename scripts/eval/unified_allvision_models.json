@@ -1,0 +1,56 @@
+{
+  "fusion_rn18_s": {
+    "ckpt": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_rn18_s/train/version_0/checkpoints/last.ckpt",
+    "config_path": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_rn18_s/hydra/hydra_configs/config.yaml"
+  },
+  "vision_rn18": {
+    "ckpt": "data/experiment_inputs/vision_checkpoints/rn18.ckpt",
+    "experiment": "fusion/vision_resnet18",
+    "config_overrides": ["module.pretrained=false"]
+  },
+  "fusion_rn50_s": {
+    "ckpt": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_rn50_s/train/version_0/checkpoints/last.ckpt",
+    "config_path": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_rn50_s/hydra/hydra_configs/config.yaml"
+  },
+  "vision_rn50": {
+    "ckpt": "data/experiment_inputs/vision_checkpoints/rn50.ckpt",
+    "experiment": "fusion/vision_resnet50",
+    "config_overrides": ["module.pretrained=false"]
+  },
+  "fusion_rn152_s": {
+    "ckpt": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_rn152_s/train/version_0/checkpoints/fusion-s-epoch=144-val_mae=0.0966.ckpt",
+    "config_path": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_rn152_s/hydra/hydra_configs/config.yaml"
+  },
+  "vision_rn152": {
+    "ckpt": "data/experiment_inputs/vision_checkpoints/rn152.ckpt",
+    "experiment": "fusion/vision_resnet152",
+    "config_overrides": ["module.pretrained=false"]
+  },
+  "fusion_vits_s": {
+    "ckpt": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_vits_s/train/version_0/checkpoints/fusion-s-epoch=093-val_mae=0.1512.ckpt",
+    "config_path": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_vits_s/hydra/hydra_configs/config.yaml"
+  },
+  "vision_vits": {
+    "ckpt": "data/experiment_inputs/vision_checkpoints/vits.ckpt",
+    "experiment": "fusion/vision_vit_small",
+    "config_overrides": ["module.pretrained=false"]
+  },
+  "fusion_vitb_s": {
+    "ckpt": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_vitb_s/train/version_0/checkpoints/fusion-s-epoch=091-val_mae=0.1485.ckpt",
+    "config_path": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_vitb_s/hydra/hydra_configs/config.yaml"
+  },
+  "vision_vitb": {
+    "ckpt": "data/experiment_inputs/vision_checkpoints/vitb.ckpt",
+    "experiment": "fusion/vision_vit_base",
+    "config_overrides": ["module.pretrained=false"]
+  },
+  "fusion_vitl_s": {
+    "ckpt": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_vitl_s/train/version_0/checkpoints/fusion-s-epoch=130-val_mae=0.1139.ckpt",
+    "config_path": "data/logs/full_showee_s_l_all_fusions_20260721/fusion_vitl_s/hydra/hydra_configs/config.yaml"
+  },
+  "vision_vitl": {
+    "ckpt": "data/experiment_inputs/vision_checkpoints/vitl.ckpt",
+    "experiment": "fusion/vision_vit_large",
+    "config_overrides": ["module.pretrained=false"]
+  }
+}

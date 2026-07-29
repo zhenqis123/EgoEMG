@@ -1,0 +1,7 @@
+{
+  "fusion_rn50_m_egoemg_only_noaug_wl12000_50e_partial25": {
+    "ckpt": "./logs/20260725/fusion_rn50_m_egoemg_only_noaug_wl12000_50e/train/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=024-val_mae=0.0994.ckpt",
+    "config_path": "./logs/20260725/fusion_rn50_m_egoemg_only_noaug_wl12000_50e/train/hydra/hydra_configs/config.yaml",
+    "uses_vision": true
+  }
+}
