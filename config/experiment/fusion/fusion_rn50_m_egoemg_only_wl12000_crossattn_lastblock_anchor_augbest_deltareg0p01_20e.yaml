@@ -1,0 +1,13 @@
+# @package _global_
+# Single-variable residual-magnitude regularization experiment.  The current
+# best model has a stable post-hoc residual scale near 0.835, indicating mild
+# over-correction.  Keep architecture and all other training settings fixed.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_augbest_20e
+  - _self_
+
+loss_weights:
+  delta_reg: 0.01
+
+logger:
+  name: fusion_rn50_m_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_deltareg0p01_20e

@@ -1,0 +1,29 @@
+# @package _global_
+# EMG-only EMGFormer training with every ShowEE session added to training.
+# Validation/test remain EgoEMG-only for direct baseline comparability.
+defaults:
+  - /experiment/emgformer/regression_egoemg_window_ablation_wl12000
+  - override /dataset: egoemg_showee_angle_regression
+  - override /augmentation: batch_aug_best_v2
+  - _self_
+
+showee_memmap_dir: data/ShowEE_202607_memmap
+egoemg_incre_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_incre/data_right_merged
+showee_video_root: ${oc.env:EMG2POSE_ROOT,.}/data/showee
+showee_allintra_root: data/ShowEE_202607_allintra
+showee_per_episode_crops_dir: data/ShowEE_202607_crops
+
+egoemg_emg2pose_channel_indices: null
+egoemg_video_root: null
+egoemg_allintra_root: null
+egoemg_per_episode_crops_dir: null
+
+vision_num_frames: 0
+skip_emg_loading: false
+center_target_only: false
+
+datamodule:
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
+
+logger:
+  name: regression_egoemg_incre_showee_alltrain

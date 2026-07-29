@@ -1,0 +1,54 @@
+# @package _global_
+# Fresh RN50 + EMGFormer-M center-frame fusion on EgoEMG + ShowEE.
+#
+# The vision branch deliberately starts from torchvision ResNet-50 ImageNet
+# weights (vision_pretrained_checkpoint: null), while the entire EMG branch is
+# randomly initialized (pretrained_emg_checkpoint: null).  Incre remains
+# excluded, consistently with the full-data fusion protocol.
+defaults:
+  - /experiment/fusion/fusion_allvision_s_egoemg_showee
+  - /augmentation: batch_aug_best_v2
+  - _self_
+
+checkpoint: null
+pretrained_emg_checkpoint: null
+
+trainer:
+  max_epochs: 150
+
+optimizer:
+  lr: 1.0e-4
+
+lr_scheduler:
+  scheduler:
+    T_max: 150
+    eta_min: 1.0e-6
+
+datamodule:
+  window_length: 12_000
+  val_test_window_length: 12_000
+  stride: 600
+  val_test_stride: 12_000
+  eval_center_stride: 7_790
+  dataset_repeat: 2
+
+module:
+  vision_backbone_type: resnet50
+  vision_embed_dim: 2048
+  # null makes MidFusionPoseFormer load torchvision ResNet50_Weights.IMAGENET1K_V1.
+  vision_pretrained_checkpoint: null
+  fusion_mode: center_supervised
+  emg_feat_dim: 256
+  fusion_proj_dim: 256
+  decoder:
+    causal: false
+    pos_encoding: rope
+    in_channels: 256
+    model_dim: 256
+    num_heads: 8
+    num_layers: 6
+    ffn_dim: 1024
+    dropout: 0.15
+
+logger:
+  name: fusion_rn50_m_imagenet_emgscratch_augbest

@@ -1,0 +1,28 @@
+# @package _global_
+# A800 counterpart of the RN18 fusion ablation: a fresh RN50 + EMGFormer-S
+# fusion model, initialized from the matching vision-only and 8-channel EMG
+# checkpoints.  Training data is EgoEMG only.
+defaults:
+  - /experiment/fusion/fusion_rn18_s_egoemg_only_augbest_pretrained
+  - _self_
+
+vision_resnet_checkpoint: data/experiment_inputs/vision_checkpoints/rn50.ckpt
+
+module:
+  vision_backbone_type: resnet50
+  vision_embed_dim: 2048
+
+trainer:
+  devices: [0, 1, 2, 3, 4, 5, 6, 7]
+  max_epochs: 300
+
+optimizer:
+  lr: 5.0e-4
+
+lr_scheduler:
+  scheduler:
+    T_max: 300
+    eta_min: 5.0e-6
+
+logger:
+  name: fusion_rn50_s_egoemg_only_augbest_no_mixup

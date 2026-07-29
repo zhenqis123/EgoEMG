@@ -1,0 +1,103 @@
+# @package _global_
+# SensingDynamics baseline adapted from the official emg2pose benchmark to the
+# eight-electrode EgoEMG ring. It directly predicts 22 joint angles from raw
+# EMG plus a fixed 20 Hz low-pass branch.
+defaults:
+  - /lineage/emg2pose
+  - override /transforms: noop
+  - _self_
+
+egoemg_emg_field_preference: raw
+egoemg_emg_layout: target_hand
+egoemg_emg2pose_channel_indices: null
+egoemg_channel_interpolate: false
+
+module:
+  _target_: emg2pose.models.modules.sensingdynamics.SensingDynamicsModule
+  out_channels: 22
+  featurizer:
+    _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsFeaturizer
+    out_channels: 256
+    sample_rate: 2000.0
+    lowpass_hz: 20.0
+    lowpass_order: 4
+    include_lowpass: true
+    conv_blocks:
+      - _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
+        in_channels: 2
+        out_channels: 32
+        kernel_size: [3, 5]
+        stride: [2, 2]
+        dropout_rate: 0.25
+      - _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
+        in_channels: 32
+        out_channels: 128
+        kernel_size: [3, 5]
+        stride: [2, 2]
+        dropout_rate: 0.25
+      - _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
+        in_channels: 128
+        out_channels: 256
+        kernel_size: [3, 5]
+        stride: [2, 1]
+        dropout_rate: 0.25
+  decoder:
+    _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsMLP
+    in_channels: 256
+    out_channels: 22
+    hidden_channels: 512
+    dropout_rate: 0.4
+
+datamodule:
+  # Best SensingDynamics window reported by the emg2pose benchmark (5.08 s).
+  window_length: 10_167
+  val_test_window_length: 10_167
+  stride: 1_017
+  val_test_stride: 10_167
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
+  skip_ik_failures: false
+  prefetch_factor: 2
+  persistent_workers: true
+  pin_memory: false
+
+optimizer:
+  lr: 1.0e-4
+  weight_decay: 1.0e-2
+
+lr_scheduler:
+  scheduler:
+    T_max: 50
+    eta_min: 5.0e-6
+
+loss_weights:
+  mae: 1.0
+  landmark/fingertip: 0.01
+
+trainer:
+  max_epochs: 50
+  gradient_clip_val: 0
+  precision: bf16-mixed
+  devices: [0]
+
+batch_size: 320
+num_workers: 12
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "sensingdynamics-egoemg-{epoch:03d}-{val_mae:.4f}"
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+
+monitor_metric: val_mae
+monitor_mode: min
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: logs/sensingdynamics_egoemg
+  name: train
+  version: null
+  default_hp_metric: false

@@ -1,0 +1,16 @@
+# @package _global_
+# RN18 counterpart of the controlled RN50 + EMGFormer-S cross-attention run.
+defaults:
+  - /experiment/fusion/fusion_rn50_s_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_50e
+  - _self_
+
+vision_resnet_checkpoint: data/experiment_inputs/vision_checkpoints/rn18.ckpt
+
+module:
+  vision_backbone_type: resnet18
+  vision_embed_dim: 512
+  vision_trainable_prefixes:
+    - "7.1."
+
+logger:
+  name: fusion_rn18_s_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_50e

@@ -1,0 +1,12 @@
+# @package _global_
+# Matched short no-augmentation comparison using a 4,000-sample EMG window.
+defaults:
+  - /experiment/fusion/fusion_rn18_s_egoemg_only_noaug_wl12000_50e
+  - _self_
+
+datamodule:
+  window_length: 4_000
+  val_test_window_length: 4_000
+
+logger:
+  name: fusion_rn18_s_egoemg_only_noaug_wl4000_50e

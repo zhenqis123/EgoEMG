@@ -1,0 +1,21 @@
+# @package _global_
+# RN50-M protected residual fusion: preserve the trained vision-only predictor
+# exactly and learn only an EMG-conditioned residual correction.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_100e
+  - _self_
+
+module:
+  freeze_vision_branch: true
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "rn50-m-protected-{epoch:03d}-{val_mae:.4f}"
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+
+logger:
+  name: fusion_rn50_m_egoemg_only_noaug_wl12000_protected_100e

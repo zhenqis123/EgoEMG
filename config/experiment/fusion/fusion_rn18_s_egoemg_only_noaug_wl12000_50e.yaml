@@ -1,0 +1,16 @@
+# @package _global_
+# Short controlled no-augmentation comparison at the current WL12000 setting.
+defaults:
+  - /experiment/fusion/fusion_rn18_s_egoemg_only_noaug_dense
+  - _self_
+
+trainer:
+  max_epochs: 50
+
+lr_scheduler:
+  scheduler:
+    T_max: 50
+    eta_min: 5.0e-6
+
+logger:
+  name: fusion_rn18_s_egoemg_only_noaug_wl12000_50e

@@ -1,0 +1,82 @@
+# @package _global_
+# Mixed EgoEMG + ShowEE dataset. Every ShowEE session is train-only; validation
+# and testing remain EgoEMG-only for a controlled comparison with the EgoEMG
+# baseline. ShowEE uses canonical MANO-right labels for both hands, matching
+# EgoEMG, and has invalid (masked) wrist pitch/yaw.
+dataset:
+  train:
+    - &egoemg_train
+      _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      memmap_dir: ${egoemg_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      modalities: [emg, joint_angles, labels]
+      target_hand: left
+      emg_field_preference: ${oc.select:egoemg_emg_field_preference,filtered_paper}
+      emg_layout: ${egoemg_emg_layout}
+      emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
+      channel_interpolate: ${egoemg_channel_interpolate}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      dataset_name: egoemg
+      jitter: true
+      video_root: ${oc.select:egoemg_video_root,null}
+      allintra_root: ${oc.select:egoemg_allintra_root,null}
+      vision_patch_size: ${oc.select:vision_patch_size,256}
+      vision_num_frames: ${oc.select:vision_num_frames,0}
+      vision_frame_stride: ${oc.select:vision_frame_stride,1}
+      vision_frame_selection: ${oc.select:vision_frame_selection,center}
+      per_episode_crops_dir: ${oc.select:egoemg_per_episode_crops_dir,null}
+      skip_emg_loading: ${oc.select:skip_emg_loading,false}
+      center_target_only: ${oc.select:center_target_only,false}
+    - <<: *egoemg_train
+      target_hand: right
+    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+      memmap_dir: ${egoemg_incre_memmap_dir}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      allowed_splits: [train]
+      target_hand: right
+      emg_field_preference: filtered_paper
+      emg_layout: target_hand
+      emg2pose_channel_indices: null
+      channel_interpolate: false
+      dataset_name: egoemg_incre
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      jitter: true
+    - &showee_train
+      <<: *egoemg_train
+      memmap_dir: ${showee_memmap_dir}
+      # Include the original ShowEE train/val/test subject partitions in the
+      # training pool. No ShowEE subset is used below for validation or test.
+      allowed_splits: [all]
+      target_hand: left
+      emg_field_preference: filtered_paper
+      emg_layout: target_hand
+      emg2pose_channel_indices: null
+      channel_interpolate: false
+      dataset_name: showee
+      video_root: ${showee_video_root}
+      allintra_root: ${showee_allintra_root}
+      per_episode_crops_dir: ${showee_per_episode_crops_dir}
+    - <<: *showee_train
+      target_hand: right
+
+  val:
+    - &egoemg_val
+      <<: *egoemg_train
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      eval_center_stride: ${oc.select:datamodule.eval_center_stride,null}
+      allowed_splits: [user, gesture, both]
+      jitter: false
+    - <<: *egoemg_val
+      target_hand: right
+
+  test:
+    - &egoemg_test
+      <<: *egoemg_val
+    - <<: *egoemg_test
+      target_hand: right

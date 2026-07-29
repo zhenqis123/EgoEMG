@@ -1,0 +1,13 @@
+# @package _global_
+# Ablation 2: exact counterpart of the completed dense WL12000 RN18 fusion
+# run, using the sample-side EMG augmentation from legacy WL7790 RN18 fusion
+# (RotationAugmentation + RandomChannelMask + frequency masks + Gaussian noise).
+# The legacy run had no GPU batch augmentation.
+defaults:
+  - /experiment/fusion/fusion_rn18_s_egoemg_only_augbest_pretrained
+  - override /augmentation: none
+  - override /transforms: emgformer_regression_aug_best
+  - _self_
+
+logger:
+  name: fusion_rn18_s_egoemg_only_legacy_wl7790_aug_dense

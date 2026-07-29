@@ -1,0 +1,23 @@
+# @package _global_
+# EgoEMG + ShowEE mixed-data counterpart of fusion_rn18_s_center_8ch.
+# Change module.fusion_mode for modality ablations where supported by the
+# selected module; center_supervised is the main single-frame fusion setup.
+defaults:
+  - /experiment/fusion/fusion_rn18_s_center_8ch
+  - override /dataset: egoemg_showee_angle_regression
+  - _self_
+
+showee_memmap_dir: data/ShowEE_202607_memmap
+showee_video_root: ${oc.env:EMG2POSE_ROOT,.}/data/showee
+showee_allintra_root: data/ShowEE_202607_allintra
+showee_per_episode_crops_dir: data/ShowEE_202607_crops
+
+egoemg_video_root: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG
+egoemg_allintra_root: data/EgoEMG_allintra
+egoemg_per_episode_crops_dir: data/EgoEMG_v2_crops
+
+datamodule:
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
+
+logger:
+  name: fusion_rn18_s_8ch_egoemg_showee

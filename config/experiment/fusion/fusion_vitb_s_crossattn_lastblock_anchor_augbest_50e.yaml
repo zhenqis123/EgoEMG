@@ -1,0 +1,47 @@
+# @package _global_
+# ViT-B + EMGFormer-S cross-attention with last-block visual adaptation.
+#
+# Motivation (data-driven): the fully-frozen ViT-B cross-attention variant
+# (fusion_vitb_s_egoemg_only_augbest_50e) plateaus at val_mae=0.1045 — worse than
+# the ViT-B vision-only baseline (0.1010). Diagnostics show severe overfitting
+# (train_mae=0.022 vs val_mae=0.104, a 4.6x gap) with a near-zero EMG residual
+# (val_delta_l2=0.002). The frozen ViT features never adapt to the fusion task.
+#
+# This mirrors the proven RN50-S recipe (fusion_rn50_s_..._crossattn_lastblock_
+# anchor_augbest_50e, val_mae=0.0924) onto ViT-B: keep EMG-S, anchor loss,
+# aug, schedule, and lr identical; replace only the frozen vision branch with a
+# last-block-adapted one. DINOv2 ViT-B exposes blocks.0..11 plus a final `norm`
+# LayerNorm (verified via timm), so unfreezing ["blocks.11.", "norm."] is the
+# ViT analogue of the ResNet ["7.2."] last-Bottleneck adaptation.
+#
+# `lock_vision_batch_norm: true` is retained for recipe parity; it is a no-op
+# here because DINOv2 ViT uses LayerNorm, not BatchNorm.
+defaults:
+  - /experiment/fusion/fusion_vitb_s_egoemg_only_augbest_50e
+  - _self_
+
+module:
+  freeze_vision_branch: false
+  # Only the final transformer block + final LayerNorm are trainable; everything
+  # else (patch_embed, pos_embed, cls_token, blocks.0..10) stays frozen.
+  vision_trainable_prefixes:
+    - "blocks.11."
+    - "norm."
+  freeze_vision_head: true
+  lock_vision_batch_norm: true
+
+# Inherit the parent's optimizer.lr = 1.0e-5 (DO NOT override to 1.0e-4).
+# With component_lr_scales.vision_backbone = 0.01 this gives the adapted block a
+# vision LR of 1e-7 — exactly the RN50 winning recipe (0.0924).  A 10x higher
+# vision LR (1e-6) was empirically observed to stall/diverge on ViT-B.
+
+component_lr_scales:
+  # Whole vision backbone group gets a tiny LR; since only the last block is
+  # trainable, this drives the adapted block at base*0.01 = 1e-7.
+  vision_backbone: 0.01
+  head_vision: 0.0
+
+anchor_loss_weight: 1.0
+
+logger:
+  name: fusion_vitb_s_crossattn_lastblock_anchor_augbest_50e

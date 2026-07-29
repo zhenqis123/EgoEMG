@@ -1,0 +1,16 @@
+# @package _global_
+# RN152 counterpart of the controlled RN50 + EMGFormer-S cross-attention run.
+defaults:
+  - /experiment/fusion/fusion_rn50_s_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_50e
+  - _self_
+
+vision_resnet_checkpoint: data/experiment_inputs/vision_checkpoints/rn152.ckpt
+
+module:
+  vision_backbone_type: resnet152
+  vision_embed_dim: 2048
+  vision_trainable_prefixes:
+    - "7.2."
+
+logger:
+  name: fusion_rn152_s_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_50e

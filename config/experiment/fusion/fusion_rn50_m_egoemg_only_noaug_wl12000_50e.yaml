@@ -1,0 +1,34 @@
+# @package _global_
+# Controlled RN50 + EMGFormer-M counterpart of the best no-augmentation
+# EgoEMG-only fusion setup.  Both modality branches use their trained
+# single-modality checkpoints; only fusion-specific layers start from scratch.
+defaults:
+  - /experiment/fusion/fusion_rn50_s_egoemg_only_noaug_dense
+  - _self_
+
+vision_resnet_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/fusion/vision_resnet50/version_0/checkpoints/resnet50-vision-epoch=145-val_mae=0.0923.ckpt
+pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_middle_incre_cotrain/checkpoints/best.ckpt
+
+trainer:
+  max_epochs: 50
+
+lr_scheduler:
+  scheduler:
+    T_max: 50
+    eta_min: 5.0e-6
+
+module:
+  emg_feat_dim: 256
+  fusion_proj_dim: 256
+  decoder:
+    causal: false
+    pos_encoding: rope
+    in_channels: 256
+    model_dim: 256
+    num_heads: 8
+    num_layers: 6
+    ffn_dim: 1024
+    dropout: 0.15
+
+logger:
+  name: fusion_rn50_m_egoemg_only_noaug_wl12000_50e

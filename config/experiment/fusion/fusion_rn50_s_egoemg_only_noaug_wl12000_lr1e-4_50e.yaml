@@ -1,0 +1,22 @@
+# @package _global_
+# Controlled RN50-S regression against the strong RN18-S no-augmentation run.
+# Keep its data regime, pretrained modality branches, fusion structure, and
+# 50-epoch horizon; lower only the base LR from 5e-4 to 1e-4.
+defaults:
+  - /experiment/fusion/fusion_rn50_s_egoemg_only_noaug_dense
+  - _self_
+
+optimizer:
+  lr: 1.0e-4
+
+lr_scheduler:
+  scheduler:
+    T_max: 50
+    eta_min: 5.0e-6
+
+trainer:
+  max_epochs: 50
+
+logger:
+  name: fusion_rn50_s_egoemg_only_noaug_wl12000_lr1e-4_50e
+

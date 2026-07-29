@@ -1,0 +1,14 @@
+# @package _global_
+# Discriminative-LR ablation.  Gradient diagnostics show the pretrained EMG
+# decoder has a much smaller update-to-weight ratio than the fusion block and
+# residual head.  Double only its LR; keep every loss and architecture setting
+# identical to the best last-block recipe.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_augbest_20e
+  - _self_
+
+component_lr_scales:
+  decoder: 2.0
+
+logger:
+  name: fusion_rn50_m_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_decoder2x_20e

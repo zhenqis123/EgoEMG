@@ -1,0 +1,113 @@
+# @package _global_
+# RN18 + EMGFormer-S direct joint-token fusion on EgoEMG only.
+#
+# This is intentionally self-contained at the experiment level.  It does not
+# inherit any prior WL12000 comparison experiment: its data sampling, no-aug
+# policy, initializers, and optimization schedule are declared below.
+defaults:
+  - /lineage/fusion
+  - /module: mid_fusion
+  - /augmentation: none
+  - override /module/featurizer: tds_slim
+  - override /transforms: noop
+  - _self_
+
+# ── Data and vision inputs ──────────────────────────────────────────────────
+egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
+egoemg_emg_layout: target_hand
+egoemg_emg2pose_channel_indices: null
+egoemg_channel_interpolate: false
+egoemg_emg_field_preference: filtered_paper
+per_episode_crops_dir: data/EgoEMG_v2_crops
+vision_num_frames: 1
+vision_frame_selection: center
+vision_patch_size: 256
+skip_emg_loading: false
+center_target_only: true
+
+# Compatible single-modality initializers.  The RN18 pose head is deliberately
+# not used: direct joint-token decoding has one randomly initialized pose head.
+vision_resnet_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/experiment_inputs/vision_checkpoints/rn18.ckpt
+pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
+checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/20260725/fusion_rn18_s_token_self_attention_direct_pose_egoemg_only_noaug_wl12000_50e/train/train/version_0/checkpoints/best-val_mae=val_mae=0.1024.ckpt
+
+# The launcher overrides these for the available GPU count.  They are declared
+# here so Hydra can validate ordinary ``batch_size=...`` CLI overrides.
+batch_size: 180
+val_batch_size: 180
+num_workers: 10
+
+# ── Dense WL12000 sampling ──────────────────────────────────────────────────
+datamodule:
+  window_length: 12_000
+  val_test_window_length: 12_000
+  stride: 400
+  val_test_stride: 12_000
+  dataset_repeat: 2
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
+  skip_ik_failures: false
+  persistent_workers: true
+  prefetch_factor: 2
+  pin_memory: true
+
+# ── Optimization ────────────────────────────────────────────────────────────
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 5.0e-5
+  weight_decay: 1.0e-4
+
+lr_scheduler:
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    T_max: 150
+    eta_min: 5.0e-6
+  interval: epoch
+  frequency: 1
+
+trainer:
+  devices: [0, 1, 2, 3, 4, 5]
+  max_epochs: 150
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 1
+
+# ── Direct joint-token decoder ──────────────────────────────────────────────
+module:
+  vision_backbone_type: resnet18
+  vision_embed_dim: 512
+  vision_pretrained_checkpoint: ${vision_resnet_checkpoint}
+  skip_vision_backbone: false
+  fusion_mode: token_self_attention
+  emg_feat_dim: 256
+  out_channels: 22
+  provide_initial_pos: false
+  token_dim: 256
+  token_num_heads: 8
+  token_num_layers: 3
+  token_ffn_dim: 512
+  token_dropout: 0.1
+  token_max_vision_grid_size: 16
+  decoder:
+    causal: false
+    pos_encoding: rope
+    in_channels: 256
+    model_dim: 256
+    num_heads: 4
+    num_layers: 3
+    ffn_dim: 512
+    dropout: 0.1
+  head:
+    in_channels: 256
+    out_channels: 22
+
+component_lr_scales:
+  featurizer: 1.0
+  decoder: 1.0
+  vision_backbone: 1.0
+  vision_proj: 1.0
+  fusion_proj: 1.0
+  head: 1.0
+  head_vision: 1.0
+
+logger:
+  name: fusion_rn18_s_token_self_attention_direct_pose_egoemg_only

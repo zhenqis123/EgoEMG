@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - /experiment/fusion/fusion_simple_unfrozenvision_s_egoemg_only_augbest_30e
+  - _self_
+
+vision_vit_checkpoint: data/experiment_inputs/vision_checkpoints/vits.ckpt
+
+module:
+  vision_backbone_type: vit_small
+  vision_embed_dim: 384
+  vision_pretrained_checkpoint: ${vision_vit_checkpoint}
+
+logger:
+  name: fusion_vits_s_simple_unfrozen_augbest_30e

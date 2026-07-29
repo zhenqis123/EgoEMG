@@ -1,0 +1,10 @@
+# @package _global_
+# RN152-S controlled ablation: disable every EMG augmentation.
+defaults:
+  - /experiment/fusion/fusion_rn152_s_egoemg_only_augbest_no_mixup
+  - override /augmentation: none
+  - override /transforms: noop
+  - _self_
+
+logger:
+  name: fusion_rn152_s_egoemg_only_noaug_dense

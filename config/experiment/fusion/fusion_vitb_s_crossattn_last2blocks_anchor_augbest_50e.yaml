@@ -1,0 +1,20 @@
+# @package _global_
+# Capacity ablation: adapt the last TWO ViT-B blocks instead of one.
+#
+# Controlled variable vs fusion_vitb_s_crossattn_lastblock_anchor_augbest_50e:
+# only vision_trainable_prefixes changes (["blocks.10.", "blocks.11.", "norm."]
+# vs ["blocks.11.", "norm."]).  Everything else — EMG-S, anchor loss, aug,
+# schedule, lr, vision LR scale — is identical.  Isolates whether a single
+# block gives enough adaptation capacity or whether ViT-B needs more.
+defaults:
+  - /experiment/fusion/fusion_vitb_s_crossattn_lastblock_anchor_augbest_50e
+  - _self_
+
+module:
+  vision_trainable_prefixes:
+    - "blocks.10."
+    - "blocks.11."
+    - "norm."
+
+logger:
+  name: fusion_vitb_s_crossattn_last2blocks_anchor_augbest_50e

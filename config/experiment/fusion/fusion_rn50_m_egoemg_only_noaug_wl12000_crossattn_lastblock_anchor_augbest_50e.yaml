@@ -1,0 +1,18 @@
+# @package _global_
+# Longer-schedule counterpart of the best 20-epoch controlled fusion run.
+# Architecture, selective RN50 tuning, anchor loss, and augmentation are
+# unchanged; only the cosine horizon is extended.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_augbest_20e
+  - _self_
+
+trainer:
+  max_epochs: 50
+
+lr_scheduler:
+  scheduler:
+    T_max: 50
+    eta_min: 5.0e-8
+
+logger:
+  name: fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_augbest_50e

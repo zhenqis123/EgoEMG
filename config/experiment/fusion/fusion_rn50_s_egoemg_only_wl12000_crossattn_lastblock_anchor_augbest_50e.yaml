@@ -1,0 +1,23 @@
+# @package _global_
+# Controlled EMG-size ablation of the best RN50 cross-attention recipe.
+# Keep data, vision adaptation, augmentation, anchor loss, optimizer, and
+# schedule identical; replace only EMGFormer-M with pretrained EMGFormer-S.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_augbest_50e
+  - _self_
+
+pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
+
+module:
+  decoder:
+    causal: false
+    pos_encoding: rope
+    in_channels: 256
+    model_dim: 256
+    num_heads: 4
+    num_layers: 3
+    ffn_dim: 512
+    dropout: 0.1
+
+logger:
+  name: fusion_rn50_s_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_50e

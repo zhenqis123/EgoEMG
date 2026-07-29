@@ -1,0 +1,11 @@
+# @package _global_
+# Ablation 1: exact counterpart of the completed dense WL12000 RN18 fusion
+# run, with every EMG augmentation disabled (both sample-side and batch-side).
+defaults:
+  - /experiment/fusion/fusion_rn18_s_egoemg_only_augbest_pretrained
+  - override /augmentation: none
+  - override /transforms: noop
+  - _self_
+
+logger:
+  name: fusion_rn18_s_egoemg_only_noaug_dense

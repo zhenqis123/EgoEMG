@@ -1,0 +1,33 @@
+# @package _global_
+# Fresh full-data RN18 + EMGFormer-S fusion control: ImageNet vision only,
+# random EMG branch, and no EMG augmentation at either dataset or batch level.
+defaults:
+  - /experiment/fusion/fusion_allvision_s_egoemg_showee
+  - override /transforms: emgformer_regression_no_aug
+  - _self_
+
+checkpoint: null
+pretrained_checkpoint: null
+pretrained_emg_checkpoint: null
+vision_resnet_checkpoint: null
+
+trainer:
+  devices: [0, 1, 2, 3, 4]
+  max_epochs: 150
+
+optimizer:
+  lr: 1.0e-4
+
+lr_scheduler:
+  scheduler:
+    T_max: 150
+    eta_min: 5.0e-6
+
+module:
+  vision_backbone_type: resnet18
+  vision_embed_dim: 512
+  # null selects torchvision ResNet18_Weights.IMAGENET1K_V1.
+  vision_pretrained_checkpoint: null
+
+logger:
+  name: fusion_rn18_s_imagenet_emgscratch_noaug

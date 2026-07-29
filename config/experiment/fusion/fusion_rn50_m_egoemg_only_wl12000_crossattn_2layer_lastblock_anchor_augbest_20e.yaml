@@ -1,0 +1,14 @@
+# @package _global_
+# Structural ablation: refine temporal EMG tokens with two consecutive visual
+# cross-attention blocks before the pretrained EMG decoder.  The extra block is
+# near-identity initialized; all vision freezing and loss settings remain the
+# same as the best single-block recipe.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_augbest_20e
+  - _self_
+
+module:
+  cross_attention_num_layers: 2
+
+logger:
+  name: fusion_rn50_m_egoemg_only_wl12000_crossattn_2layer_lastblock_anchor_augbest_20e

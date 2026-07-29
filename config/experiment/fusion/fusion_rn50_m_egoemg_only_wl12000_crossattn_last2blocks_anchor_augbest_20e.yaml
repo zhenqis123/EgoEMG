@@ -1,0 +1,15 @@
+# @package _global_
+# Controlled visual-capacity ablation.  Relative to the best last-block run,
+# train the final two RN50 layer4 Bottlenecks at 1e-7 while keeping every
+# BatchNorm module and the pretrained vision pose head locked in eval mode.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_augbest_20e
+  - _self_
+
+module:
+  vision_trainable_prefixes:
+    - "7.1."
+    - "7.2."
+
+logger:
+  name: fusion_rn50_m_egoemg_only_wl12000_crossattn_last2blocks_anchor_augbest_20e

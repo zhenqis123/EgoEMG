@@ -1,0 +1,19 @@
+# @package _global_
+# Data-augmentation + anchor-loss variant of the controlled last-block pilot.
+#
+# Stacks two orthogonal improvements on top of fusion_rusion_rn50_m_..._anchor_20e:
+#   1. batch_aug_best_v2_no_mixup — EMG augmentation (gain/warp/drift/noise/masks)
+#      verified to help on RN18 fusion. MixUp is explicitly disabled (mask_prob=0)
+#      because mixing EMG across samples would corrupt the joint-angle targets.
+#   2. zero-EMG anchor loss (inherited) — suppresses the vision-only shortcut.
+#
+# Inherits last-block visual adaptation (BN locked, vision head frozen, only
+# RN50 layer4 final Bottleneck trainable at 1e-7) so the only new variable vs.
+# the anchor_20e run is the EMG augmentation.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_20e
+  - override /augmentation: batch_aug_best_v2_no_mixup
+  - _self_
+
+logger:
+  name: fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_augbest_20e

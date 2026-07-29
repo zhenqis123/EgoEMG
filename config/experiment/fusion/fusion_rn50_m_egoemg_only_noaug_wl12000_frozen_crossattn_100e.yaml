@@ -1,0 +1,21 @@
+# @package _global_
+# Frozen RN50 baseline + multi-scale visual-token cross-attention into
+# pretrained EMGFormer-M. Predict a center-frame residual only.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_100e
+  - _self_
+
+module:
+  fusion_mode: frozen_cross_attention
+  freeze_vision_branch: true
+  cross_attention_dim: 256
+  cross_attention_num_heads: 8
+  cross_attention_ffn_dim: 512
+  cross_attention_dropout: 0.1
+  cross_attention_max_vision_grid_size: 16
+
+optimizer:
+  lr: 1.0e-5
+
+logger:
+  name: fusion_rn50_m_egoemg_only_noaug_wl12000_frozen_crossattn_100e

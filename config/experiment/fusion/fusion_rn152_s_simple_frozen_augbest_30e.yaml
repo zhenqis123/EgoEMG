@@ -1,0 +1,15 @@
+# @package _global_
+defaults:
+  - /experiment/fusion/fusion_simple_frozenvision_s_egoemg_only_augbest_30e
+  - _self_
+
+vision_resnet_checkpoint: data/experiment_inputs/vision_checkpoints/rn152.ckpt
+
+module:
+  vision_backbone_type: resnet152
+  vision_embed_dim: 2048
+  vision_pretrained_checkpoint: ${vision_resnet_checkpoint}
+
+logger:
+  name: fusion_rn152_s_simple_frozen_augbest_30e
+

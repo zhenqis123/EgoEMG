@@ -1,0 +1,39 @@
+# @package _global_
+# RN18 + EMGFormer-S center fusion on EgoEMG only.  This is intentionally a
+# fresh fusion run: the two modality branches are initialized from their
+# compatible trained single-modality checkpoints, while fusion layers start
+# randomly initialized.
+defaults:
+  - /experiment/fusion/fusion_rn18_s_center_8ch
+  - /augmentation: batch_aug_best_v2_no_mixup
+  - _self_
+
+checkpoint: null
+
+# Compatible 8-channel/target_hand initializers (not fusion checkpoints).
+vision_resnet_checkpoint: data/experiment_inputs/vision_checkpoints/rn18.ckpt
+pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
+
+# Use the dense WL12000 regime, but train only on EgoEMG (the parent config
+# inherits dataset=egoemg_angle_regression).
+datamodule:
+  window_length: 12_000
+  val_test_window_length: 12_000
+  stride: 400
+  val_test_stride: 12_000
+  dataset_repeat: 2
+
+optimizer:
+  lr: 5.0e-4
+
+lr_scheduler:
+  scheduler:
+    T_max: 300
+    eta_min: 5.0e-6
+
+trainer:
+  devices: [0, 1, 2, 3, 4, 5]
+  max_epochs: 300
+
+logger:
+  name: fusion_rn18_s_egoemg_only_augbest_pretrained

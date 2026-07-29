@@ -1,0 +1,52 @@
+# @package _global_
+# Shared simple residual-fusion recipe for the Table 4 backbone sweep.
+# The pretrained vision predictor is preserved exactly. Global vision and
+# temporally pooled EMG features feed a lightweight residual head; no token
+# fusion or cross-attention is used.
+defaults:
+  - /experiment/fusion/fusion_rn18_s_egoemg_only_augbest_pretrained
+  - override /augmentation: batch_aug_best_v2_no_mixup
+  - override /transforms: noop
+  - _self_
+
+checkpoint: null
+pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
+
+datamodule:
+  window_length: 12_000
+  val_test_window_length: 12_000
+  stride: 400
+  val_test_stride: 12_000
+  dataset_repeat: 2
+
+optimizer:
+  lr: 1.0e-4
+
+lr_scheduler:
+  scheduler:
+    T_max: 30
+    eta_min: 5.0e-6
+
+trainer:
+  max_epochs: 30
+
+module:
+  fusion_mode: center_supervised
+  freeze_vision_branch: true
+  freeze_vision_head: true
+  vision_trainable_prefixes: null
+  lock_vision_batch_norm: true
+
+component_lr_scales:
+  featurizer: 1.0
+  decoder: 1.0
+  vision_proj: 1.0
+  fusion_proj: 1.0
+  head: 1.0
+  vision_backbone: 0.0
+  head_vision: 0.0
+
+anchor_loss_weight: 0.0
+
+logger:
+  name: fusion_simple_frozenvision_s_egoemg_only_augbest_30e

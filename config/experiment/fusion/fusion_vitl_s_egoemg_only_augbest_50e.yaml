@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - /experiment/fusion/fusion_frozenvision_s_egoemg_only_augbest_50e
+  - _self_
+
+vision_vit_checkpoint: data/experiment_inputs/vision_checkpoints/vitl.ckpt
+
+module:
+  vision_backbone_type: vit_large
+  vision_embed_dim: 1024
+  vision_pretrained_checkpoint: ${vision_vit_checkpoint}
+
+logger:
+  name: fusion_vitl_s_egoemg_only_augbest_50e

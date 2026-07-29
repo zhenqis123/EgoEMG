@@ -1,0 +1,10 @@
+# @package _global_
+# RN50-S controlled ablation: legacy WL7790 sample-side augmentation only.
+defaults:
+  - /experiment/fusion/fusion_rn50_s_egoemg_only_augbest_no_mixup
+  - override /augmentation: none
+  - override /transforms: emgformer_regression_aug_best
+  - _self_
+
+logger:
+  name: fusion_rn50_s_egoemg_only_legacy_wl7790_aug_dense

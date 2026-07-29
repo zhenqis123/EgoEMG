@@ -1,0 +1,25 @@
+# @package _global_
+# Last-block adaptation + stronger regularization, targeting the overfitting gap.
+#
+# Rationale: the fully-frozen ViT-B fusion overfits hard (train_mae=0.022 vs
+# val_mae=0.104, 4.6x gap).  Adapting the last block (#1) should help, but a
+# trainable ViT block adds capacity that may re-aggravate overfitting.  This
+# variant keeps the last-block adaptation of config #1 and, as a single
+# additional controlled variable, raises dropout and weight decay to directly
+# attack the generalization gap.
+#
+# Controlled variables vs fusion_vitb_s_crossattn_lastblock_anchor_augbest_50e:
+#   - cross_attention_dropout 0.1 -> 0.2
+#   - weight_decay 0.01 -> 0.05
+defaults:
+  - /experiment/fusion/fusion_vitb_s_crossattn_lastblock_anchor_augbest_50e
+  - _self_
+
+module:
+  cross_attention_dropout: 0.2
+
+optimizer:
+  weight_decay: 0.05
+
+logger:
+  name: fusion_vitb_s_crossattn_lastblock_reg_augbest_50e

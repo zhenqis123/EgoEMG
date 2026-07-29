@@ -1,0 +1,31 @@
+# @package _global_
+# Controlled visual adaptation pilot: preserve pretrained BN statistics and
+# vision head, and train only RN50 layer4's final Bottleneck at 1e-7.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_frozen_crossattn_100e
+  - _self_
+
+trainer:
+  max_epochs: 20
+
+module:
+  freeze_vision_branch: false
+  vision_trainable_prefixes:
+    - "7.2."
+  freeze_vision_head: true
+  lock_vision_batch_norm: true
+
+optimizer:
+  lr: 1.0e-5
+
+lr_scheduler:
+  scheduler:
+    T_max: 20
+    eta_min: 5.0e-8
+
+component_lr_scales:
+  vision_backbone: 0.01
+  head_vision: 0.0
+
+logger:
+  name: fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_20e

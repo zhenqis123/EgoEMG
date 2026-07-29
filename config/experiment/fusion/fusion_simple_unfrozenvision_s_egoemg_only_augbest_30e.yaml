@@ -1,0 +1,37 @@
+# @package _global_
+# Fully-trainable counterpart of the simple frozen-vision Table 4 recipe.
+# Data, initialization, augmentation, fusion structure, and schedule are kept
+# identical; only the pretrained visual predictor is made trainable.
+defaults:
+  - /experiment/fusion/fusion_simple_frozenvision_s_egoemg_only_augbest_30e
+  - _self_
+
+module:
+  freeze_vision_branch: false
+  freeze_vision_head: false
+  vision_trainable_prefixes: null
+  lock_vision_batch_norm: false
+  # MidFusionPoseFormer applies the generic ViT freeze policy while building
+  # non-DINO ViT backbones.  Override every part of that policy here so that
+  # "unfrozen" also means all feature-extractor parameters require gradients.
+  # WiLoR's internal MANO pose/shape/camera token decoders are not called by
+  # the fusion feature path, so they remain frozen to avoid unused DDP params.
+  vision_freeze:
+    strategy: tiered
+    frozen_block_end: 0
+    freeze_patch_embed: false
+    freeze_pos_embed: false
+    freeze_mano_tokens: true
+    finetune_last_norm: true
+
+component_lr_scales:
+  featurizer: 1.0
+  decoder: 1.0
+  vision_proj: 1.0
+  fusion_proj: 1.0
+  head: 1.0
+  vision_backbone: 1.0
+  head_vision: 1.0
+
+logger:
+  name: fusion_simple_unfrozenvision_s_egoemg_only_augbest_30e

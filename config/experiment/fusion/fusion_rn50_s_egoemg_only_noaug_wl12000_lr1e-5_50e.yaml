@@ -1,0 +1,21 @@
+# @package _global_
+# Low-LR RN50-S regression.  The pretrained RN50 branch is already stronger
+# than the fusion validation initialization, so use a conservative shared LR.
+defaults:
+  - /experiment/fusion/fusion_rn50_s_egoemg_only_noaug_dense
+  - _self_
+
+optimizer:
+  lr: 1.0e-5
+
+lr_scheduler:
+  scheduler:
+    T_max: 50
+    eta_min: 1.0e-6
+
+trainer:
+  max_epochs: 50
+
+logger:
+  name: fusion_rn50_s_egoemg_only_noaug_wl12000_lr1e-5_50e
+

@@ -1,0 +1,27 @@
+# @package _global_
+# Architecture-identical ablation of frozen_crossattn: unfreeze the RN50
+# backbone and vision pose head at 0.1x the learning rate of the fusion/EMG
+# components.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_frozen_crossattn_100e
+  - _self_
+
+module:
+  freeze_vision_branch: false
+
+optimizer:
+  lr: 1.0e-5
+
+lr_scheduler:
+  scheduler:
+    eta_min: 5.0e-7
+
+trainer:
+  accumulate_grad_batches: 2
+
+component_lr_scales:
+  vision_backbone: 0.1
+  head_vision: 0.1
+
+logger:
+  name: fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_trainvision_100e

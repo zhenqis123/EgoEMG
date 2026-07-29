@@ -1,0 +1,19 @@
+# @package _global_
+# Short 25-epoch RN50 + EMGFormer-M controlled no-augmentation ablation.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_50e
+  - _self_
+
+trainer:
+  max_epochs: 25
+
+lr_scheduler:
+  scheduler:
+    T_max: 25
+    eta_min: 5.0e-6
+
+optimizer:
+  lr: 1.0e-4
+
+logger:
+  name: fusion_rn50_m_egoemg_only_noaug_wl12000_25e

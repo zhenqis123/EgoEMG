@@ -1,0 +1,21 @@
+# @package _global_
+# Anchor-loss variant of the controlled last-block pilot.
+#
+# Motivation: diagnostics on the frozen cross-attention model show the residual
+# head learns a vision-only shortcut — zeroing EMG *worsens* MAE below the
+# vision-only baseline, and only ~55% of the EMG gain comes from correct
+# sample pairing.  This config adds a zero-EMG anchor regularizer that pushes
+# the center-frame residual toward zero when the EMG input is zeroed, forcing
+# delta to encode EMG-driven correction rather than a visual bias.
+#
+# Inherits the last-block visual adaptation settings (BN locked, vision head
+# frozen, only RN50 layer4 final Bottleneck trainable at 1e-7) so the only
+# new variable vs. the lastblock_20e pilot is the anchor loss.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_20e
+  - _self_
+
+anchor_loss_weight: 1.0
+
+logger:
+  name: fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_20e

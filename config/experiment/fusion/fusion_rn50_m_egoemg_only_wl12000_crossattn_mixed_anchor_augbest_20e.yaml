@@ -1,0 +1,13 @@
+# @package _global_
+# Hard-negative anchor ablation.  Keep the current best architecture, data,
+# augmentation, optimization, and schedule unchanged.  In the anchor forward,
+# half the samples use zero EMG and half use EMG from a different sample with
+# the same hand layout.  Both invalid conditions should produce zero residual.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_augbest_20e
+  - _self_
+
+anchor_shuffle_fraction: 0.5
+
+logger:
+  name: fusion_rn50_m_egoemg_only_wl12000_crossattn_mixed_anchor_augbest_20e

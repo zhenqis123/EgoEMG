@@ -1,0 +1,14 @@
+# @package _global_
+# RN152 counterpart of fusion_rn50_s_egoemg_only_augbest_no_mixup.
+defaults:
+  - /experiment/fusion/fusion_rn50_s_egoemg_only_augbest_no_mixup
+  - _self_
+
+vision_resnet_checkpoint: data/experiment_inputs/vision_checkpoints/rn152.ckpt
+
+module:
+  vision_backbone_type: resnet152
+  vision_embed_dim: 2048
+
+logger:
+  name: fusion_rn152_s_egoemg_only_augbest_no_mixup

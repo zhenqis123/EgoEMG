@@ -1,0 +1,15 @@
+# @package _global_
+defaults:
+  - /experiment/fusion/fusion_simple_frozenvision_s_egoemg_only_augbest_30e
+  - _self_
+
+wilor_vision_checkpoint: data/experiment_inputs/vision_checkpoints/wilor.ckpt
+
+module:
+  vision_backbone_type: vit
+  vision_embed_dim: 1280
+  vision_pretrained_checkpoint: ${wilor_vision_checkpoint}
+  mano_model_path: data/WiLoR/mano_data
+
+logger:
+  name: fusion_wilor_s_simple_frozen_augbest_30e

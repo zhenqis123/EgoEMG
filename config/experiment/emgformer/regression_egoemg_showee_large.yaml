@@ -1,0 +1,29 @@
+# @package _global_
+# Full-data EMGFormer-L: EgoEMG + Incre + ShowEE train, EgoEMG-only val/test.
+defaults:
+  - /experiment/emgformer/regression_egoemg_showee
+  - _self_
+
+module:
+  decoder:
+    in_channels: 256
+    model_dim: 384
+    num_heads: 12
+    num_layers: 8
+    ffn_dim: 1536
+    dropout: 0.15
+  head:
+    in_channels: 384
+    out_channels: 22
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: val_mae
+    mode: min
+    save_top_k: 3
+    save_last: true
+    filename: "egoemg-incre-showee-large-{epoch:03d}-{val_mae:.4f}"
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+
+logger:
+  name: regression_egoemg_incre_showee_large
