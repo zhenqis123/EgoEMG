@@ -1,41 +1,40 @@
-name: Python Package using Conda
+name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  build-linux:
+  lint-and-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Setup Conda
-      uses: conda-incubator/setup-miniconda@v2.2.0
+      uses: conda-incubator/setup-miniconda@v3
       with:
         auto-update-conda: true
-        python-version: '3.10'
+        # Must match the python pin in environment.yml.
+        python-version: '3.11'
         miniconda-version: "latest"
         activate-environment: emg2pose
         environment-file: environment.yml
 
-    - name: Install package
+    - name: Install packages
       run: |
-        pip install -e .  # install local package
-
-    - name: Install package
-      run: |
-        pip install -e emg2pose/UmeTrack  # install UmeTrack package locally
+        pip install -e .
+        pip install -e emg2pose/UmeTrack
+        pip install flake8 pytest
 
     - name: Lint with flake8
       run: |
-        pip install flake8
-        # stop the build if there are Python syntax errors or undefined names
+        # Stop the build on syntax errors or undefined names.
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        # Report style issues without failing the build (127-col editor width).
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-    - name: Test with pytest
-      shell: bash -el {0}
+    - name: Run unit tests
       run: |
-        pip install pytest
-        pytest emg2pose --ignore=emg2pose/fb
+        pytest emg2pose/tests -q
