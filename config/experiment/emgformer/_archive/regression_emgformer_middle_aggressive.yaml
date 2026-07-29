@@ -7,7 +7,7 @@ defaults:
   - override /lr_scheduler: cosine
   - override /transforms: emgformer_regression_aug_best
   - _self_
-checkpoint: /home/xiziheng/develop/emg2pose/logs/2026-04-24/16-09-57_emg2pose/emg2pose/version_0/checkpoints/best-val_mae=val_mae=0.2269.ckpt
+checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-24/16-09-57_emg2pose/emg2pose/version_0/checkpoints/best-val_mae=val_mae=0.2269.ckpt
 pretrained_strict: true
 module:
   provide_initial_pos: False
@@ -32,7 +32,7 @@ datamodule:
   window_length: 7_790
   val_test_window_length: 7_790
   norm_mode: null
-  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
   skip_ik_failures: False
 
 optimizer:
@@ -41,8 +41,8 @@ optimizer:
 dataset:
   train:
     - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
-      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]
@@ -51,8 +51,8 @@ dataset:
       allowed_splits: [train]
   val:
     - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
-      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]
@@ -61,8 +61,8 @@ dataset:
       allowed_splits: [val]
   test:
     - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
-      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]

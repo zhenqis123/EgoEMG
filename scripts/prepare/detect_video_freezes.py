@@ -13,8 +13,8 @@ from pathlib import Path
 import numpy as np
 from tqdm import tqdm
 
-MEMMAP_DIR = "/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
-VIDEO_ROOT = "/mnt/nvme/xiziheng/training_dataset_lerobot_full_NEW"
+MEMMAP_DIR = "./data/EgoEMG_memmap"
+VIDEO_ROOT = "data/training_dataset_lerobot_full_NEW"
 
 
 def load_metadata():

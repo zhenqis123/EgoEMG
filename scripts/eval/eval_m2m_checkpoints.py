@@ -18,7 +18,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-WILOR_ROOT = Path("/home/xiziheng/develop/WiLoR")
+WILOR_ROOT = Path("../WiLoR")
 if str(WILOR_ROOT) not in sys.path:
     sys.path.append(str(WILOR_ROOT))
 
@@ -27,8 +27,8 @@ from markers2mano.geometry import transform_joints_coordinates_torch, matrix_to_
 from markers2mano.graph_transformer import EfficientGraphTransformer, six_d_to_rot_matrix
 from markers2mano.rigid_align import compute_aligned_error
 
-EGOEMG_ROOT = Path("/home/xiziheng/develop/emg2pose/data/EgoEMG")
-MANO_ASSETS_ROOT = Path("/home/xiziheng/develop/HandVQVAE/assets/mano")
+EGOEMG_ROOT = Path("./data/EgoEMG")
+MANO_ASSETS_ROOT = Path("../HandVQVAE/assets/mano")
 DATA_DIR = EGOEMG_ROOT / "data" / "chunk-000"
 
 MARKER_VERT_INDICES = torch.tensor(

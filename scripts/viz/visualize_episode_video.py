@@ -6,15 +6,15 @@ projects them onto each webcam frame, and writes an annotated output video.
 
 Usage:
     python scripts/viz/visualize_episode_video.py \
-        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_v2_memmap \
-        --allintra-root /mnt/nvme/xiziheng/EgoEMG_allintra \
+        --memmap-dir data/EgoEMG_v2_memmap \
+        --allintra-root data/EgoEMG_allintra \
         --episode-id episode_000006 \
         --output /tmp/ep06_reproj.mp4
 
     # Subsample: every N-th frame
     python scripts/viz/visualize_episode_video.py \
-        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_v2_memmap \
-        --allintra-root /mnt/nvme/xiziheng/EgoEMG_allintra \
+        --memmap-dir data/EgoEMG_v2_memmap \
+        --allintra-root data/EgoEMG_allintra \
         --episode-id episode_000006 \
         --stride 5 \
         --output /tmp/ep06_reproj_s5.mp4

@@ -38,6 +38,39 @@ from emg2pose.video_io import (
 log = logging.getLogger(__name__)
 
 
+# py-lmdb permits only one Environment for a given path within a process.
+# Fusion uses separate left/right dataset instances which can read the same
+# episode crop database in one batch, so the environments must be shared.
+# Values are ``[environment, number_of_dataset_caches]`` and are scoped by PID
+# to remain safe with DataLoader workers created by fork.
+_SHARED_READONLY_LMDB_ENVS: dict[tuple[int, str], list[Any]] = {}
+
+
+def _acquire_readonly_lmdb(path: Path):
+    """Return a process-shared read-only LMDB environment for ``path``."""
+    import lmdb
+
+    key = (os.getpid(), str(path.resolve()))
+    entry = _SHARED_READONLY_LMDB_ENVS.get(key)
+    if entry is None:
+        entry = [lmdb.open(str(path), readonly=True, lock=False, readahead=False), 0]
+        _SHARED_READONLY_LMDB_ENVS[key] = entry
+    entry[1] += 1
+    return entry[0]
+
+
+def _release_readonly_lmdb(path: Path, env: Any) -> None:
+    """Release one dataset-cache reference, closing an unused environment."""
+    key = (os.getpid(), str(path.resolve()))
+    entry = _SHARED_READONLY_LMDB_ENVS.get(key)
+    if entry is None or entry[0] is not env:
+        return
+    entry[1] -= 1
+    if entry[1] <= 0:
+        env.close()
+        del _SHARED_READONLY_LMDB_ENVS[key]
+
+
 
 def _decode_bytes(values: np.ndarray) -> list[str]:
     decoded: list[str] = []
@@ -149,6 +182,7 @@ class EgoEmgMemmapDataset(Dataset):
     allintra_root: Path | None = None
     allintra_suffix: str = DEFAULT_ALLINTRA_SUFFIX
     stride: int | None = None
+    eval_center_stride: int | None = None  # fixed center-frame grid for val/test (independent of WL)
     jitter: bool = False
     allowed_subjects: Sequence[str] | None = None
     allowed_episode_ids: Sequence[str] | None = None
@@ -330,7 +364,7 @@ class EgoEmgMemmapDataset(Dataset):
             self._preload_all_features()
 
         # Pre-crop LMDB cache (fork-safe)
-        self._pec_lmdb_cache: dict[int, tuple] = {}
+        self._pec_lmdb_cache: dict[str, tuple[Path, Any, Any]] = {}
         self._pec_lmdb_max_open = 8
         self._pec_pid = os.getpid()
         if self.per_episode_crops_dir is not None:
@@ -614,27 +648,25 @@ class EgoEmgMemmapDataset(Dataset):
 
     def _get_pec_txn(self, episode_id: str):
         """Get or open an LMDB read transaction for a per-episode crops database."""
-        import lmdb as _lmdb
-
         if os.getpid() != self._pec_pid:
             self._pec_lmdb_cache = {}
             self._pec_pid = os.getpid()
 
         cached = self._pec_lmdb_cache.get(episode_id)
         if cached is not None:
-            return cached[1]
+            return cached[2]
 
         if len(self._pec_lmdb_cache) >= self._pec_lmdb_max_open:
             oldest_key = next(iter(self._pec_lmdb_cache))
-            old_env, _ = self._pec_lmdb_cache.pop(oldest_key)
-            old_env.close()
+            old_path, old_env, _ = self._pec_lmdb_cache.pop(oldest_key)
+            _release_readonly_lmdb(old_path, old_env)
 
         lmdb_path = Path(self.per_episode_crops_dir) / f"{episode_id}.lmdb"
         if not lmdb_path.exists():
             return None
-        env = _lmdb.open(str(lmdb_path), readonly=True, lock=False, readahead=False)
+        env = _acquire_readonly_lmdb(lmdb_path)
         txn = env.begin()
-        self._pec_lmdb_cache[episode_id] = (env, txn)
+        self._pec_lmdb_cache[episode_id] = (lmdb_path, env, txn)
         return txn
 
     def _read_episode_crops(
@@ -754,6 +786,53 @@ class EgoEmgMemmapDataset(Dataset):
         for ep_idx in allowed.tolist():
             start = int(self._episode_start_idx[ep_idx])
             end = int(self._episode_end_idx[ep_idx])
+
+            # If eval_center_stride is set, build the center-frame grid from it
+            # (independent of window_length), so models with different WLs are
+            # evaluated at identical center positions.
+            if self.eval_center_stride is not None:
+                ecs = self.eval_center_stride
+                half_wl = self.window_length // 2
+                # center grid: start + ecs//2, start + ecs//2 + ecs, ...
+                # window must fit: center - half_wl >= start AND center + half_wl <= end
+                # Keep the center positions on the shared ``ecs`` grid while
+                # advancing past any centers whose model-specific window
+                # would cross the episode boundary.
+                grid_offset = ecs // 2
+                min_offset = half_wl
+                first_grid_step = max(
+                    0,
+                    (min_offset - grid_offset + ecs - 1) // ecs,
+                )
+                first_center = start + grid_offset + first_grid_step * ecs
+                last_center = end - half_wl
+                if last_center < first_center:
+                    continue
+                center_positions = np.arange(
+                    first_center, last_center + 1, ecs, dtype=np.int64
+                )
+                window_starts = center_positions - half_wl
+                n = len(center_positions)
+                if split_mm is not None and self.allowed_splits:
+                    center_split_ids = np.asarray(
+                        split_mm[center_positions], dtype=np.int32
+                    )
+                    keep = np.isin(center_split_ids, list(allowed_split_ids))
+                    if not np.any(keep):
+                        continue
+                    window_starts = window_starts[keep]
+                    episode_idx.extend([ep_idx] * int(window_starts.shape[0]))
+                    starts.extend(window_starts.tolist())
+                    ends.extend((window_starts + self.window_length).tolist())
+                    num_per_episode.append(int(window_starts.shape[0]))
+                    window_split_ids.append(center_split_ids[keep])
+                    continue
+                episode_idx.extend([ep_idx] * n)
+                starts.extend(window_starts.tolist())
+                ends.extend((window_starts + self.window_length).tolist())
+                num_per_episode.append(n)
+                continue
+
             n = (end - start - self.window_length) // self.stride + 1
             if n <= 0:
                 continue
@@ -1441,9 +1520,13 @@ class EgoEmgMemmapDataset(Dataset):
         emg_raw = np.asarray(
             self._frame_memmaps[emg_key][start:end], dtype=np.float32
         )  # (T, 8)
-        emg, emg_channel_mask = self._convert_to_emg2pose_layout(
-            emg_raw, interpolate_missing=self.channel_interpolate,
-        )  # (T, 16)
+        if self.emg_layout in {"emg2pose_sparse16", "emg2pose_interpolate16"}:
+            emg, emg_channel_mask = self._convert_to_emg2pose_layout(
+                emg_raw, interpolate_missing=self.channel_interpolate,
+            )
+        else:
+            emg = emg_raw
+            emg_channel_mask = np.ones((emg.shape[1],), dtype=np.bool_)
 
         if self.norm_mode == "per-dataset":
             emg = (emg - self._emg_mean) / (self._emg_std + 1e-6)
@@ -1480,7 +1563,7 @@ class EgoEmgMemmapDataset(Dataset):
         label_valid = bool(lv[hand_idx])
 
         return {
-            "emg": emg.astype(np.float32),  # (16, T)
+            "emg": emg.astype(np.float32),
             "emg_channel_mask": emg_channel_mask,
             "joint_angles": ja_full[:, None],  # (22, 1)
             "label_valid_mask": np.array([label_valid], dtype=bool),

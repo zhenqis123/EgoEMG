@@ -239,8 +239,11 @@ def main() -> None:
     tasks: list[tuple[Path, Path]] = []
     missing_sources: list[str] = []
     for raw_path in unique_raw_paths:
+        if not raw_path.strip():
+            missing_sources.append("<empty webcam path>")
+            continue
         source_path = resolve_source_path(args.data_root, raw_path)
-        if not source_path.exists():
+        if not source_path.is_file():
             missing_sources.append(str(source_path))
             continue
         output_path = build_output_path(

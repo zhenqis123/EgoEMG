@@ -52,7 +52,7 @@ from emg2pose.occlusion import compute_self_occlusion
 import smplx
 
 CONFIG_DIR = str(_PROJECT_DIR / "config")
-MANO_MODEL_PATH = "/home/xiziheng/develop/WiLoR/mano_data/models"
+MANO_MODEL_PATH = "../WiLoR/mano_data/models"
 
 warnings.filterwarnings(
     "ignore", message="The given NumPy array is not writable", category=UserWarning
@@ -456,8 +456,8 @@ def main():
     parser.add_argument("--config-name",
                         default="experiment/fusion/vision_resnet_small_emgfusion_center")
     parser.add_argument("--checkpoint", required=True)
-    parser.add_argument("--data-location", default="/mnt/nvme/xiziheng/EgoEMG_v2_memmap")
-    parser.add_argument("--video-root", default="/mnt/nvme/xiziheng/EgoEMG_allintra")
+    parser.add_argument("--data-location", default="data/EgoEMG_v2_memmap")
+    parser.add_argument("--video-root", default="data/EgoEMG_allintra")
     parser.add_argument("--output-csv", default="./occlusion_fusion_results.csv")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--batch-size", type=int, default=64)

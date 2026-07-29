@@ -64,7 +64,7 @@ done
 IFS=',' read -ra SPLIT_ARRAY <<< "$ALLOWED_SPLITS"
 SPLIT_OVERRIDE="[$(printf "'%s'," "${SPLIT_ARRAY[@]}" | sed 's/,$//')]"
 
-cd /home/xiziheng/develop/emg2pose
+cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
 echo "========================================"
 echo "  Evaluate Checkpoint on Dataset"
@@ -90,7 +90,6 @@ if [ ! -d "$MEMMAP_DIR" ]; then
 fi
 
 # ── Run ──
-source /home/xiziheng/miniconda3/etc/profile.d/conda.sh
 conda activate emg2pose_env
 
 python -u -m emg2pose.train \

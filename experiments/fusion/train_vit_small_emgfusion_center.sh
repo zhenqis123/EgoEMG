@@ -8,11 +8,11 @@ set -euo pipefail
 
 CONFIG="experiment=fusion/vision_vit_small_emgfusion_center"
 
-EGOEMG_MEMMAP="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
-CROPS_LMDB="/mnt/nvme/xiziheng/EgoEMG_v2_crops"
+EGOEMG_MEMMAP="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
+CROPS_LMDB="data/EgoEMG_v2_crops"
 
-BEST_VISION_VIT="/home/xiziheng/develop/emg2pose/logs/fusion/vision_vit_small/version_0/checkpoints/vit-small-epoch=179-val_mae=0.1053.ckpt"
-BEST_FUSION_VIT="/home/xiziheng/develop/emg2pose/logs/fusion/vit_small_emgfusion_center/version_7/checkpoints/vit-small-centerfusion-epoch=088-val_mae=0.0968.ckpt"
+BEST_VISION_VIT="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/vision_vit_small/version_0/checkpoints/vit-small-epoch=179-val_mae=0.1053.ckpt"
+BEST_FUSION_VIT="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/vit_small_emgfusion_center/version_7/checkpoints/vit-small-centerfusion-epoch=088-val_mae=0.0968.ckpt"
 
 python -m emg2pose.train \
   ${CONFIG} \

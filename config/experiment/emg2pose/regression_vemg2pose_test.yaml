@@ -25,7 +25,7 @@ datamodule:
   val_test_window_length: 11_790
   max_open_files: 4
   norm_mode: batch
-  norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
+  norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/emg_norm_stats.npz
 trainer:
   gradient_clip_val: 1
   devices: [0]

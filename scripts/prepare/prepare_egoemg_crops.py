@@ -19,7 +19,6 @@ import os
 import sys
 import time
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import cv2
@@ -47,10 +46,6 @@ from emg2pose.datasets.egoemg_vision_dataset import (
     _project_world_points,
 )
 from emg2pose.video_io import resolve_allintra_video_path
-
-DECODE_BATCH = 4096
-NUM_CROP_WORKERS = 16
-
 
 def _decode_bytes(arr: np.ndarray) -> list[str]:
     return [x.decode("utf-8") if isinstance(x, bytes) else str(x) for x in arr]
@@ -220,7 +215,6 @@ def _process_episode(
         if vfi < n_actual_frames:
             vfi_to_work[vfi].append((fi, hand_idx, hand_name))
 
-    decode_vfis = sorted(vfi_to_work.keys())
     jpeg_params = [cv2.IMWRITE_JPEG_QUALITY, jpeg_quality]
 
     map_size = max(len(valid_work) * 20_000, 10 * 1024 * 1024)
@@ -228,25 +222,21 @@ def _process_episode(
     txn = env.begin(write=True)
     total_written = 0
 
+    # decord's get_batch path is extremely slow for these all-intra H.264
+    # files, even for contiguous indices. Sequential next() decoding is fast
+    # and bounded-memory; decode each video once and retain only requested
+    # frames.
     pbar = _progress(
-        range(len(decode_vfis)), enabled=progress,
-        desc=f"{ep_id}", unit="vf", total=len(decode_vfis),
+        range(n_actual_frames), enabled=progress,
+        desc=f"{ep_id}", unit="vf", total=n_actual_frames,
     )
-    pbar_iter = iter(pbar)
-
-    for batch_start in range(0, len(decode_vfis), DECODE_BATCH):
-        batch_vfis = decode_vfis[batch_start:batch_start + DECODE_BATCH]
-        batch_frames = vr.get_batch(batch_vfis).asnumpy()
-
-        work_items = []
-        for local_i, vfi in enumerate(batch_vfis):
-            frame_bgr = cv2.cvtColor(batch_frames[local_i], cv2.COLOR_RGB2BGR)
-            for fi, hand_idx, hand_name in vfi_to_work[vfi]:
-                key = f"{vfi:08d}_{'L' if hand_idx == 0 else 'R'}"
-                work_items.append((key, frame_bgr, fi, hand_idx, hand_name))
-
-        def _encode_one(item):
-            key, frame_bgr, fi, hand_idx, hand_name = item
+    for vfi in pbar:
+        frame_rgb = vr.next().asnumpy()
+        if vfi not in vfi_to_work:
+            continue
+        frame_bgr = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
+        for fi, hand_idx, hand_name in vfi_to_work[vfi]:
+            key = f"{vfi:08d}_{'L' if hand_idx == 0 else 'R'}"
             patch = _crop_hand(
                 frame_bgr, frame_memmaps, fi, hand_idx, hand_name,
                 K, dist, intrinsics_info, patch_size,
@@ -254,24 +244,12 @@ def _process_episode(
             ok, encoded = cv2.imencode(".jpg", patch, jpeg_params)
             if not ok:
                 raise RuntimeError(f"JPEG encode failed for {key}")
-            return key, encoded.tobytes()
+            txn.put(key.encode("ascii"), encoded.tobytes())
+            total_written += 1
 
-        with ThreadPoolExecutor(max_workers=NUM_CROP_WORKERS) as pool:
-            futures = [pool.submit(_encode_one, item) for item in work_items]
-            for fut in as_completed(futures):
-                key, jpeg_bytes = fut.result()
-                txn.put(key.encode("ascii"), jpeg_bytes)
-                total_written += 1
-
-        if total_written % 5000 < len(work_items):
+        if total_written > 0 and total_written % 5000 == 0:
             txn.commit()
             txn = env.begin(write=True)
-
-        for _ in batch_vfis:
-            try:
-                next(pbar_iter)
-            except StopIteration:
-                break
 
     txn.commit()
     env.sync()
@@ -370,11 +348,28 @@ def main():
                 done_path.unlink()
 
         raw_video_path = ep_video_paths[ep_idx]
+        if not raw_video_path:
+            done_path.write_text(json.dumps({
+                "num_crops": 0,
+                "num_video_frames": 0,
+                "status": "missing_video_path",
+            }))
+            print(f"[{ep_id}] missing video path, skipping", flush=True)
+            continue
         video_path = resolve_allintra_video_path(
             raw_video_path=raw_video_path,
             data_root=args.video_root,
             allintra_root=args.allintra_root,
         )
+        if not video_path.is_file():
+            done_path.write_text(json.dumps({
+                "num_crops": 0,
+                "num_video_frames": 0,
+                "status": "missing_video_file",
+                "video_path": str(video_path),
+            }))
+            print(f"[{ep_id}] missing video file, skipping: {video_path}", flush=True)
+            continue
 
         if K is None:
             vr_tmp = VideoReader(str(video_path), ctx=gpu(args.gpu_id))

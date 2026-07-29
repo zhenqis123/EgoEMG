@@ -18,7 +18,6 @@
 /TemplateVersion (2027.1)
 }
 
-% Additional packages (content-preserving, not forbidden by AAAI)
 \usepackage{booktabs}
 \usepackage{amsfonts}
 \usepackage{nicefrac}
@@ -46,36 +45,47 @@
 \newcommand{\model}{EMGFormer}
 \newcommand{\marker}{\textit{markers2mano}}
 \newcommand{\degree}{^\circ}
+% Define \mainonly at the command line to build the 9-page AAAI main submission.
+\newif\ifmainonly
+\ifdefined\mainonly
+  \mainonlytrue
+\else
+  \mainonlyfalse
+\fi
+\newcommand{\supplementref}[1]{%
+  the supplementary material}
+\newcommand{\supplementfigureref}[1]{%
+  \ifmainonly supplementary material\else Figure~\ref{#1}\fi}
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-Surface electromyography (sEMG) records muscle activity during hand movement and can be decoded to recover detailed hand articulation. EMG and egocentric vision are complementary for hand sensing: EMG captures fine-grained finger articulation even under occlusion and poor lighting, while vision provides global hand configuration. However, no existing dataset synchronizes both modalities. We present \dataset{}, a multimodal egocentric dataset for bimanual hand pose estimation. \dataset{} includes bilateral wristband EMG with 16 total channels (8 per wrist) sampled at 2 kHz, 120 Hz IMU, egocentric wide-angle RGB video, external RGB-D video, and mocap-derived hand motion with wrist articulation angles. The dataset covers 41 participants performing 60 gesture classes, including 30 single-hand gestures and 30 bimanual gestures, totaling more than 10 hours of recording. We also introduce a benchmark with three tasks---EMG-to-pose, vision-to-pose, and EMG+vision fusion---under a shared joint-angle prediction target and common generalization split axes (cross-gesture, cross-user, and combined). As baselines, we evaluate \model{} for EMG-to-pose and generic ResNet/ViT backbones for vision-to-pose. We further study a residual fusion architecture that improves over matched lightweight vision-only baselines. Together, \dataset{} and its benchmark establish a foundation for future research on multimodal hand pose estimation with EMG and vision.
+Surface electromyography (sEMG) captures muscle activity during hand movement, while egocentric vision observes global hand configuration. These complementary signals are promising for robust hand-pose estimation, but no existing dataset jointly provides synchronized bilateral wrist EMG, egocentric vision, and bimanual pose labels. We present EgoEMG, a multimodal egocentric dataset containing bilateral wristband EMG sampled at 2\,kHz, 120\,Hz IMU signals, egocentric video, external RGB-D video, and motion-capture-derived wrist and finger joint angles. EgoEMG comprises over 18 hours of recordings from 53 participants performing 60 gesture classes---30 unimanual and 30 bimanual. We establish benchmarks for EMG-to-pose, vision-to-pose, and EMG+vision fusion under shared joint-angle targets and Gesture, User, and Both generalization splits. Across seven visual backbones, residual fusion reduces average error relative to the corresponding vision-only baseline. Together, EgoEMG provides a foundation for studying multimodal hand-pose estimation from muscle activity and visual observations.
 \end{abstract}
 
 \section{Introduction}
 
-Hand pose estimation from wearable sensing is a building block for augmented reality, prosthetic control, and physical intelligence~\citep{emg2pose,ninapro,zhao2026dexemg}. Surface EMG is attractive because it measures muscle activation directly~\citep{farina2014} and remains usable under self-occlusion, motion blur, and challenging lighting. Recent work has shown that EMG can recover detailed hand articulation~\citep{emg2pose,emg2tendon,vqmyopose}. At the same time, egocentric vision has emerged as a powerful modality for hand tracking in first-person views~\citep{hamer,h2o}, but relies on line-of-sight and struggles with fast motion blur and self-occlusion during manipulation. These properties suggest a potential complementarity between the two modalities: EMG provides fine-grained finger articulation even when the hand is occluded, while vision recovers global hand configuration and spatial context. Unlocking this complementarity requires a dataset that synchronizes both modalities with pose labels---yet current EMG pose datasets provide no synchronized egocentric video.
+Hand pose estimation from wearable sensing is a building block for augmented reality, prosthetic control, and physical intelligence~\citep{emg2pose,ninapro,zhao2026dexemg}. Surface EMG is attractive because it measures muscle activation directly~\citep{farina2014} and remains usable under self-occlusion, motion blur, and challenging lighting. Recent work has shown that EMG can recover detailed hand articulation~\citep{emg2pose,emg2tendon,vqmyopose}. At the same time, egocentric vision has emerged as a powerful modality for hand tracking~\citep{hamer,h2o}, but relies on line-of-sight and struggles with fast motion blur and self-occlusion during manipulation. These properties suggest a potential complementarity between the two modalities: EMG provides fine-grained finger articulation even when the hand is occluded, while vision recovers global hand configuration and spatial context. Unlocking this complementarity requires a dataset that synchronizes both modalities with pose labels---yet current EMG pose datasets provide no synchronized egocentric video.
 
-We address these gaps with \dataset{}, a controlled multimodal egocentric dataset for bimanual hand pose estimation. \dataset{} contains synchronized bilateral wristband EMG (16 total channels, 8 per wrist at 2\,kHz), per-hand IMU, egocentric wide-angle RGB, external RGB-D, and hand motion reconstructed into MANO parameters~\citep{mano} with wrist articulation angles, covering 41 participants and 60 gesture classes (30 single-hand, 30 bimanual) over 10\,hours of recording.
+We address these gaps with \dataset{}, a controlled multimodal egocentric dataset for bimanual hand pose estimation. \dataset{} contains synchronized bilateral wristband EMG (16 total channels, 8 per wrist at 2\,kHz), per-hand IMU, egocentric wide-angle RGB, external RGB-D, and hand motion reconstructed into MANO and UmeTrack parameters~\citep{mano,umetrack} with wrist articulation angles, covering 53 participants and 60 gesture classes (30 single-hand, 30 bimanual) over 18\,hours of recording.
 
-We provide a benchmark with three tasks---EMG-to-pose, vision-to-pose, and EMG+vision fusion---sharing the same joint-angle prediction target and generalization splits (cross-gesture, cross-user, and combined). On EMG-to-pose, \model{} variants outperform the prior TDS+LSTM baseline by up to 22\%, with \model{}-S achieving the best efficiency trade-off (42\% fewer parameters) and \model{}-L the best absolute accuracy. On vision-to-pose, ResNet backbones outperform generic ViT regressors at lower parameter counts, while the hand-specialized WiLoR baseline achieves the strongest standalone visual accuracy. A residual EMG+vision fusion architecture consistently improves over matched lightweight generic vision-only baselines, suggesting EMG provides complementary pose information beyond single-frame visual features; whether this complementarity extends to stronger specialized vision models remains an open question for future work.
+We provide a benchmark with three tasks---EMG-to-pose, vision-to-pose, and EMG+vision fusion---sharing the same joint-angle prediction target and Gesture, User, and Both generalization splits. On the EMG2Pose dataset, \model{}-L reduces User+Stage MAE by 16\% relative to the best prior reported result. On \dataset{}, \model{}-M achieves the lowest overall MAE among all evaluated EMG baselines. On vision-to-pose, ResNet backbones outperform ViT at lower parameter counts, while the hand-specialized WiLoR baseline achieves the strongest standalone visual accuracy. Across all seven visual backbones, residual fusion lowers average error relative to the matched vision-only baseline, and the gains become more modest for the strongest visual models.
 
 Our contributions are:
 \begin{itemize}[leftmargin=1.5em,nosep]
-    \item \dataset{}, to our knowledge the first dataset jointly providing bilateral wristband EMG and IMU, egocentric RGB, external RGB-D, bimanual MANO annotations with wrist joint angles, and per-frame gesture class labels---released publicly upon acceptance.
-    \item A three-task hand pose estimation benchmark (EMG-to-pose, vision-to-pose, EMG+vision fusion) with cross-gesture, cross-user, and combined generalization splits under a unified joint-angle prediction target.
-    \item Baseline results showing that \model{} provides a strong EMG-to-pose reference on both EMG2Pose and \dataset{}, that hand-specialized vision modeling further improves over generic ResNet/ViT baselines in this egocentric setting, and that EMG+vision fusion consistently improves over matched lightweight vision-only baselines.
+    \item \dataset{}, the first dataset jointly providing bilateral wristband EMG and IMU, egocentric RGB, external RGB-D, bimanual MANO/UmeTrack annotations with wrist joint angles, and per-frame gesture class labels.
+    \item A three-task hand pose estimation benchmark (EMG-to-pose, vision-to-pose, EMG+vision fusion) with Gesture, User, and Both generalization splits under a unified joint-angle prediction target.
+    \item Baseline results showing that \model{} provides a strong EMG-to-pose reference on both EMG2Pose and \dataset{}, that hand-specialized vision modeling improves over generic ResNet/ViT baselines, and that residual EMG+vision fusion improves accuracy across the evaluated visual backbones.
 \end{itemize}  
 
 \section{Related Work}
 
 \paragraph{Hand pose datasets and benchmarks.}
-Public EMG datasets cover gesture recognition~\citep{ninapro,grabmyo,putemg,du2017surface,amma2015advancing}, high-density recordings~\citep{jiang2021open}, force estimation~\citep{pimforce}, typing~\citep{emg2qwerty}, and demographically diverse cohorts~\citep{gowda2025database}. For continuous pose estimation, EMG2Pose~\citep{emg2pose} provides synchronized bilateral EMG with mocap-derived joint angles, while MyoKi~\citep{myoki} and Jarque-Bou et al.~\citep{jarque2019} pair forearm EMG with instrumented-glove kinematics. Cross-user generalization has been studied through benchmarks such as EMGBench~\citep{yang2024emgbench}. In contrast, visual hand-pose benchmarks provide rich RGB annotations for monocular, egocentric, and hand-object settings~\citep{freihand,dexycb,interhand,hot3d,h2o,gigahand}, but do not include synchronized wrist EMG. Existing resources therefore lack a unified benchmark that combines egocentric video, bilateral wristband EMG, wrist articulation, and continuous hand-pose labels, limiting the study of multimodal pose regression from both visual observations and muscle activity.
+Public EMG datasets cover gesture recognition~\citep{ninapro,grabmyo,putemg,du2017surface,amma2015advancing}, high-density recordings~\citep{jiang2021open}, force estimation~\citep{pimforce}, typing~\citep{emg2qwerty}, and demographically diverse cohorts~\citep{gowda2025database}. Recent work also combines wrist-worn sEMG and IMU with egocentric video to obtain force-enriched manipulation demonstrations~\citep{forceband}. For continuous pose estimation, EMG2Pose~\citep{emg2pose} provides synchronized bilateral EMG with mocap-derived joint angles, while MyoKi~\citep{myoki} and \citet{jarque2019} pair forearm EMG with instrumented-glove kinematics. Cross-user generalization has been studied through benchmarks such as EMGBench~\citep{yang2024emgbench}. In contrast, visual hand-pose benchmarks provide rich RGB annotations for monocular, egocentric, and hand-object settings~\citep{freihand,dexycb,interhand,hot3d,h2o,gigahand}, but do not include synchronized wrist EMG. Existing resources therefore lack a unified benchmark that combines egocentric video, bilateral wristband EMG, wrist articulation, and continuous hand-pose labels, limiting the study of multimodal pose regression from both visual observations and muscle activity.
 
 \paragraph{EMG-based pose estimation.}
-Decoding hand kinematics from surface EMG has progressed from single-DoF~\citep{ngeo2012continuous,ngeo2014continuous} and multi-DoF finger-angle regression to full-hand pose estimation. NeuroPose~\citep{liu2021neuropose} demonstrated 3D hand-pose tracking from wearable EMG, while EMG2Pose~\citep{emg2pose} later established a larger-scale benchmark using a TDS+LSTM architecture. Recent work further improves reconstruction fidelity through tendon-driven motion modeling~\citep{emg2tendon}, vector-quantized pose tokenization~\citep{vqmyopose}, and generalization-focused pretraining~\citep{zhao2026dexemg}. In parallel, EMG foundation models and self-supervised approaches~\citep{fasulo2025tinymyo,mehlman2025scaling,vicregemg,mast} explore large-scale pretraining, but primarily target gesture classification rather than continuous pose. Despite these advances, EMG-only pose estimation remains sensitive to inter-user variability, and datasets based on instrumented gloves~\citep{myoki,jarque2019} provide limited degrees of freedom and can suffer from sensor drift and hysteresis.
+Decoding hand kinematics from surface EMG has progressed from single-DoF~\citep{ngeo2012continuous,ngeo2014continuous} and multi-DoF finger-angle regression to full-hand pose estimation. NeuroPose~\citep{liu2021neuropose} demonstrated 3D hand-pose tracking from wearable EMG, while EMG2Pose~\citep{emg2pose} later established a larger-scale benchmark using a TDS+LSTM architecture. Recent work explores tendon-driven motion modeling~\citep{emg2tendon}, vector-quantized pose tokenization~\citep{vqmyopose}, short-calibration user adaptation~\citep{react2026}, the role of position versus velocity decoding under the original benchmark protocol~\citep{hadidi2026reevaluating}, and generalization-focused teleoperation~\citep{zhao2026dexemg}. In parallel, EMG foundation models and self-supervised approaches~\citep{fasulo2025tinymyo,mehlman2025scaling,vicregemg,mast} explore large-scale pretraining, but primarily target gesture classification rather than continuous pose. Despite these advances, EMG-only pose estimation remains sensitive to inter-user variability, and datasets based on instrumented gloves~\citep{myoki,jarque2019} provide limited degrees of freedom and can suffer from sensor drift and hysteresis.
 
 \paragraph{Vision-based hand pose estimation and multimodal fusion.}
 Monocular RGB hand-pose estimation has advanced rapidly with the MANO hand model~\citep{mano}, large-scale annotated datasets~\citep{freihand,dexycb,interhand,gigahand}, and Transformer-based reconstructors~\citep{hamer,wilor}. Egocentric systems and datasets such as UmeTrack~\citep{umetrack}, HOT3D~\citep{hot3d}, H2O~\citep{h2o}, and WristPP~\citep{xi2026wristpp} further support first-person hand tracking and interaction understanding in wearable and egocentric settings. However, vision-based methods remain fundamentally constrained by line of sight: self-occlusion, inter-hand occlusion, object manipulation, and motion blur can substantially degrade pose estimates. EMG provides complementary muscle-activation cues that are independent of image visibility. Recent work has begun exploring EMG+vision multimodal learning for gesture understanding~\citep{hao2024multimodal,zandigohar2024multimodal,embridge} and cross-modal EMG-pose representation~\citep{cpep,liu2025frompose}, but these efforts focus on gesture classification or offline representation mapping rather than continuous hand-pose regression. The lack of synchronized egocentric video, bilateral EMG, and continuous pose labels has therefore prevented systematic study of EMG+vision fusion for hand-pose regression.
@@ -95,19 +105,19 @@ motion is tracked using 21 reflective markers per hand at 120\,Hz with an FZMoti
 are temporally synchronized via host-timestamp soft-synchronization
 followed by linear interpolation to a common timeline (Figure~\ref{fig:capture_setup}).
 
-We recruited 41 participants (23 male, 18 female; mean age 24; $\sim$15 min recording each). \dataset{} contains 60 gesture classes (30 single-hand, 30 bimanual) with per-frame gesture labels for gesture-conditioned evaluation. Gesture prompts are displayed in randomized order; single-hand gestures are performed mirror-symmetrically with both hands while varying wrist orientation; bimanual gestures follow demonstrated two-hand interactions, capturing natural coordination patterns. Figure~\ref{fig:sample_data} shows representative synchronized samples from all modalities.
+We recruited 53 participants. \dataset{} contains 60 gesture classes (30 single-hand, 30 bimanual) with per-frame gesture labels for gesture-conditioned evaluation. Gesture prompts are displayed in randomized order; single-hand gestures are performed mirror-symmetrically with both hands while varying wrist orientation; bimanual gestures follow demonstrated two-hand interactions, capturing natural coordination patterns. Figure~\ref{fig:sample_data} shows representative synchronized samples from all modalities.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.8\columnwidth]{figures/fig_capture_setup.pdf}
+\includegraphics[width=0.9\columnwidth]{figures/aaai/fig_capture_setup.pdf}
 \caption{Data collection setup for \dataset{}. Bilateral EMG wristbands, head-mounted egocentric RGB, external ZED 2i RGB-D, and optical motion capture with hand markers for pose labels.}
 \label{fig:capture_setup}
 \end{figure}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.8\columnwidth]{figures/fig_sample_data.pdf}
-\caption{Representative synchronized samples from \dataset{}. Each row (3.9\,s window) shows GT hand pose, bilateral EMG, egocentric RGB at window center, and external RGB-D.}
+\includegraphics[width=0.95\columnwidth]{figures/aaai/fig_sample_data.pdf}
+\caption{Representative synchronized samples from \dataset{}. Each row (6\,s window) shows GT hand pose, bilateral EMG, egocentric RGB at window center, and external RGB-D.}
 \label{fig:sample_data}
 \end{figure}
 
@@ -116,11 +126,11 @@ We recruited 41 participants (23 male, 18 female; mean age 24; $\sim$15 min reco
 
 Hand pose labels are reconstructed from optical motion-capture markers into
 MANO parameters~\citep{mano}. We use a learning-based \marker{} pipeline that
-maps 21 marker positions to MANO pose, shape, and translation parameters. The
+maps 21 marker positions to MANO pose and shape parameters. The
 pipeline uses fixed MANO surface vertices as virtual marker correspondences,
 allowing captured 3D marker positions to be aligned with the canonical MANO
 mesh. Full details of the \marker{} architecture, training data, and augmentation
-pipeline are provided in Appendix~\ref{app:markers2mano}.
+pipeline are provided in \supplementref{app:markers2mano}.
 
 Compared with the per-frame inverse-kinematics solver used by EMG2Pose, which
 has a reported 12.7\% invalid-frame rate, our learning-based reconstruction
@@ -130,20 +140,17 @@ In addition to MANO parameters, \dataset{} provides per-frame joint angles in a
 22-DoF scalar format (20 finger angles plus 2 wrist articulation angles) obtained
 by optimizing UmeTrack joint angles to match MANO landmark positions;
 the conversion procedure is described in
-Appendix~\ref{app:joint_angle_conversion}.
+\supplementref{app:joint_angle_conversion}.
 As an independent cross-modal check, we reproject reconstructed MANO meshes
-onto egocentric RGB frames using the calibrated camera model: the mean
-per-marker alignment error is 4.3\,mm on \dataset{} (3.2\,mm on the
-public InterHand2.6M subset), and visual inspection of randomly sampled
+onto egocentric RGB frames using the calibrated camera model. Visual inspection of randomly sampled
 reprojections confirms consistent mesh-to-image alignment across gesture
-families (Figure~\ref{fig:label_quality}). Per-gesture error distributions
-are provided in Appendix~\ref{app:label_validation}.
+families (\supplementfigureref{fig:label_quality}).
 
 Wrist articulation angles are computed directly from motion-capture markers,
 independent of the MANO reconstruction pipeline. Markers attached to each EMG
 armband define a forearm coordinate frame, from which we compute two wrist
 degrees of freedom: flexion/extension and radial/ulnar deviation; the full
-derivation is provided in Appendix~\ref{app:wrist_angles}.
+derivation is provided in \supplementref{app:wrist_angles}.
 
 \subsection{Dataset Statistics and Positioning}
 
@@ -159,20 +166,20 @@ cross-modal hand pose estimation.
 \caption{Comparison of \dataset{} with representative public EMG datasets.
 ``EMG Ch.'' counts total channels across both wrists (per-wrist$\times$2 for bilateral datasets); ``Bilateral'' indicates dual-wrist EMG capture; ``Wrist labels'' indicates explicit wrist articulation labels; ``Pose labels'' indicates continuous hand pose annotations.}
 \label{tab:dataset_compare}
-\resizebox{0.8\columnwidth}{!}{%
+\resizebox{0.9\columnwidth}{!}{%
 \begin{threeparttable}
 \begin{tabular}{@{}lcccccccc@{}}
 \toprule
 Dataset & Subj. & EMG Ch. & Bilateral & Ego RGB & RGB-D &
 \makecell{Wrist\\labels} & \makecell{Pose\\labels} & Gestures \\
 \midrule
-Jarque-Bou 2019 & 22 & 8 & -- & -- & -- & -- & 18 (g) & 26 \\
-NinaPro & 27--78 & 10--16 & -- & -- & -- & \checkmark & 22 (g)\tnote{*} & 53 \\
-MyoKi & 36 & 16 & -- & -- & -- & -- & 18 (g) & 74 \\
-PiMForce & 21 & 8 & -- & -- & -- & -- & 20 (g) & 63 \\
-EMG2Pose & 193 & 32 (16$\times$2) & \checkmark & -- & -- & -- & 20 (m) & 50 \\
+Jarque-Bou et al.~\shortcite{jarque2019} & 22 & 8 & -- & -- & -- & -- & 18 (g) & 26 \\
+NinaPro~\citep{ninapro} & 27--78 & 10--16 & -- & -- & -- & \checkmark & 22 (g)\tnote{*} & 53 \\
+MyoKi~\citep{myoki} & 36 & 16 & -- & -- & -- & -- & 18 (g) & 74 \\
+PiMForce~\citep{pimforce} & 21 & 8 & -- & -- & -- & -- & 20 (g) & 63 \\
+EMG2Pose~\citep{emg2pose} & 193 & 32 (16$\times$2) & \checkmark & -- & -- & -- & 20 (m) & 50 \\
 \textbf{\dataset{} (ours)}
-& \textbf{41} & \textbf{16 (8$\times$2)} & \checkmark & \checkmark & \checkmark
+& \textbf{53} & \textbf{16 (8$\times$2)} & \checkmark & \checkmark & \checkmark
 & \checkmark & \textbf{22 (m)} & \textbf{60} \\
 \bottomrule
 \end{tabular}
@@ -185,19 +192,17 @@ EMG2Pose & 193 & 32 (16$\times$2) & \checkmark & -- & -- & -- & 20 (m) & 50 \\
 \end{table}
 
 \paragraph{Hand shape and gesture diversity.}
-\dataset{} estimates per-subject MANO shape parameters
-($\boldsymbol{\beta} \in \mathbb{R}^{10}$) by averaging shape coefficients for
-each participant. Figure~\ref{fig:dataset_analysis}(a) shows the distribution
-across 41 participants, demonstrating substantial inter-subject hand-shape
+Figure~\ref{fig:dataset_analysis}(a) shows the MANO shape distribution
+across 53 participants, demonstrating substantial inter-subject hand-shape
 variation. The 60 gesture classes include 30 single-hand gestures and 30
 bimanual interaction gestures, covering both symmetric coordination and
-asymmetric manipulation. The full gesture vocabulary is provided in Appendix~\ref{app:gesture_vocabulary};
-per-dimension MANO shape statistics are reported in Appendix~\ref{app:beta_stats}.
+asymmetric manipulation. The full gesture vocabulary is provided in
+\supplementref{app:gesture_vocabulary}.
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=\columnwidth]{figures/statistics.pdf}
-    \caption{\textbf{(a)} MANO shape diversity across \dataset{} participants (82 hands). \textbf{(b)} Evaluation splits on the participant--gesture matrix (Train, Gesture/User/Both).}
+    \includegraphics[width=\columnwidth]{figures/aaai/statistics.pdf}
+    \caption{\textbf{(a)} MANO shape diversity across \dataset{} participants (106 hands). \textbf{(b)} Evaluation splits on the participant--gesture matrix (Train, Gesture/User/Both).}
     \label{fig:dataset_analysis}
 \end{figure}
 
@@ -205,9 +210,9 @@ per-dimension MANO shape statistics are reported in Appendix~\ref{app:beta_stats
 
 Following the protocol of EMG2Pose~\citep{emg2pose}, we define two primary
 generalization axes: \emph{gesture} and \emph{user}. Based on these axes, we
-evaluate three splits: a \emph{gesture split}, where held-out gestures are
-evaluated on seen participants; a \emph{user split}, where held-out participants
-are evaluated on all gestures; and a combined \emph{both split}, where both
+evaluate three mutually exclusive splits: a \emph{Gesture split}, where held-out gestures are
+evaluated on seen participants; a \emph{User split}, where held-out participants
+are evaluated on seen gestures; and a combined \emph{Both split}, where both
 gestures and participants are held out. All modalities follow the same split
 assignment, preserving synchronized multimodal examples and preventing leakage
 along the held-out axis. We hold out 10 gestures for the gesture split and
@@ -232,14 +237,13 @@ and 2 wrist articulation angles per hand. The three tasks are:
 \emph{EMG-to-pose}, which predicts joint angles from EMG windows;
 \emph{vision-to-pose}, which predicts joint angles from single egocentric RGB hand
 crops; and \emph{EMG+vision fusion}, which uses both modalities to predict the
-same output. The external RGB-D and IMU streams, as well as temporal
-multi-frame vision models, are included in the release to
-support future extensions but are not benchmarked in this paper.
+same output. The external RGB-D and IMU streams are included in the release to
+support future extensions.
 
 \subsection{Evaluation Protocol}
 
-We evaluate all tasks on the gesture, user, and both splits defined in
-\S\ref{sec:dataset}. The primary metric is mean absolute error (MAE) over joint
+We evaluate all tasks on the Gesture, User, and Both splits defined in the
+dataset section above. The primary metric is mean absolute error (MAE) over joint
 angles:
 \begin{equation}
 \text{MAE} =
@@ -251,30 +255,34 @@ angles:
 where $J$ is the number of predicted joint angles and $T$ is the number of
 evaluated time steps. For wrist analysis, we
 additionally report MAE on flexion/extension and radial/ulnar deviation. Unless
-otherwise specified, all errors are reported on the held-out test split. EMG
-evaluation uses the full predicted trajectory over each EMG window, whereas the
-vision-only and fusion models are evaluated on the window center frame, where
-visual evidence is available; cross-modality comparisons should therefore be
-interpreted with this difference in supervision granularity in mind.
+otherwise specified, all errors are reported on the held-out test split. For
+vision-only and fusion evaluation, we use $256\times256$ hand crops localized by
+projecting motion-capture keypoints into the calibrated egocentric camera. These
+models predict the window center frame; fusion pairs that image with a centered,
+non-causal 6\,s EMG window. The resulting protocol evaluates offline pose
+regression given hand localization rather than hand detection or causal tracking.
+EMG-only evaluation instead uses the full predicted trajectory over each window.
 
 \subsection{EMG Baseline}
 
 As the EMG-to-pose baseline, we introduce \model{} (Figure~\ref{fig:architecture}),
-a temporal model that maps raw EMG windows to per-frame joint angles. A
-TDS-style temporal convolutional frontend~\citep{tds} downsamples 2\,kHz EMG
-signals to latent features at approximately 37\,Hz, followed by a Transformer
+a temporal model that maps filtered EMG windows to per-frame joint angles. For
+the reported \dataset{} experiments, each example contains 12{,}000 samples
+(6\,s) from the target wrist's eight EMG channels. A TDS-style temporal
+convolutional frontend~\citep{tds} downsamples the 2\,kHz signal to latent
+features at approximately 38\,Hz, followed by a Transformer
 decoder with rotary positional encoding (RoPE)~\citep{rope} to model long-range
 temporal dependencies. Left-hand EMG is mirrored to the right-hand
 convention during training. Each forward pass predicts one hand's joint-angle
 trajectory, including wrist articulation for \dataset{}. We provide three model
 sizes; implementation details, architecture specifications, and
-ablations are provided in Appendix~\ref{app:training_details}.
+ablations are provided in \supplementref{app:training_details}.
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.75\columnwidth]{figures/emg.pdf}
-    \caption{\model{} architecture for EMG-to-pose. Bilateral EMG is encoded by
-    a TDS-style temporal convolutional frontend, decoded by a Transformer with
+    \includegraphics[width=0.9\columnwidth]{figures/aaai/emg.pdf}
+    \caption{\model{} architecture for EMG-to-pose. Target-wrist EMG is encoded
+    by a TDS-style temporal convolutional frontend, decoded by a Transformer with
     RoPE positional encoding, and projected to joint angles including wrist
     articulation.}
     \label{fig:architecture}
@@ -285,12 +293,12 @@ ablations are provided in Appendix~\ref{app:training_details}.
 For vision-to-pose, we evaluate seven single-frame reference baselines. Six are generic image backbones across two families: ResNet~\citep{resnet} (\{18, 50, 152\}) and ViT~\citep{vit} (\{Small, Base, Large\}). ResNet backbones are initialized from ImageNet~\citep{imagenet}-pretrained weights, while ViT backbones are initialized from DINOv2~\citep{dinov2}-pretrained weights. Each generic model takes a
 $256\times256$ egocentric hand crop from the window center frame, extracts a
 feature vector with the backbone, and regresses the 22-DoF target through an MLP
-prediction head. We additionally evaluate WiLoR~\citep{wilor} as a hand-specialized vision baseline initialized from a pretrained MANO-based hand-pose checkpoint and fine-tuned on the same center-frame protocol (Figure~\ref{fig:vision_architecture}). Model
-sizes and training configurations are provided in Appendix~\ref{app:training_details_vision}.
+prediction head. We additionally evaluate WiLoR~\citep{wilor} as a hand-specialized vision baseline initialized from a pretrained MANO-based hand-pose checkpoint and fine-tuned on the same protocol (Figure~\ref{fig:vision_architecture}). Model
+sizes and training configurations are provided in \supplementref{app:training_details_vision}.
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.7\columnwidth]{figures/vision.pdf}
+    \includegraphics[width=0.9\columnwidth]{figures/aaai/vision.pdf}
     \caption{Vision-to-pose baseline. A $256\times256$ hand crop from the
     center frame is processed by a ResNet or ViT backbone, followed by an MLP
     head that regresses 22 joint angles.}
@@ -305,7 +313,7 @@ The EMG+vision baseline is designed as a simple residual fusion model
 vision-only pose $\mathbf{y}_v$, while the EMG branch predicts an additive
 correction $\Delta\mathbf{y}_{\text{emg}}$. The final prediction is $\mathbf{y} = \mathbf{y}_v + \Delta\mathbf{y}_{\text{emg}}$.
 This design makes the fusion model start from a strong visual baseline and
-learn only the pose information contributed by EMG.
+learn the incremental pose information contributed by EMG.
 
 The vision branch extracts a 256-d feature from the center-frame hand crop and
 uses a prediction head to produce $\mathbf{y}_v \in \mathbb{R}^{22}$. The EMG
@@ -320,7 +328,7 @@ target and enabling direct comparison.
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.8\columnwidth]{figures/fusion.pdf}
+    \includegraphics[width=0.9\columnwidth]{figures/aaai/fusion.pdf}
     \caption{EMG+vision fusion baseline. Vision branch predicts $\mathbf{y}_v$; EMG branch predicts residual $\Delta\mathbf{y}_{\text{emg}}$ (zero-initialized head).}
     \label{fig:fusion_architecture}
 \end{figure}
@@ -329,13 +337,16 @@ target and enabling direct comparison.
 
 \subsection{EMG Baseline Results}
 
-\model{} also establishes a strong baseline on the EMG2Pose dataset. On the hardest user+stage split, \model{}-S achieves 12.34$^\circ$ $\pm$ 1.07$^\circ$ MAE, a 22\% improvement over the vemg2pose baseline~\citep{emg2pose} ($15.8^\circ \pm 1.4^\circ$) with only 58\% of the model size (full results in Appendix~\ref{app:emg2pose_results}).
-
-Table~\ref{tab:egoemg_emg_results} reports EMG-to-pose results on \dataset{} for \model{} variants and two traditional architectures across three test conditions (gesture/user/both). The baselines are: vemg2pose~\citep{emg2pose}, a recurrent EMG-to-pose model with an LSTM temporal core; and NeuroPose, a convolutional encoder-decoder baseline~\citep{liu2021neuropose}. We do not include CLDM~\citep{emg2tendon} or VQ-MyoPose~\citep{vqmyopose} on \dataset{} because neither method has released public code, precluding reproduction on a new dataset; we compare against their published numbers on the EMG2Pose benchmark in Appendix~\ref{app:emg2pose_results}.
+Table~\ref{tab:egoemg_emg_results} reports EMG-to-pose results on \dataset{} for \model{} variants and four traditional architectures across the Gesture, User, and Both test conditions. The baselines are the original emg2pose TDS+MLP model and the recurrent vemg2pose model~\citep{emg2pose}, NeuroPose, a convolutional encoder-decoder~\citep{liu2021neuropose}, and SensingDynamics, a convolutional model operating on raw and low-pass EMG~\citep{sensingdynamics}.
 
 \begin{table}[t]
 \centering
-\caption{EMG-to-pose results on \dataset{}. MAE is reported in degrees; lower is better. Gesture/User/Both columns report per-user mean $\pm$ standard deviation. Avg is the per-sample weighted mean MAE across all test splits (pooled gesture, user, and both). Shaded rows highlight \model{} variants; bold indicates best per column and underline indicates second best.}
+\caption{EMG-to-pose results on \dataset{}. All baselines are retrained under
+the same evaluation protocol. MAE is reported in degrees; lower is better.
+Gesture/User/Both columns report per-user mean $\pm$ standard deviation. Avg
+is the per-sample weighted mean across all test splits. The shaded row marks
+the best accuracy--capacity trade-off; bold marks the lowest unambiguous result
+in each column.}
 \label{tab:egoemg_emg_results}
 \footnotesize
 \setlength{\tabcolsep}{3.8pt}
@@ -347,21 +358,56 @@ Method & Params & Gesture & User & Both & Avg. \\
 \midrule
 \multicolumn{6}{l}{\textit{\model{} variants}} \\
 \midrule
-\model{}-S & 3.5M & $12.8_{\pm1.4}$ & $\mathbf{15.6_{\pm2.5}}$ & $17.4_{\pm1.2}$ & $\underline{14.7}$ \\
-\rowcolor{green!8}
-\model{}-M & 6.6M & $\underline{11.8_{\pm1.6}}$ & $\mathbf{15.6_{\pm1.4}}$ & $17.4_{\pm0.9}$ & $\mathbf{14.2}$ \\
-\model{}-L & 16.3M & $\mathbf{11.7_{\pm1.5}}$ & $15.7_{\pm3.0}$ & $17.7_{\pm1.1}$ & $\mathbf{14.2}$ \\
+\model{}-S & 3.5M & $12.3_{\pm1.5}$ & $16.0_{\pm0.6}$ & $16.3_{\pm1.5}$ & $14.1$ \\
+\rowcolor{gray!12}
+\model{}-M & 6.6M & $\mathbf{11.7_{\pm1.6}}$ & $15.9_{\pm0.6}$ & $16.4_{\pm1.5}$ & $\mathbf{13.8}$ \\
+\model{}-L & 16.3M & $11.9_{\pm1.6}$ & $16.0_{\pm0.8}$ & $16.4_{\pm1.2}$ & $13.9$ \\
 \midrule
-\multicolumn{6}{l}{\textit{Traditional architectures}} \\
+\multicolumn{6}{l}{\textit{Reimplemented baselines}} \\
 \midrule
-vemg2pose & 6.0M & $15.0_{\pm1.4}$ & $16.3_{\pm1.7}$ & $\underline{17.3_{\pm1.3}}$ & $15.9$ \\
-NeuroPose & 6.4M & $15.8_{\pm1.2}$ & $\underline{15.7_{\pm1.3}}$ & $\mathbf{16.3_{\pm0.7}}$ & $16.1$ \\
+emg2pose~\citep{emg2pose} & 3.0M & $15.5_{\pm1.3}$ & $\mathbf{14.8_{\pm2.9}}$ & $16.3_{\pm0.6}$ & $15.8$ \\
+vemg2pose~\citep{emg2pose} & 6.0M & $15.0_{\pm1.4}$ & $16.3_{\pm1.7}$ & $17.3_{\pm1.3}$ & $15.9$ \\
+NeuroPose~\citep{liu2021neuropose} & 6.4M & $15.8_{\pm1.2}$ & $15.7_{\pm1.3}$ & $16.3_{\pm0.7}$ & $16.1$ \\
+SensingDynamics~\citep{sensingdynamics} & 1.0M & $16.2_{\pm1.1}$ & $16.4_{\pm0.3}$ & $16.7_{\pm0.8}$ & $16.4$ \\
 \bottomrule
 \end{tabular}}%
 
 \end{table}
 
-\model{} variants achieve the best overall accuracy, with \model{}-M and \model{}-L both outperforming the strongest traditional baseline. The gains are especially pronounced on the gesture split, indicating that \model{} better captures gesture-level articulation under the seen-user, held-out-gesture setting. Cross-user generalization remains the central challenge: larger temporal models improve gesture-split performance but do not by themselves close the gap on unseen participants. \model{}-M offers the best accuracy--capacity trade-off, matching \model{}-L in average MAE with fewer than half the parameters.
+\model{} variants achieve the best accuracy on the Gesture split, indicating that \model{} better captures gesture-level articulation under the seen-user, held-out-gesture setting. The original emg2pose baseline retains the lowest User-split error, underscoring the challenge of cross-user generalization, while \model{}-S matches the lowest reported Both-split error. \model{}-M achieves the best overall MAE and offers the best accuracy--capacity trade-off among the \model{} variants, outperforming \model{}-L with fewer than half the parameters.
+
+\begin{table}[t]
+\centering
+\caption{EMG-only regression results on EMG2Pose test splits. MAE is reported in degrees; lower is better. \model{} values report per-user mean $\pm$ standard deviation across users. $^\dagger$ indicates numbers reported in the corresponding papers. MT denotes joint Regression+Tracking training, evaluated here in the Regression setting without test-time user calibration. Bold marks the lowest result in each column.}
+\label{tab:emg2pose_results}
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.05}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Method & Params & User & Stage & User+Stage \\
+\midrule
+\multicolumn{5}{l}{\textit{\model{} variants}} \\
+\midrule
+\model{}-S & 3.5M & $12.5_{\pm1.1}$ & $11.1_{\pm1.2}$ & $12.3_{\pm1.1}$ \\
+\model{}-M & 6.6M & $12.4_{\pm1.1}$ & $10.2_{\pm1.1}$ & $12.4_{\pm1.1}$ \\
+\model{}-L & 16.3M & $12.3_{\pm1.1}$ & $\mathbf{9.3_{\pm1.1}}$ & $\mathbf{12.3_{\pm1.1}}$ \\
+\midrule
+\multicolumn{5}{l}{\textit{Prior work (reported)}} \\
+\midrule
+emg2pose (position)$^\dagger$~\citep{emg2pose} & 3.0M & $12.6_{\pm1.3}$ & $15.2_{\pm1.6}$ & $15.6_{\pm1.3}$ \\
+vemg2pose$^\dagger$~\citep{emg2pose} & 6.0M & $12.2_{\pm1.3}$ & $15.2_{\pm1.6}$ & $15.8_{\pm1.4}$ \\
+NeuroPose$^\dagger$~\citep{liu2021neuropose} & 6.4M & $13.2_{\pm1.1}$ & $17.2_{\pm1.7}$ & $17.5_{\pm1.5}$ \\
+SensingDynamics$^\dagger$~\citep{sensingdynamics} & 1.0M & $15.5_{\pm1.4}$ & $18.8_{\pm1.6}$ & $18.7_{\pm1.6}$ \\
+Position MT$^\dagger$~\citep{hadidi2026reevaluating} & 6.0M & $11.5_{\pm1.2}$ & $14.0_{\pm1.6}$ & $14.6_{\pm1.3}$ \\
+Velocity MT$^\dagger$~\citep{hadidi2026reevaluating} & 6.0M & $11.6_{\pm1.3}$ & $13.9_{\pm1.6}$ & $14.6_{\pm1.3}$ \\
+CLDM$^\dagger$~\citep{emg2tendon} & 7.0M & $\mathbf{11.3_{\pm1.0}}$ & $14.3_{\pm1.5}$ & $14.7_{\pm1.4}$ \\
+\bottomrule
+\end{tabular}}%
+\end{table}
+
+On EMG2Pose (Table~\ref{tab:emg2pose_results}), \model{}-L achieves 12.25$^\circ$ $\pm$ 1.08$^\circ$ MAE on User+Stage, a 16\% reduction relative to the best prior reported result of 14.6$^\circ$ $\pm$ 1.3$^\circ$ from Position/Velocity MT~\citep{hadidi2026reevaluating}. The compact \model{}-S reaches 12.34$^\circ$ $\pm$ 1.07$^\circ$ with only 58\% of the vemg2pose model size.
 
 \subsection{Vision-to-Pose Results}
 
@@ -373,117 +419,77 @@ ResNet-152 achieves the best vision-only performance across all splits.
 ResNet-50 also outperforms ViT-Large despite using substantially fewer
 parameters, suggesting that convolutional backbones remain highly competitive as
 generic egocentric references in this data regime. Scaling reduces error within
-both generic backbone families, while cross-user and both splits remain harder
-than the gesture split across all vision-only models. The relative
+both generic backbone families, while the User and Both splits remain harder
+than the Gesture split across all vision-only models. The relative
 underperformance of generic ViT regressors may reflect the scale of the
 available supervised training data, as transformer-based vision models often
 benefit from larger datasets. In contrast, the hand-specialized WiLoR baseline
 achieves the strongest standalone visual accuracy, reducing the average MAE to
-4.7$^\circ$. This indicates that task-specific hand-pose pretraining and
-architecture remain important even in the controlled \dataset{} setting.
+4.7$^\circ$. This indicates that task-specific hand-pose pretraining remains important in the \dataset{} setting.
 
 \subsection{EMG+Vision Fusion Results}
 \label{sec:cross_modal}
 
-We evaluate EMG+vision fusion using the residual architecture described in
-\S\ref{sec:fusion_arch}, with \model{}-S as the EMG backbone. The fusion
-model predicts the window center frame, where the egocentric RGB observation is
-available, making its MAE directly comparable to the vision-only baseline under
-the same supervision target. Table~\ref{tab:egoemg_results} reports matched
-vision-only and EMG+vision comparisons.
+We evaluate EMG+vision fusion using the residual architecture described above,
+with \model{}-S as the EMG backbone. The fusion model predicts the window
+center frame, where the egocentric RGB observation is available, making its MAE
+directly comparable to the vision-only baseline under the same supervision
+target. For each visual backbone, we train two fusion variants: one freezes the
+pretrained visual predictor and the other fine-tunes it jointly with the EMG
+branch. For each backbone, we retain the frozen or fine-tuned variant with the
+lower validation MAE. Table~\ref{tab:egoemg_results} reports the retained
+variant; the complete frozen-versus-fine-tuned comparison is deferred to
+\supplementref{app:fusion_freeze_ablation}.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering
-\caption{Vision-only and EMG+vision fusion results on \dataset{}.
-MAE is reported in degrees; lower is better.
-Subscripts denote standard deviation across users.
-Avg is the per-sample weighted mean MAE across all test splits. Shaded rows
-highlight EMG+vision fusion baselines. Bold indicates the better result within
-each matched vision-only/fusion pair. Underlines mark the strongest generic
-vision-only backbone.}
+\caption{Vision-only versus EMG+vision fusion on
+\dataset{}. Each split reports MAE in degrees as Vision $\rightarrow$ Fusion on
+identical center frames; bold marks the lower error. Frz./FT denotes a
+frozen/fine-tuned visual predictor. Params reports total parameters in millions
+as vision-only/fusion. Avg is the mean and
+$\Delta_{\mathrm{avg}}$ is the overall fusion gain computed from unrounded
+values.}
 \label{tab:egoemg_results}
 \footnotesize
-\setlength{\tabcolsep}{3.5pt}
-\renewcommand{\arraystretch}{1.05}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{llccccc}
+\setlength{\tabcolsep}{4.8pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{lccccccc}
 \toprule
-Input & Method & Params & Gesture & User & Both & Avg \\
+Backbone & Params (V/F) & Update & Gesture & User & Both & Avg & $\Delta_{\mathrm{avg}}$ \\
 \midrule
-\multicolumn{7}{l}{\textit{ResNet-based comparison}} \\
+ResNet-18  & 11.5/15.5M  & FT & $5.10\!\rightarrow\!\mathbf{4.60}$ & $6.80\!\rightarrow\!\mathbf{6.40}$ & $6.80\!\rightarrow\!\mathbf{6.40}$ & $5.84\!\rightarrow\!\mathbf{5.40}$ & $+0.44$ \\
+ResNet-50  & 23.5/29.0M  & Frz. & $4.50\!\rightarrow\!\mathbf{4.39}$ & $6.23\!\rightarrow\!\mathbf{6.19}$ & $6.10\!\rightarrow\!\mathbf{6.05}$ & $5.27\!\rightarrow\!\mathbf{5.19}$ & $+0.09$ \\
+ResNet-152 & 58.2/63.6M  & Frz. & $4.31\!\rightarrow\!\mathbf{4.25}$ & $6.07\!\rightarrow\!\mathbf{6.04}$ & $6.03\!\rightarrow\!6.03$ & $5.11\!\rightarrow\!\mathbf{5.06}$ & $+0.05$ \\
 \midrule
-Vision & V-RN18
-& 11.5M
-& $5.1_{\pm1.3}$
-& $6.8_{\pm1.7}$
-& $6.8_{\pm0.9}$
-& 5.9 \\
-\rowcolor{green!8}
-EMG+Vision & F-RN18+S
-& 15.5M
-& $\mathbf{4.6}_{\pm1.3}$
-& $\mathbf{6.4}_{\pm1.4}$
-& $\mathbf{6.4}_{\pm0.8}$
-& \textbf{5.4} \\
+ViT-S/14   & 21.9/25.8M  & FT & $5.00\!\rightarrow\!\mathbf{4.50}$ & $7.30\!\rightarrow\!\mathbf{6.80}$ & $7.20\!\rightarrow\!\mathbf{6.80}$ & $6.02\!\rightarrow\!\mathbf{5.54}$ & $+0.48$ \\
+ViT-B/14   & 86.2/90.2M  & Frz. & $4.85\!\rightarrow\!\mathbf{4.80}$ & $\mathbf{7.02}\!\rightarrow\!7.03$ & $6.86\!\rightarrow\!\mathbf{6.84}$ & $5.78\!\rightarrow\!\mathbf{5.75}$ & $+0.03$ \\
+ViT-L/14   & 303.8/308.0M & Frz. & $4.39\!\rightarrow\!\mathbf{4.34}$ & $\mathbf{6.67}\!\rightarrow\!6.69$ & $6.60\!\rightarrow\!6.60$ & $5.39\!\rightarrow\!\mathbf{5.36}$ & $+0.03$ \\
 \midrule
-\multicolumn{7}{l}{\textit{ViT-based comparison}} \\
-\midrule
-Vision & V-ViT-S
-& 21.9M
-& $5.0_{\pm1.3}$
-& $7.3_{\pm2.4}$
-& $7.2_{\pm0.5}$
-& 6.0 \\
-\rowcolor{green!8}
-EMG+Vision & F-ViT-S+S
-& 25.9M
-& $\mathbf{4.5}_{\pm1.3}$
-& $\mathbf{6.8}_{\pm1.2}$
-& $\mathbf{6.8}_{\pm0.6}$
-& \textbf{5.5} \\
-\midrule
-\multicolumn{7}{l}{\textit{Additional vision-only backbones}} \\
-\midrule
-Vision & V-RN50
-& 23.5M
-& $4.5_{\pm1.3}$
-& $6.2_{\pm2.2}$
-& $6.2_{\pm0.7}$
-& 5.3 \\
-Vision & V-RN152
-& 58.2M
-& $\underline{4.3}_{\pm1.2}$
-& $6.1_{\pm2.3}$
-& $6.1_{\pm0.7}$
-& 5.1 \\
-Vision & V-ViT-B
-& 86.2M
-& $4.8_{\pm1.3}$
-& $7.0_{\pm2.3}$
-& $6.9_{\pm0.6}$
-& 5.8 \\
-Vision & V-ViT-L
-& 303.8M
-& $4.4_{\pm1.3}$
-& $6.6_{\pm2.2}$
-& $6.6_{\pm0.7}$
-& 5.4 \\
-\midrule
-\multicolumn{7}{l}{\textit{Hand-specialized vision baseline}} \\
-\midrule
-Vision & V-WiLoR
-& 631.6M
-& $\mathbf{3.9}_{\pm1.3}$
-& $\mathbf{5.6}_{\pm2.4}$
-& $\mathbf{5.7}_{\pm0.7}$
-& \textbf{4.7} \\
+WiLoR      & 631.6/635.8M & Frz. & $3.98\!\rightarrow\!\mathbf{3.96}$ & $5.57\!\rightarrow\!\mathbf{5.52}$ & $5.58\!\rightarrow\!\mathbf{5.54}$ & $4.73\!\rightarrow\!\mathbf{4.68}$ & $+0.04$ \\
 \bottomrule
-\end{tabular}}%
+\end{tabular}
 
-\end{table}
+\end{table*}
 
-Fusion consistently improves over matched lightweight generic vision-only baselines across all backbone families and splits. The improvement is largest on the gesture split, while user-split gains are smaller, suggesting that EMG is particularly informative for fine articulation but remains affected by inter-subject variability. At the same time, V-WiLoR remains stronger than the current lightweight fusion baselines, indicating that the next benchmark milestone is to test whether EMG also improves a strong hand-specialized visual model rather than only generic backbones. A per-gesture analysis across 59 of the 60 gesture classes (Appendix~\ref{app:per_gesture}) shows that fusion improves over vision-only on nearly all gestures. An occlusion-stratified analysis (Appendix~\ref{app:occlusion}) shows a positive correlation between hand self-occlusion and fusion gain. Figure~\ref{fig:qualitative_fusion} illustrates this complementarity: when visual evidence is ambiguous, EMG retains pose cues independent of image appearance, and the fused model recovers articulation closer to the ground truth.
-For reference under the same center-frame supervision target used by fusion, we also provide EMG-only center-frame results in Appendix~\ref{app:center_frame_emg}. 
+Fusion lowers the sample-weighted average error for all seven backbones, with the largest gains for ResNet-18 and ViT-S and smaller gains for stronger visual models. The smaller gains with larger visual backbones may reflect the growing parameter imbalance between the visual backbone and the much smaller EMG and fusion branches, which may make joint multimodal optimization more difficult. The improvements are not uniform across splits: frozen ViT-B and ViT-L improve on unseen gestures but are nearly unchanged or slightly worse on unseen users, whereas WiLoR yields small gains on all three splits. The ablation in \supplementref{app:fusion_freeze_ablation} indicates that fine-tuning works better for ResNet-18 and ViT-S, while freezing is preferable for larger backbones under our settings. The per-gesture analysis in \supplementref{app:per_gesture} further examines where fusion is most beneficial.
+
+\paragraph{Effect of self-occlusion.}
+We analyze the matched Vision-RN18 and Fusion-RN18+S models. To quantify self-occlusion, we rasterize each ground-truth MANO mesh in camera coordinates at the native image resolution using the calibrated camera and a z-buffer. A vertex is visible when its depth agrees with the local z-buffer within 5\,mm. With $w_i$ denoting the surface-area weight of vertex $i$, we define
+\begin{equation}
+s_{\mathrm{occ}} = 1 - \frac{\sum_{i \in \mathcal{V}_{\mathrm{vis}}} w_i}
+{\sum_{i=1}^{V} w_i},
+\end{equation}
+where $\mathcal{V}_{\mathrm{vis}}$ is the visible-vertex set; $s_{\mathrm{occ}}=0$ denotes a fully visible mesh (full details in \supplementref{app:occlusion}). Fusion improves on vision-only in every occlusion bin: the mean gain rises from $0.24\degree$ in the least-occluded bin to $0.52\degree$ in the most-occluded bin, and reaches approximately $0.8\degree$ at moderate-to-high occlusion. Figure~\ref{fig:occlusion_gain} visualizes this pattern. Although the frame-level association between occlusion and fusion gain is weak, the positive gains across bins are consistent with EMG providing complementary cues when visual evidence is degraded. Figure~\ref{fig:qualitative_fusion} illustrates a representative case: when visual evidence is ambiguous, EMG retains pose cues independent of image appearance, and the fused model recovers articulation closer to the ground truth.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/occlusion_fusion_gain.png}
+  \caption{Fusion benefit as a function of hand self-occlusion on the \dataset{} test set (16{,}650 valid predictions). \textbf{(a)} Mean joint-angle MAE of vision-only and EMG+vision fusion across fixed-width (0.05) occlusion bins; annotations show the fusion gain at the lowest and highest bins. \textbf{(b)} Per-bin fusion gain ($\Delta = \text{MAE}_{\text{vision}} - \text{MAE}_{\text{fusion}}$) with a LOESS trend line. Error bands denote $\pm$1 SEM.}
+  \label{fig:occlusion_gain}
+\end{figure}
+
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.95\columnwidth]{figures/quality.png}
@@ -504,9 +510,8 @@ Our experiments highlight three findings. First, cross-user generalization
 remains the central challenge for EMG-based pose estimation: errors increase
 more on unseen participants than on unseen gestures. Second, EMG and vision offer
 complementary information. Vision provides the stronger standalone signal in the
-current benchmark, and the hand-specialized WiLoR baseline is the strongest
-vision-only model, whereas EMG captures pose-relevant cues for fine articulation
-and improves performance when fused with matched lightweight vision baselines.
+current benchmark, whereas EMG captures pose-relevant cues for fine articulation
+and improves average accuracy when fused with the evaluated vision baselines.
 Third, scaling behavior depends on the data regime. The proposed \model{}
 architecture improves over vemg2pose on the original EMG2Pose benchmark, but
 larger variants do not consistently improve on \dataset{}. This suggests that
@@ -515,7 +520,7 @@ and motivates large-scale EMG pretraining, cross-dataset transfer, and
 subject-robust adaptation.
 
 \paragraph{Limitations and future work.}
-The present study has several limitations. First, \dataset{} includes 41
+The present study has several limitations. First, \dataset{} includes 53
 participants, which is substantial for synchronized multimodal capture but still
 limited for modeling the full extent of inter-subject EMG variability. Expanding
 the dataset to more diverse participants would enable a more systematic study of
@@ -525,11 +530,7 @@ it can support future work on temporal, multi-view, and RGB-D-based methods.
 The benchmark also does not yet include rich hand-object interaction with instrumented or
 densely annotated objects; future extensions should test whether the same
 multimodal signals remain helpful when object contact introduces additional
-occlusion and pose ambiguity. Third, our fusion baselines are intentionally simple and are only
-evaluated with lightweight generic visual branches. A stronger next step is to
-test whether EMG also improves specialized vision models such as WiLoR. More expressive architectures, including
-cross-attention, uncertainty-aware fusion, and explicit temporal alignment, may
-better exploit the complementary strengths of EMG and vision.
+occlusion and pose ambiguity. Third, our fusion baseline is intentionally simple, and its gains are modest for the larger visual backbones, possibly because the growing parameter imbalance between the visual backbone and the compact EMG and fusion branches makes multimodal optimization more difficult. Future work should explore more balanced and expressive fusion architectures, such as cross-attention and uncertainty-aware fusion.
 
 More broadly, \dataset{} provides a testbed for studying when physiological
 signals add information beyond visual observations, especially under unreliable
@@ -539,147 +540,154 @@ benchmark.
 
 \section*{Ethics Statement}
 
-All participants provided informed consent under an IRB-approved protocol and were compensated at a standard hourly rate commensurate with local guidelines. Participants were explicitly informed of their right to withdraw from the study at any time and to request deletion of their data; no participant exercised this right. The consent form explained the purpose of data collection, the modalities recorded, and the intended research use, and is included in the supplementary materials.
+All participants provided informed consent under an IRB-approved protocol and were compensated at a standard hourly rate commensurate with local guidelines. Participants were explicitly informed of their right to withdraw from the study at any time and to request deletion of their data; no participant exercised this right. The consent form explained the purpose of data collection, the modalities recorded, and the intended research use.
 
-The dataset contains no personally identifiable information: facial regions in egocentric and external camera frames are automatically blurred, and participant identifiers are replaced with anonymous numeric IDs. While EMG and motion capture data do not reveal sensitive health information beyond gross motor function, we note that MANO shape parameters and EMG signals could in principle serve as soft biometric identifiers under certain conditions. The dataset will be released under a CC-BY-NC 4.0 research-use license that prohibits re-identification attempts and commercial use without explicit permission. We commit to hosting the dataset on a stable platform (e.g., Zenodo) with a DOI and versioned releases, and will provide a contact email for data-related inquiries and error reporting.
+Direct identifiers are removed from the dataset: facial regions in egocentric and external camera frames are automatically blurred, and participant identifiers are replaced with anonymous numeric IDs. While EMG and motion capture data do not reveal sensitive health information beyond gross motor function, we note that MANO shape parameters and EMG signals could in principle serve as soft biometric identifiers under certain conditions. The dataset will be released for noncommercial research under CC-BY-NC 4.0, accompanied by explicit guidance against re-identification attempts. We commit to hosting the dataset on a stable platform (e.g., Zenodo) with a DOI and versioned releases, and will provide a contact email for data-related inquiries and error reporting.
 
 \section*{Reproducibility Statement}
 
-The repository contains training code, evaluation scripts, and \model{} baseline experiments with exact configuration files for all reported results. Appendix~\ref{app:training_details} provides per-variant hyperparameters, optimizer settings, and compute requirements. The public release will include dataset documentation, split definitions, preprocessing scripts, benchmark configurations, and an anonymized download link. All EMG2Pose baseline experiments were run on 6 NVIDIA RTX 4090 GPUs with bf16 mixed precision; each \model{} variant requires approximately 2--8 GPU-hours for 200 epochs of training. Total compute for all reported experiments is approximately 128 GPU-hours (120 for main baselines + 8 for additional analyses).
-
-\section*{Acknowledgments}
-We thank the anonymous reviewers.
+The anonymized Code and Data Supplement submitted with this manuscript contains training and evaluation code, exact configuration files, normalization statistics, and a runnable numeric reviewer sample. The supplementary material provides the architecture and optimization settings used for the reported \dataset{} experiments. The public release will include dataset documentation, split definitions, preprocessing scripts, benchmark configurations, and an anonymized download link. The reported \dataset{} \model{} variants use 12{,}000-sample (6\,s) target-wrist EMG windows, are trained for 150 epochs with bf16 mixed precision, and use four to six NVIDIA RTX 4090 GPUs depending on model size.
 
 % aaai2027.sty already sets \bibliographystyle{aaai2027} automatically
 \bibliography{references}
 
+\ifmainonly
+\else
+\clearpage
+\setcounter{page}{1}
+\onecolumn
+\section*{Supplementary Material}
 \appendix
 
+\begingroup
+\small
+\setlength{\parskip}{1pt}
+\noindent\textbf{Contents}\par
+\smallskip
+\noindent
+\textbf{\ref{app:dataset_details}\quad Dataset details}
+  \dotfill \pageref{app:dataset_details}\par
+\hspace*{1.5em}\ref{app:gesture_vocabulary}\quad Gesture Vocabulary
+  \dotfill \pageref{app:gesture_vocabulary}\par
+\hspace*{1.5em}\ref{app:dataset_card}\quad Dataset Card and Release Format
+  \dotfill \pageref{app:dataset_card}\par
+\hspace*{1.5em}\ref{app:emg_processing}\quad EMG Signal Processing
+  \dotfill \pageref{app:emg_processing}\par
+\smallskip
+\noindent
+\textbf{\ref{app:label_validation}\quad Label reconstruction and quality}
+  \dotfill \pageref{app:label_validation}\par
+\hspace*{1.5em}\ref{app:markers2mano}\quad Markers2MANO Pipeline
+  \dotfill \pageref{app:markers2mano}\par
+\hspace*{1.5em}\ref{app:wrist_angles}\quad Wrist Articulation Angles
+  \dotfill \pageref{app:wrist_angles}\par
+\hspace*{1.5em}\ref{app:joint_angle_conversion}\quad MANO-to-UmeTrack Conversion
+  \dotfill \pageref{app:joint_angle_conversion}\par
+\smallskip
+\noindent
+\textbf{\ref{app:implementation}\quad Training and implementation details}
+  \dotfill \pageref{app:implementation}\par
+\hspace*{1.5em}\ref{app:training_details}\quad EMGFormer Training Details
+  \dotfill \pageref{app:training_details}\par
+\hspace*{1.5em}\ref{app:training_details_vision}\quad Vision and Fusion Training Details
+  \dotfill \pageref{app:training_details_vision}\par
+\smallskip
+\noindent
+\textbf{\ref{app:extended_results}\quad Extended experimental results}
+  \dotfill \pageref{app:extended_results}\par
+\hspace*{1.5em}\ref{app:emg_per_hand}\quad Per-Hand EMG Results
+  \dotfill \pageref{app:emg_per_hand}\par
+\hspace*{1.5em}\ref{app:per_joint}\quad Per-Joint Error Analysis
+  \dotfill \pageref{app:per_joint}\par
+\hspace*{1.5em}\ref{app:per_gesture}\quad Per-Gesture Complementarity
+  \dotfill \pageref{app:per_gesture}\par
+\hspace*{1.5em}\ref{app:occlusion}\quad Self-Occlusion Analysis
+  \dotfill \pageref{app:occlusion}\par
+\par
+\endgroup
+\medskip
+
 \section{Dataset details}
+\label{app:dataset_details}
 
 \subsection{Gesture Vocabulary}
 \label{app:gesture_vocabulary}
 
 Table~\ref{tab:gesture_vocabulary} lists the complete gesture vocabulary of \dataset{} with descriptions.
 
-\onecolumn
+\begingroup
 \scriptsize
-\begin{longtable}{@{}lp{0.45\columnwidth}@{}}
-\caption{Complete gesture vocabulary of \dataset{} (60 classes) with per-gesture descriptions.}
-\label{tab:gesture_vocabulary} \\
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{0.98}
+\begin{center}
+\captionof{table}{Complete gesture vocabulary of \dataset{} (60 classes) with per-gesture descriptions.}
+\label{tab:gesture_vocabulary}
+\begin{tabular}{@{}p{0.13\textwidth}p{0.31\textwidth}p{0.13\textwidth}p{0.31\textwidth}@{}}
 \toprule
-\textbf{Gesture} & \textbf{Description} \\
+\textbf{Gesture} & \textbf{Description} & \textbf{Gesture} & \textbf{Description} \\
 \midrule
-\endfirsthead
-\caption[]{Complete gesture vocabulary (continued)} \\
-\toprule
-\textbf{Gesture} & \textbf{Description} \\
-\midrule
-\endhead
-\bottomrule
-\endfoot
-\bottomrule
-\endlastfoot
-\toprule
-\textbf{Gesture} & \textbf{Description} \\
-\midrule
-\multicolumn{2}{l}{\textit{Single-hand (30 gestures)}} \\
-\midrule
-ASL1--ASL9 & American Sign Language digits 1 through 9 \\
-Claw3 & Three-finger claw pose (index + middle + ring flexed) \\
-Claw5 & Five-finger claw pose (all fingers flexed) \\
-FreeAction & Free-form unconstrained hand action \\
-ILY & ``I Love You'' hand sign (thumb, index, pinky extended) \\
-IndexBow & Index finger flexion/extension bowing \\
-IndexMiddleClaw & Index and middle fingers clawed, others extended \\
-JoystickCircle & Circular joystick manipulation on the palm with thumb \\
-JoystickSlide & Linear joystick sliding on the palm with thumb \\
-MiddleBow & Middle finger flexion/extension bowing \\
-Nine & Hand forming number 9 (four fingers curled, index up) \\
-PalmYaw & Palm facing up/down rotation about the yaw axis \\
-PinchMiddle & Thumb to middle fingertip pinch \\
-PinkyBow & Pinky finger flexion/extension bowing \\
-Rest & Relaxed hand in neutral resting posture \\
-RingAndThumb & Ring finger touching thumb tip \\
-RingBow & Ring finger flexion/extension bowing \\
-Rock & ``Rock on'' hand sign (index and pinky extended) \\
-Thumb & Thumb up \\
-nocontact\_disperse\_palm & Fingers spread apart with palm open, no contact \\
-nocontact\_free & Free-form finger motion without contact \\
-nocontact\_grab & Simulated grasping motion without contact\\
-\midrule
+\multicolumn{2}{l}{\textit{Single-hand (30 gestures)}} &
 \multicolumn{2}{l}{\textit{Symmetric bimanual (18 gestures)}} \\
-\midrule
+\addlinespace[2pt]
+ASL1--ASL9 & American Sign Language digits 1 through 9 &
 Clap & Both hands clapping together symmetrically \\
+Claw3 & Three-finger claw pose (index + middle + ring flexed) &
 CrossHand & Both hands crossed fingers \\
+Claw5 & Five-finger claw pose (all fingers flexed) &
 CrossStretch & Hands opposite fingers and stretched \\
-
+FreeAction & Free-form unconstrained hand action &
 FingerTipTouch & Matching fingertips of both hands touching \\
+ILY & ``I Love You'' hand sign (thumb, index, pinky extended) &
 FistBump & Two fists bumping together \\
+IndexBow & Index finger flexion/extension bowing &
 Gaming & Both hands holding a game controller \\
-HandClasp & Hands clasped together\\
+IndexMiddleClaw & Index and middle fingers clawed, others extended &
+HandClasp & Hands clasped together \\
+JoystickCircle & Circular joystick manipulation on the palm with thumb &
 HandRub & Rubbing palms together \\
+JoystickSlide & Linear joystick sliding on the palm with thumb &
 IndexTapping & Both index fingers tapping in the air \\
-Kiss & Fingertips of both hands touching (Thumb and Middle), then separating \\
-
+MiddleBow & Middle finger flexion/extension bowing &
+Kiss & Fingertips touching (thumb and middle), then separating \\
+Nine & Hand forming number 9 (four fingers curled, index up) &
 PalmStack & One palm stacked on top of the other \\
-
+PalmYaw & Palm facing up/down rotation about the yaw axis &
 Prayer & Palms pressed together in prayer position \\
-MiddleOppo & Middle and Ring fingers of one hand oppose the other hand \\
+PinchMiddle & Thumb to middle fingertip pinch &
+MiddleOppo & Middle and ring fingers of one hand oppose the other hand \\
+PinkyBow & Pinky finger flexion/extension bowing &
 SymOpen & Both hands opening symmetrically from closed to open \\
+Rest & Relaxed hand in neutral resting posture &
 SymSwing & Both hands swinging symmetrically side to side \\
+RingAndThumb & Ring finger touching thumb tip &
 ThumbWrestle & Thumbs wrestling each other \\
+RingBow & Ring finger flexion/extension bowing &
 Typing & Both hands typing on a virtual keyboard \\
+Rock & ``Rock on'' hand sign (index and pinky extended) &
 raw & Unconstrained bimanual hand movement \\
-\midrule
+Thumb & Thumb up &
 \multicolumn{2}{l}{\textit{Asymmetric bimanual (12 gestures)}} \\
-\midrule
+\makecell[l]{nocontact\_disperse\\\_palm} & Fingers spread apart with palm open, no contact &
 FingerPullLeft & Left hand pulls right-hand fingers \\
+nocontact\_free & Free-form finger motion without contact &
 FingerPullRight & Right hand pulls left-hand fingers \\
+nocontact\_grab & Simulated grasping motion without contact &
 PalmRoll & Palms facing, rolling around each other \\
-PinkyHook & Pinky fingers hooked together \\
-Squeeze & Both hands squeezing an imaginary object \\
-
-Beijing & Two hands crossing to make a ``Bei'' Chinese character \\
-Checky & Two hands with thumbs forming a ``Checky'' sign \\
-
-PairClaw & Both hands clawing with asymmetric finger configurations \\
-PairOK & Both hands forming OK signs \\
-Picture & Hands forming a picture frame rectangle \\
-PinchWring & Two hands pinching and wringing\\
-ThumbOppo & Thumbs of both hands in opposition at different orientations \\
-\end{longtable}
-\twocolumn
-
-\subsection{MANO Shape Diversity Statistics}
-\label{app:beta_stats}
-
-Table~\ref{tab:beta_stats} reports per-dimension statistics of the MANO shape parameters ($\boldsymbol{\beta} \in \mathbb{R}^{10}$) across \dataset{}'s 41 participants (82 hands).
-
-\begin{table}[t]
-\centering
-\caption{Per-dimension MANO shape coefficient statistics across \dataset{} participants. MANO shape parameters are PCA-derived and have no fixed semantic interpretation.}
-\label{tab:beta_stats}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrrrrr}
-\toprule
-Dimension & Mean & Std & Min & Max & P95--P5 range \\
-\midrule
-$\beta_1$ & 1.087 & 1.051 & $-0.966$ & 3.034 & 4.000 \\
-$\beta_2$ & 1.505 & 0.793 & 0.183 & 3.506 & 3.323 \\
-$\beta_3$ & $-0.981$ & 1.076 & $-3.804$ & 2.547 & 6.351 \\
-$\beta_4$ & $-0.537$ & 1.069 & $-3.077$ & 2.050 & 5.128 \\
-$\beta_5$ & 1.054 & 0.996 & $-0.461$ & 4.638 & 5.099 \\
-$\beta_6$ & $-2.269$ & 1.711 & $-10.253$ & 0.450 & 10.703 \\
-$\beta_7$ & 0.727 & 1.437 & $-1.735$ & 8.254 & 9.989 \\
-$\beta_8$ & 0.371 & 1.000 & $-1.802$ & 4.683 & 6.485 \\
-$\beta_9$ & 0.365 & 1.464 & $-2.978$ & 5.344 & 8.322 \\
-$\beta_{10}$ & $-0.738$ & 0.553 & $-3.308$ & 0.366 & 3.674 \\
+& & PinkyHook & Pinky fingers hooked together \\
+& & Squeeze & Both hands squeezing an imaginary object \\
+& & Beijing & Two hands crossing to make a ``Bei'' Chinese character \\
+& & Checky & Two hands with thumbs forming a ``Checky'' sign \\
+& & PairClaw & Both hands clawing with asymmetric finger configurations \\
+& & PairOK & Both hands forming OK signs \\
+& & Picture & Hands forming a picture frame rectangle \\
+& & PinchWring & Two hands pinching and wringing \\
+& & ThumbOppo & Thumbs in opposition at different orientations \\
 \bottomrule
-\end{tabular}}%
+\end{tabular}
+\end{center}
+\endgroup
 
-\end{table}
-
+\twocolumn
 \subsection{Dataset Card and Release Format}
 \label{app:dataset_card}
 
@@ -687,10 +695,10 @@ $\beta_{10}$ & $-0.738$ & 0.553 & $-3.308$ & 0.366 & 3.674 \\
 The dataset will be released under CC-BY-NC 4.0 for research use, and the baseline code will be distributed under the MIT License. Third-party assets, including the MANO model~\citep{mano} and the training data for \marker{}, remain subject to their original licenses.
 
 \paragraph{File schema.}
-Data is organized by episode. Each episode is stored as a parquet file containing synchronized multimodal time series: bilateral EMG (16 channels at 2\,kHz, raw and filtered), per-hand IMU, an egocentric RGB frame from a head-mounted wide-angle GoPro ($1280 \times 720$ at 60\,fps), an external RGB-D frame from a ZED 2i sensor (RGB + depth, $1280 \times 720$ at 30\,fps), MANO pose parameters $\boldsymbol{\theta} \in \mathbb{R}^{48}$ and shape parameters $\boldsymbol{\beta} \in \mathbb{R}^{10}$, wrist flexion/extension and radial/ulnar deviation angles, timestamps, calibration metadata, and split assignments. Video frames are stored as MP4 files and referenced by frame index; each frame includes synchronization diagnostics (\texttt{stale} flag and \texttt{delta\_ms}). Pre-cropped $256\times256$ left- and right-hand patches, generated by reprojecting mocap keypoints onto the egocentric view and extracting per-hand bounding boxes, are provided as per-episode LMDB archives to support vision-based training without requiring users to re-run the projection pipeline. Windows of 7790 EMG samples are extracted on-the-fly during training.
+Data is organized by episode. Each episode is stored as a parquet file containing synchronized multimodal time series: bilateral EMG (16 channels at 2\,kHz, raw and filtered), per-hand IMU, an egocentric RGB frame from a head-mounted wide-angle GoPro ($1280 \times 720$ at 60\,fps), an external RGB-D frame from a ZED 2i sensor (RGB + depth, $1280 \times 720$ at 30\,fps), MANO pose parameters $\boldsymbol{\theta} \in \mathbb{R}^{48}$ and shape parameters $\boldsymbol{\beta} \in \mathbb{R}^{10}$, wrist flexion/extension and radial/ulnar deviation angles, timestamps, calibration metadata, and split assignments. Video frames are stored as MP4 files and referenced by frame index; each frame includes synchronization diagnostics (\texttt{stale} flag and \texttt{delta\_ms}). Pre-cropped $256\times256$ left- and right-hand patches, generated by reprojecting mocap keypoints onto the egocentric view and extracting per-hand bounding boxes, are provided as per-episode LMDB archives to support vision-based training without requiring users to re-run the projection pipeline. Windows of 12{,}000 EMG samples (6\,s at 2\,kHz) from the target wrist's eight channels are extracted on-the-fly during training.
 
 \paragraph{Access.}
-The dataset will be hosted with a download script and checksum verification. During review, an anonymized access link will be provided.
+The dataset will be hosted with a download script and checksum verification upon publication.
 
 \subsection{EMG Signal Processing}
 \label{app:emg_processing}
@@ -699,8 +707,9 @@ All EMG signals are recorded at 2\,kHz. The release includes both raw and filter
 \begin{enumerate}[leftmargin=1.5em,nosep]
     \item Per-channel mean subtraction (DC removal).
     \item Narrow-band notch filters at 50\,Hz (power line frequency) and 100\,Hz (first harmonic).
-    \item Broadband bandpass filter 20--850\,Hz.
-    \item Soft roll-off above 900\,Hz to suppress high-frequency noise.
+    \item Soft high-pass transition from 15 to 20\,Hz.
+    \item Soft low-pass transition from 850 to 900\,Hz, reaching zero gain at
+    900\,Hz.
 \end{enumerate}
 No amplitude normalization is applied; filtered EMG values are retained in mV. Both raw and filtered streams are preserved in the release. Training uses the filtered EMG by default.
 
@@ -717,69 +726,114 @@ This section details the pipeline used to recover MANO parameters from optical m
 
 We select 21 vertices from the MANO mesh surface as virtual markers, distributed across the hand topology to capture wrist, finger, and palm geometry: indices 191, 88, 253, 708, 729 (wrist/palm), 144, 87, 295, 319 (thumb), 220, 365, 407, 445 (index/middle/ring), and 183, 477, 518, 556, 83, 589, 635, 673 (pinky/palm). These indices are consistent across all MANO shape instances $\boldsymbol{\beta}$, enabling direct correspondence between captured 3D marker positions and the canonical MANO mesh.
 
-\subsubsection{Graph Transformer Architecture}
+\subsubsection{Transformer Architecture}
 
-\begin{figure}[t]
+\begin{center}
 \centering
-\includegraphics[width=0.9\linewidth]{figures/Graph_Transformer_Architecture.pdf}
-\caption{Architecture of \marker{} pipeline.}
-\label{fig:graph_transformer_architecture}
-\end{figure}
+\includegraphics[width=\columnwidth,trim=0 0 0 22,clip]{figures/Transformer_Architecture_aaai.pdf}
+\captionof{figure}{Architecture of \marker{} pipeline.}
+\label{fig:markers2mano_architecture}
+\end{center}
 
-The primary inference model is a Graph Transformer that maps the 21 marker positions $\mathbf{M} \in \mathbb{R}^{21 \times 3}$ to MANO pose $\boldsymbol{\theta} \in \mathbb{R}^{48}$ and shape $\boldsymbol{\beta} \in \mathbb{R}^{10}$ parameters. The architecture is shown in Figure~\ref{fig:graph_transformer_architecture}. The model consists of:
+The primary inference model is a Transformer that maps 21 marker positions
+$\mathbf{M} \in \mathbb{R}^{21 \times 3}$ to MANO pose
+$\boldsymbol{\theta} \in \mathbb{R}^{48}$ and shape
+$\boldsymbol{\beta} \in \mathbb{R}^{10}$. The production configuration uses the
+500M preset: embedding dimension $d=1600$, $L=16$ pre-norm Transformer layers,
+8 attention heads, a $4d=6400$ feed-forward width, dropout 0.1, and
+499.87M trainable parameters. The architecture is shown in
+Figure~\ref{fig:markers2mano_architecture}. The model consists of:
 
 \begin{itemize}[leftmargin=1.5em,nosep]
-    \item \textbf{Input embedding}: Each marker position is projected to a latent dimension $d$ via a linear layer ($\mathbb{R}^3 \rightarrow \mathbb{R}^d$).
-    \item \textbf{Graph positional encoding}: Graph Laplacian eigenvectors ($k=8$) of the MANO hand-skeleton connectivity graph are projected through a linear layer ($\mathbb{R}^8 \rightarrow \mathbb{R}^d$) and \emph{added} to the per-marker input embeddings as positional encoding. This provides each marker with a geometric signature of its location in the hand topology.
-    \item \textbf{Structural attention bias}: The shortest-path distances between marker pairs on the hand skeleton graph are embedded and reshaped into a per-head attention bias matrix. This additive bias encourages anatomically adjacent markers (e.g., successive joints along a finger) to attend more strongly to each other.
-    \item \textbf{Transformer encoder}: $L$ standard Transformer layers with multi-head self-attention (with the SPD bias added to the pre-softmax attention scores), LayerNorm, and a feed-forward network with 4$\times$ expansion ratio ($d \rightarrow 4d \rightarrow d$). Residual connections wrap each sub-layer.
-    \item \textbf{Output heads}: After a final LayerNorm, two separate MLP heads produce the predictions. The \emph{shape head} applies global mean pooling over the 21 marker features followed by a 3-layer MLP to regress $\boldsymbol{\beta} \in \mathbb{R}^{10}$. The \emph{pose head} flattens all per-marker features ($21 \cdot d$) and passes them through a 3-layer MLP to regress 6D rotation representations~\citep{zhou2019continuity} for the 16 hand joints, which are then converted to axis-angle parameters $\boldsymbol{\theta} \in \mathbb{R}^{48}$.
+    \item \textbf{Input embedding}: Inputs are root-centered using the wrist
+    marker. The model accepts all 21 markers, then removes five redundant
+    root/MCP markers (indices 1, 5, 9, 13, and 17 in marker order), retaining
+    16 tokens. A shared linear layer projects each 3D position to a
+    $d$-dimensional token ($\mathbb{R}^3 \rightarrow \mathbb{R}^d$).
+    \item \textbf{Transformer encoder}: $L$ pre-norm Transformer layers, each comprising LayerNorm, multi-head self-attention, a residual connection, and a second LayerNorm--feed-forward block with a 4$\times$ expansion ratio ($d \rightarrow 4d \rightarrow d$).
+    \item \textbf{Output heads}: After a final LayerNorm, global mean pooling
+    feeds an MLP shape head that predicts
+    $\Delta\boldsymbol{\beta}\in\mathbb{R}^{10}$. For pose, each retained
+    token is concatenated with the global feature and passed through a shared
+    MLP that predicts a 6D rotation for one of the 16 MANO joints. The predicted
+    pose and shape residuals are added to means computed from valid training
+    labels. The heads are zero-delta initialized, and the root rotation is
+    fixed to identity. The model does not predict global translation.
     \item \textbf{MANO forward pass}: The predicted $\boldsymbol{\theta}$ and $\boldsymbol{\beta}$ are passed through the MANO layer to obtain the final mesh vertices $\mathbf{V} \in \mathbb{R}^{778 \times 3}$.
 \end{itemize}
 
 \subsubsection{Training and Data Augmentation}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.7\linewidth]{figures/Data_Augmentation_Pipeline.pdf}
-\caption{Data augmentation pipeline for \marker{} training.}
-\label{fig:data_augmentation_pipeline}
-\end{figure}
+The model is trained on hand meshes derived from 11 public datasets using the
+augmentation procedure detailed below:
+GigaHand~\citep{gigahand}, HOT3D~\citep{hot3d}, ARCTIC~\citep{arctic},
+HOI4D~\citep{hoi4d}, HanCo~\citep{hanco}, DexYCB~\citep{dexycb},
+H2O~\citep{h2o}, InterHand2.6M~\citep{interhand},
+FreiHand~\citep{freihand}, HO3Dv3~\citep{ho3d}, and
+HO3Dv2~\citep{ho3d}. Their combined raw footage exceeds 195 million frames.
+To balance the training distribution, we assign each dataset a sampling ratio
+based on its scale tier: large-scale datasets (100M+ frames, e.g., GigaHand)
+at 0.14\%; medium-scale datasets (1M+, e.g., HOT3D, InterHand2.6M) at 1.5\%;
+and small-scale datasets (100K+, e.g., FreiHand, HO3D) at 15--20\%. This
+yields approximately 0.7M training meshes
+(Figure~\ref{fig:markers2mano_data}). This multi-source setup covers a diverse
+range of hand shapes, poses, and object interactions.
 
-The model is trained on hand meshes derived from 11 public datasets using a multi-step augmentation pipeline (Figure~\ref{fig:data_augmentation_pipeline}).---GigaHand~\citep{gigahand}, HOT3D~\citep{hot3d}, ARCTIC~\citep{arctic}, HOI4D~\citep{hoi4d}, HanCo~\citep{hanco}, DexYCB~\citep{dexycb}, H2O~\citep{h2o}, InterHand2.6M~\citep{interhand}, FreiHand~\citep{freihand}, HO3Dv3~\citep{ho3d}, and HO3Dv2~\citep{ho3d}---whose combined raw footage exceeds 195 million frames. To balance the training distribution, we assign each dataset a sampling ratio based on its scale tier: large-scale datasets (100M+ frames, e.g., GigaHand) at 0.14\%; medium-scale datasets (1M+, e.g., HOT3D, InterHand2.6M) at 1.5\%; and small-scale datasets (100K+, e.g., FreiHand, HO3D) at 15--20\%. This yields approximately 0.7M training meshes (Figure~\ref{fig:markers2mano_data}). This multi-source setup covers a diverse range of hand shapes, poses, and object interactions, ensuring generalization to the gesture space of \dataset{}.
-
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=0.9\linewidth]{figures/fig_markers2mano_data_pie.pdf}
+\includegraphics[width=0.9\textwidth]{figures/aaai/fig_markers2mano_data_pie.png}
 \caption{Composition of the \marker{} training data. Left: original frame counts of 11 public datasets (log scale), spanning 76K to 183M frames. Each dataset is assigned a sampling ratio by scale tier---0.14\% (GigaHand, 100M+), 1.5\% (1M+), or 15--20\% (100K+)---shown as annotations. Right: target distribution of the training mixture after applying the tiered sampling ratios, yielding approximately 0.7M training meshes.}
 \label{fig:markers2mano_data}
-\end{figure}
+\end{figure*}
 
-The loss function combines two terms evaluated on the MANO mesh output:
+The loss function combines full-mesh supervision with an auxiliary loss on the
+16 markers retained by the Transformer:
 \begin{equation}
-\resizebox{0.92\columnwidth}{!}{$
-\mathcal{L} = \lambda_{\text{verts}} \frac{1}{V} \sum_{v=1}^{V} \|\mathbf{v}^{\text{pred}}_v - \mathbf{v}^{\text{gt}}_v\|_2^2 + \lambda_{\text{markers}} \frac{1}{N} \sum_{n=1}^{N} \|\mathbf{m}^{\text{pred}}_n - \mathbf{m}^{\text{aug}}_n\|_2^2,
-$}
+\begin{aligned}
+\mathcal{L} ={}&
+\frac{1}{V}\sum_{v=1}^{V}
+\left\|\mathbf{v}^{\text{pred}}_v-\mathbf{v}^{\text{gt}}_v\right\|_2^2 \\
+&+\lambda_{\text{markers}}
+\frac{\sum_{n=1}^{16}\alpha_n
+\left\|\mathbf{m}^{\text{pred}}_n-\mathbf{m}^{\text{aug}}_n\right\|_2^2}
+{\sum_{n=1}^{16}\alpha_n}.
+\end{aligned}
 \end{equation}
-where $\mathbf{v}^{\text{pred}}, \mathbf{v}^{\text{gt}}$ are the predicted and ground-truth MANO mesh vertices ($V = 778$), and $\mathbf{m}^{\text{pred}}, \mathbf{m}^{\text{aug}}$ are the subset of 21 predicted mesh vertices corresponding to the virtual markers and the augmented input markers ($N = 21$), respectively. We set $\lambda_{\text{verts}} = 1.0$ and $\lambda_{\text{markers}} = 5.0$, placing stronger emphasis on accurate marker-level reconstruction.
+where $\mathbf{v}^{\text{pred}}, \mathbf{v}^{\text{gt}}$ are the predicted and
+ground-truth MANO mesh vertices ($V=778$), and
+$\mathbf{m}^{\text{pred}},\mathbf{m}^{\text{aug}}$ are the retained predicted
+and augmented markers. We set $\lambda_{\text{markers}}=0.5$.
+The fingertip weights $\alpha_n$ are 2.0 and all other retained-marker weights
+are 1.0.
+
+\paragraph{Optimization.}
+We train for 50 epochs with Adam at a learning rate of $5\times10^{-6}$,
+batch size 320, bf16 mixed precision, and gradient clipping at 1.0 on five
+GPUs. Validation is performed every epoch, and the checkpoint with the lowest
+validation loss is retained. The run is initialized from the compatible
+warm-start checkpoint specified in the released configuration.
 
 \paragraph{Data augmentation.}
-To ensure robustness against realistic motion-capture noise, we apply a multi-step augmentation pipeline to the input marker positions prior to model ingestion.
-The pipeline comprises eight perturbation types organized into three categories; 50\% of the samples in each batch bypass augmentation entirely, thereby retaining an unperturbed signal.
+To improve robustness to motion-capture variation, we apply the active
+perturbations specified in \texttt{m2m\_config.yaml} to every training batch;
+validation inputs are left unperturbed apart from deterministic root centering.
 
 \begin{itemize}[leftmargin=1.5em,nosep]
     \item \textbf{Structural}: 
-    (1)~Bone-length perturbation---individual bone segments are randomly scaled by up to \(\pm 5\%\) of their length, simulating soft-tissue artifacts.
-    (2)~Random global scaling---after root-centering, all coordinates are multiplied by a factor in \([0.6, 1.4]\), varying the apparent hand scale.
+    (1)~Bone-length perturbation---each bone segment is selected independently
+    with probability 0.3 and scaled by up to \(\pm 5\%\) of its length,
+    simulating soft-tissue artifacts.
+    (2)~Random global scaling---after root-centering, all coordinates are multiplied by a factor in \([0.75, 1.25]\), varying the apparent hand scale.
     \item \textbf{Identity}: 
     (3)~Marker swap---spatially proximate markers (within 15\,mm) are randomly exchanged with probability 0.3 (capped at three swaps per frame).
-    (4)~Marker dropout---up to three markers are dropped and replaced with positions interpolated from their neighbors.
-    (5)~Neighborhood blending---each marker is blended with a random convex combination of its neighboring mesh vertices, retaining a self-weight of 0.5.
+    (4)~Neighborhood blending---each marker is blended with a random convex combination of its neighboring mesh vertices, retaining a self-weight of 0.5.
     \item \textbf{Noise}: 
-    (6)~Gaussian noise---i.i.d.\ \(\mathcal{N}(0, 1\,\text{mm}^2)\) noise is added to each coordinate, and per-marker dropout is applied with 10\% probability.
-    (7)~Marker drift---up to three markers receive a systematic spatial offset of up to 5\,mm in a random direction.
-    (8)~Marker spike---a single marker is randomly displaced to an anomalously distant position (2--5\(\times\) the hand scale) with 10\% probability, simulating gross tracking failures.
+    (5)~Gaussian noise---i.i.d.\ \(\mathcal{N}(0,1\,\text{mm}^2)\) noise is added, with the noise suppressed for a marker with probability 0.1.
+    (6)~Marker drift---three markers receive a systematic spatial offset of up to 5\,mm in a random direction.
 \end{itemize}
+
+Marker dropout and marker-spike augmentation are disabled in the reported
+configuration.
 
 To assess the fidelity of markers2mano reconstruction, we report the reconstruction error of the original markers and virtual vertices of the reconstructed meshes. \marker{} shows 3.2\,mm of per-vertex error on the public dataset, and 4.3\,mm of per-marker error on the \dataset{}. We also manually reproject meshes onto egocentric RGB frames sampled randomly to validate the label quality, as shown in Figure~\ref{fig:label_quality}.
 
@@ -812,7 +866,12 @@ conventions.
 \subsection{Joint Angle Conversion from MANO to UmeTrack / EMG2Pose Format}
 \label{app:joint_angle_conversion}
 
-In addition to MANO parameters ($\boldsymbol{\theta}, \boldsymbol{\beta}, \mathbf{t}$), \dataset{} provides per-frame joint angles in the 20-DoF scalar format used by EMG2Pose and UmeTrack~\citep{emg2pose, umetrack}, enabling direct comparison with prior EMG-to-pose benchmarks that use scalar joint angle representations. The conversion is formulated as landmark-level inverse kinematics.
+In addition to MANO pose and shape parameters
+($\boldsymbol{\theta},\boldsymbol{\beta}$), \dataset{} provides per-frame joint
+angles in the 20-DoF scalar format used by EMG2Pose and
+UmeTrack~\citep{emg2pose, umetrack}, enabling direct comparison with prior
+EMG-to-pose benchmarks that use scalar joint angle representations. The
+conversion is formulated as landmark-level inverse kinematics.
 
 \paragraph{Conversion pipeline.}
 Given MANO pose and shape parameters for a frame, we first run MANO forward kinematics to obtain 21 joint positions. We align these into the UmeTrack coordinate frame via a fixed transformation (scale, global orientation, and translation) precomputed by jointly optimizing alignment between the two models' rest-pose meshes. We then optimize 20 scalar joint angles $\mathbf{a} \in \mathbb{R}^{20}$ such that the UmeTrack forward kinematics produces landmark positions matching the aligned MANO targets:
@@ -824,14 +883,28 @@ Given MANO pose and shape parameters for a frame, we first run MANO forward kine
 where $\mathbf{p}_i^{\text{mano}}$ are the aligned MANO joint positions (after applying the fixed scale, rotation, and translation) and $\mathbf{p}_i^{\text{umetrack}}(\mathbf{a})$ are the corresponding UmeTrack landmarks computed via the UmeTrack forward kinematics (scalar joint angles $\to$ axis-angle rotations via Rodrigues $\to$ skinning). The 21 MANO joints are mapped to 20 UmeTrack landmarks via a predefined correspondence; the MANO wrist joint is excluded because it coincides with the UmeTrack coordinate origin and carries no pose information.
 
 \paragraph{Optimization.}
-We minimize $\mathcal{L}(\mathbf{a})$ with L-BFGS (strong Wolfe line search, learning rate 0.1, 100 outer steps with up to 50 inner iterations each). Joint range constraints from the UmeTrack hand model are enforced via sigmoid reparameterization: $\mathbf{a} = \mathbf{a}_{\min} + (\mathbf{a}_{\max} - \mathbf{a}_{\min}) \cdot \sigma(\mathbf{z})$, where $\mathbf{z}$ is the unconstrained optimizable variable. The optimization runs per-episode on GPU with batch size 256; episodes exceeding GPU memory are processed in smaller chunks.
+We minimize $\mathcal{L}(\mathbf{a})$ with L-BFGS (strong Wolfe line search,
+learning rate 0.1, 100 outer steps with up to 50 inner iterations each).
+\begin{samepage}
+\noindent Joint range constraints from the UmeTrack hand model are enforced
+via sigmoid reparameterization:
+\[
+\mathbf{a}
+= \mathbf{a}_{\min}
++ \left(\mathbf{a}_{\max}-\mathbf{a}_{\min}\right)\odot\sigma(\mathbf{z}),
+\]
+where $\mathbf{z}$ is the unconstrained optimizable variable and $\odot$
+denotes element-wise multiplication. The optimization runs per-episode on GPU
+with batch size 256; episodes exceeding GPU memory are processed in smaller
+chunks.
+\end{samepage}
 
 \paragraph{Output.}
 The resulting 22-DoF prediction target combines 20 finger joint angles (indices 0--19) and 2 wrist articulation angles (indices 20--21). The mean per-landmark fitting error of the optimized UmeTrack joints relative to the MANO targets is 2.8\,mm, confirming that the conversion introduces negligible additional error. Table~\ref{tab:joint_angle_semantics} lists the complete semantic ordering per dimension. The conversion script is included in the dataset release.
 
-\begin{table}[t]
+\begin{center}
 \centering
-\caption{Complete 22-DoF joint angle target semantics. Each dimension is reported in degrees. FE = flexion/extension, AA = abduction/adduction. Indices 0--3 cover the thumb, 4--7 the index finger, 8--11 the middle finger, 12--15 the ring finger, and 16--19 the pinky.}
+\captionof{table}{Complete 22-DoF joint angle target semantics. Each dimension is reported in degrees. FE = flexion/extension, AA = abduction/adduction. Indices 0--3 cover the thumb, 4--7 the index finger, 8--11 the middle finger, 12--15 the ring finger, and 16--19 the pinky.}
 \label{tab:joint_angle_semantics}
 \footnotesize
 \setlength{\tabcolsep}{2.5pt}
@@ -864,28 +937,40 @@ Index & Finger & Joint & Motion \\
 21 & -- & Wrist & Radial/Ulnar deviation \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{center}
 
 We show reconstruction samples in Figure~\ref{fig:label_quality}.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=0.9\columnwidth]{figures/recon.png}
+\includegraphics[width=0.9\textwidth]{figures/recon.png}
 \caption{Mesh reprojection and visualization of UmeTrack and MANO mesh reconstruction on \dataset{}. The reconstructed MANO meshes (from \marker{}) are overlaid on egocentric RGB frames, demonstrating accurate hand pose reconstruction and realistic mesh-to-image alignment.}
 \label{fig:label_quality}
-\end{figure}
+\end{figure*}
 
-\FloatBarrier
 \section{Training and implementation details}
+\label{app:implementation}
 
 \subsection{EMGFormer Training Details}
 \label{app:training_details}
 
 \paragraph{Optimization.}
-All \model{} variants are trained for 200 epochs with AdamW~\citep{adamw} ($\beta_1=0.9$, $\beta_2=0.999$, weight decay $10^{-4}$), initial learning rate $10^{-4}$ with cosine annealing to $5 \times 10^{-6}$, batch size 800, and bf16 mixed precision, minimizing an L1 (MAE) loss with an additional fingertip-distance loss term (weight 0.01). We use a linear warmup for the first 500 steps. All experiments were conducted on six NVIDIA RTX 4090 GPUs (24\,GB each).
+For the reported \dataset{} results, all \model{} variants use target-wrist
+8-channel EMG windows of 12{,}000 samples (6\,s) and are trained for 150
+epochs. We use AdamW~\citep{adamw} ($\beta_1=0.9$, $\beta_2=0.999$, weight
+decay $10^{-2}$), an initial learning rate of $5\times10^{-4}$ with cosine
+annealing to $5\times10^{-6}$, gradient clipping at 1.0, and bf16 mixed
+precision. The objective is L1 joint-angle loss with a fingertip-distance term
+of weight 0.01. Per-dataset normalization statistics are computed from the
+training data and then fixed for validation and testing. Training uses four to
+six NVIDIA RTX 4090 GPUs depending on model size.
 
 \paragraph{Data augmentation.}
-Applied on-the-fly during training: channel dropout (25\% probability per channel), frequency masking (3 masks of up to 128 bins), additive Gaussian noise (SNR 25--35\,dB with 50\% probability), and temporal jitter ($\pm$40\,ms).
+We apply the same on-the-fly augmentation family to all three sizes: random
+gain, magnitude warping, baseline drift, power-line noise, time/frequency
+masking, additive Gaussian noise, channel masking, mixup, and temporal window
+jitter. Exact probabilities and ranges are included in the released experiment
+configuration.
 
 \paragraph{Architecture and per-size configuration.}
 Table~\ref{tab:training_config} summarizes the architecture and training configuration per \model{} variant.
@@ -894,28 +979,40 @@ Table~\ref{tab:training_config} summarizes the architecture and training configu
 \centering
 \caption{Architecture and training configuration per \model{} variant. ``Params'' includes the TDS encoder, Transformer decoder, and regression head.}
 \label{tab:training_config}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcccccc}
+\footnotesize
+\setlength{\tabcolsep}{2.0pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{lccccc}
 \toprule
-Variant & Layers & Hidden dim & Heads & FFN dim & Params & GPU-hours \\
+Variant & $L$ & $d$ & Heads & $d_{\mathrm{FFN}}$ & Params \\
 \midrule
-\model{}-S  & 3 & 256 & 4  & 512  & 3.5M  & 2 \\
-\model{}-M & 6 & 256 & 8  & 1024 & 6.6M  & 4 \\
-\model{}-L  & 8 & 384 & 12 & 1536 & 16.3M & 8 \\
+\model{}-S  & 3 & 256 & 4  & 512  & 3.5M \\
+\model{}-M & 6 & 256 & 8  & 1024 & 6.6M \\
+\model{}-L  & 8 & 384 & 12 & 1536 & 16.3M \\
 \bottomrule
-\end{tabular}}%
+\end{tabular}
 
 \end{table}
 
 \paragraph{TDS featurizer.}
-The TDS-style temporal convolutional frontend~\citep{tds} maps the raw 2\,kHz EMG window ($T=7790$ samples, 16 channels) to a 256-dimensional feature sequence. The architecture consists of two initial strided Conv1d blocks followed by two TDS stages. Each TDS stage begins with a strided Conv1d for temporal subsampling, followed by a TDSConvEncoder composed of alternating depth-separable temporal convolutions (reshaping the channel axis into a 2D feature map) and channel-wise fully-connected blocks. Squeeze-and-excitation~\citep{senet} is applied globally after each TDS stage. The layer-wise configuration is:
+The TDS-style temporal convolutional frontend~\citep{tds} maps a filtered
+2\,kHz EMG window ($T=12{,}000$ samples, 8 target-wrist channels) to a
+256-dimensional feature sequence. The architecture consists of two initial
+strided Conv1d blocks followed by two TDS stages. Each TDS stage begins with a
+strided Conv1d for temporal subsampling, followed by a TDSConvEncoder composed
+of alternating depth-separable temporal convolutions (reshaping the channel
+axis into a 2D feature map) and channel-wise fully-connected blocks.
+Squeeze-and-excitation~\citep{senet} is applied globally after each TDS stage.
+The layer-wise configuration is:
 \begin{enumerate}[leftmargin=1.5em,nosep]
-    \item Conv1d: $16 \to 256$, kernel 11, stride 5
+    \item Conv1d: $8 \to 256$, kernel 11, stride 5
     \item Conv1d: $256 \to 256$, kernel 5, stride 2
     \item TDS Stage 1: in-conv kernel 9, stride 5; 1 block of TDSConv (kernel width 5, channels 8, feature width 32)
     \item TDS Stage 2: in-conv kernel 3, stride 1; 1 block of TDSConv (kernel width 3, channels 8, feature width 32)
 \end{enumerate}
-The final output is a $(256, 146)$ feature map, corresponding to an effective frame rate of approximately 37\,Hz with a receptive field spanning the full input window.
+The final TDS output is a $(256,230)$ feature map, corresponding to an
+effective frame rate of approximately 38\,Hz. The subsequent non-causal
+Transformer contextualizes this sequence over the full input window.
 
 \subsection{Vision and Fusion Training Details}
 \label{app:training_details_vision}
@@ -925,9 +1022,11 @@ We provide six fully fine-tuned generic vision backbones: ResNet-\{18, 50, 152\}
 
 \begin{table}[t]
 \centering
-\caption{Vision backbone configuration. All models take $256\times256$ center-frame crops as input and are evaluated on the same 22-DoF center-frame target. Generic ResNet/ViT models share the same MLP prediction head; WiLoR uses its native hand-pose backbone with a 22-DoF regression head.}
+\caption{Vision backbone configuration. All models take $256\times256$ center-frame crops as input and are evaluated on the same 22-DoF target. Generic ResNet/ViT models share the same MLP prediction head; WiLoR uses its native hand-pose backbone with a 22-DoF regression head.}
 \label{tab:vision_config}
-\resizebox{\columnwidth}{!}{%
+\footnotesize
+\setlength{\tabcolsep}{3.0pt}
+\renewcommand{\arraystretch}{1.05}
 \begin{tabular}{lccccc}
 \toprule
 Backbone & Params & $d_{\text{backbone}}$ & LR & Batch size & Epochs \\
@@ -938,44 +1037,100 @@ ResNet-152 & 58.2M  & 2048 & $10^{-3}$ & 180 & 150 \\
 ViT-S/14   & 21.9M  & 384  & $10^{-4}$ & 360 & 150 \\
 ViT-B/14   & 86.2M  & 768  & $10^{-4}$ & 160 & 150 \\
 ViT-L/14   & 303.8M & 1024 & $10^{-4}$ & 50  & 150 \\
-WiLoR      & 631.6M & 1576   & $10^{-5}$ & 18  & 30 \\
+WiLoR      & 631.6M & 1280   & $10^{-5}$ & 18  & 30 \\
 \bottomrule
-\end{tabular}}%
+\end{tabular}
 
 \end{table}
 
 \paragraph{Fusion baseline.}
-The fusion model uses the residual architecture described in \S\ref{sec:fusion_arch}. The vision pathway (backbone, projection layer, and vision head) can be initialized from a vision-only checkpoint, and the EMG pathway (\model{}-S, comprising a TDS featurizer and a Transformer decoder) can be initialized from an EMG-only checkpoint. The fusion projection and the residual regression head are randomly initialized, with the last layer of the head set to zero so that the model starts from the vision-only baseline ($\Delta\mathbf{y}_{\text{emg}} \approx 0$). The model predicts only the center frame of the window. Training is performed with AdamW~\citep{adamw} (learning rate $1 \times 10^{-4}$, cosine annealing schedule) under the same L1 (MAE) plus fingertip-distance loss, a batch size ranging from 64 to 600 depending on the backbone, and 200--300 epochs, using bf16 mixed precision on six NVIDIA RTX 4090 GPUs.
+The fusion model uses the residual architecture described in the main paper. The vision pathway (backbone, projection layer, and vision head) is initialized from the corresponding vision-only checkpoint, and the EMG pathway (\model{}-S, comprising a TDS featurizer and a Transformer decoder) is initialized from an EMG-only checkpoint. The fusion projection and residual regression head are randomly initialized, with the last layer set to zero so that the initial prediction matches the vision-only baseline ($\Delta\mathbf{y}_{\text{emg}} \approx 0$). The model predicts only the center frame of the window and is trained with AdamW~\citep{adamw}, cosine learning-rate annealing, the same L1 plus fingertip-distance objective, and bf16 mixed precision. We adjust batch size to backbone memory requirements. Exact per-run learning rates, cosine endpoints, epoch budgets, batch sizes, sampling strides, dataset-repeat factors, augmentation settings, and visual-update strategies are provided in the accompanying Hydra configurations.
 
 \FloatBarrier
 \section{Extended experimental results}
+\label{app:extended_results}
+
+\subsection{Frozen vs. Fine-Tuned Vision in Fusion}
+\label{app:fusion_freeze_ablation}
+
+Table~\ref{tab:fusion_freeze_ablation} reports the complete $2\times7$
+comparison underlying the model selection in Table~\ref{tab:egoemg_results}.
+The paired variants use the same residual-fusion architecture, pretrained
+single-modality initializers, and center-frame supervision, while the visual
+predictor is either frozen or jointly fine-tuned. Backbone-specific optimization
+and sampling settings are recorded in the accompanying experiment configurations.
+Selection is performed independently for each backbone using validation MAE.
+
+\begin{table*}[t]
+\centering
+\caption{Complete frozen-versus-fine-tuned vision ablation for EMG+vision
+fusion. Gesture/User/Both report per-subject mean $\pm$ standard deviation in
+degrees; Avg is the mean over all splits (lower is better).
+Shading marks the variant selected by validation MAE.}
+\label{tab:fusion_freeze_ablation}
+\footnotesize
+\setlength{\tabcolsep}{7.0pt}
+\renewcommand{\arraystretch}{1.08}
+\begin{tabular}{llcccc}
+\toprule
+Backbone & Update & Gesture & User & Both & Avg \\
+\midrule
+ResNet-18 & Frozen & $5.04_{\pm1.25}$ & $6.74_{\pm0.33}$ & $6.64_{\pm0.79}$ & 5.83 \\
+\rowcolor{gray!12}
+           & Fine-tuned & $4.60_{\pm1.30}$ & $6.40_{\pm1.40}$ & $6.40_{\pm0.80}$ & 5.40 \\
+\midrule
+\rowcolor{gray!12}
+ResNet-50 & Frozen & $4.39_{\pm1.18}$ & $6.19_{\pm0.23}$ & $6.05_{\pm0.60}$ & 5.19 \\
+          & Fine-tuned & $4.47_{\pm1.23}$ & $6.20_{\pm0.25}$ & $6.10_{\pm0.59}$ & 5.24 \\
+\midrule
+\rowcolor{gray!12}
+ResNet-152 & Frozen & $4.25_{\pm1.17}$ & $6.04_{\pm0.27}$ & $6.03_{\pm0.59}$ & 5.06 \\
+           & Fine-tuned & $4.34_{\pm1.18}$ & $6.11_{\pm0.32}$ & $6.05_{\pm0.64}$ & 5.13 \\
+\midrule
+ViT-S/14 & Frozen & $5.01_{\pm1.28}$ & $7.33_{\pm0.27}$ & $7.13_{\pm0.32}$ & 6.02 \\
+\rowcolor{gray!12}
+         & Fine-tuned & $4.50_{\pm1.30}$ & $6.80_{\pm1.20}$ & $6.80_{\pm0.60}$ & 5.54 \\
+\midrule
+\rowcolor{gray!12}
+ViT-B/14 & Frozen & $4.80_{\pm1.26}$ & $7.03_{\pm0.33}$ & $6.84_{\pm0.41}$ & 5.75 \\
+         & Fine-tuned & $4.79_{\pm1.27}$ & $7.03_{\pm0.32}$ & $6.87_{\pm0.42}$ & 5.76 \\
+\midrule
+\rowcolor{gray!12}
+ViT-L/14 & Frozen & $4.34_{\pm1.26}$ & $6.69_{\pm0.36}$ & $6.60_{\pm0.56}$ & 5.36 \\
+         & Fine-tuned & $4.32_{\pm1.27}$ & $6.69_{\pm0.35}$ & $6.63_{\pm0.57}$ & 5.37 \\
+\midrule
+\rowcolor{gray!12}
+WiLoR & Frozen & $3.96_{\pm1.21}$ & $5.52_{\pm0.42}$ & $5.54_{\pm0.62}$ & 4.68 \\
+      & Fine-tuned & $3.95_{\pm1.21}$ & $5.54_{\pm0.39}$ & $5.54_{\pm0.59}$ & 4.69 \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 \subsection{Per-Hand Breakdown of EMG Baseline Results}
 \label{app:emg_per_hand}
-Table~\ref{tab:emg_per_hand} reports per-hand MAE for all methods on \dataset{}, complementing the aggregate results in Table~\ref{tab:egoemg_emg_results}.
+Table~\ref{tab:emg_per_hand} reports per-hand MAE for representative methods on \dataset{}, complementing the aggregate results in Table~\ref{tab:egoemg_emg_results}.
 
 \begin{table}[t]
 \centering
-\caption{Per-hand EMG-to-pose MAE on \dataset{}. MAE is reported in degrees; lower is better. Left and right hands are processed independently with shared model weights, and left-hand EMG is mirrored to the right-hand convention. Rows are grouped by method family; shaded rows highlight \model{} variants.}
+\caption{Per-hand EMG-to-pose MAE on \dataset{}. MAE is reported in degrees; lower is better. Left and right hands are processed independently with shared model weights, and left-hand EMG is mirrored to the right-hand convention. Rows are grouped by method family.}
 \label{tab:emg_per_hand}
 \footnotesize
 \setlength{\tabcolsep}{3.8pt}
 \renewcommand{\arraystretch}{1.08}
-\resizebox{\columnwidth}{!}{%
 \begin{tabular}{llccc}
 \toprule
 Method & Hand & Gesture & User & Both \\
 \midrule
 \multicolumn{5}{l}{\textit{\model{} variants}} \\
 \midrule
-\model{}-S & Left & 12.4 & 14.7 & 16.5 \\
- & Right & 13.2 & 16.6 & 18.4 \\
+\model{}-S & Left & 11.8 & 15.8 & 16.7 \\
+ & Right & 12.6 & 16.5 & 16.7 \\
 \midrule
-\model{}-M & Left & 11.5 & 15.5 & 17.0 \\
- & Right & 12.1 & 16.6 & 17.8 \\
+\model{}-M & Left & 11.3 & 15.8 & 16.6 \\
+ & Right & 12.0 & 16.4 & 16.9 \\
 \midrule
-\model{}-L & Left & 11.4 & 15.3 & 17.6 \\
- & Right & 12.0 & 16.0 & 17.7 \\
+\model{}-L & Left & 11.3 & 15.7 & 16.5 \\
+ & Right & 12.4 & 16.6 & 16.8 \\
 \midrule
 \multicolumn{5}{l}{\textit{Traditional architectures}} \\
 \midrule
@@ -985,73 +1140,11 @@ vemg2pose & Left & 14.7 & 15.7 & 17.2 \\
 NeuroPose & Left & 15.9 & 15.4 & 15.7 \\
  & Right & 15.7 & 16.0 & 16.9 \\
 \bottomrule
-\end{tabular}}%
+\end{tabular}
 
 \end{table}
 
 Left and right hand MAE agree within 2.0$^\circ$ across all models and splits, confirming that the shared-weight bilateral design and left-to-right mirroring strategy produce symmetric performance. The per-hand consistency supports the validity of processing both hands through a single model.
-
-\subsection{Center-Frame EMG-Only Reference}
-\label{app:center_frame_emg}
-
-To partially normalize the supervision granularity gap discussed in \S4.2, we additionally evaluate EMG-only models on the window center frame rather than over the full predicted trajectory. Table~\ref{tab:center_frame_emg} reports these center-frame MAE values using the same gesture, user, and both splits as the main benchmark. The center-frame results are comparable but not identical to the trajectory-level evaluation: they slightly change the ranking among model sizes, with \model{}-S achieving the best average MAE and the best user-split result, while \model{}-L remains strongest on the gesture and both splits. All three variants remain tightly clustered within 0.4$^\circ$ average MAE.
-
-\begin{table}[t]
-\centering
-\caption{EMG-only center-frame reference results on \dataset{}. MAE is reported in degrees; lower is better. Columns report per-user mean $\pm$ standard deviation (left+right pooled). Avg is the per-sample overall MAE across all test splits. These runs use the same center-frame target as the vision-only and fusion models, but remain EMG-only. Bold indicates the best mean per column.}
-\label{tab:center_frame_emg}
-\footnotesize
-\setlength{\tabcolsep}{3.5pt}
-\renewcommand{\arraystretch}{1.05}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lccccc}
-\toprule
-Method & Params & Gesture & User & Both & Avg. \\
-\midrule
-\model{}-S & 3.5M & $12.5_{\pm1.7}$ & $\mathbf{15.5_{\pm2.5}}$ & $17.0_{\pm1.4}$ & $\mathbf{14.5}$ \\
-\model{}-M & 6.6M & $12.9_{\pm1.7}$ & $15.7_{\pm2.6}$ & $17.7_{\pm1.6}$ & $14.9$ \\
-\model{}-L & 16.3M & $\mathbf{12.6_{\pm1.6}}$ & $16.1_{\pm1.6}$ & $\mathbf{17.4_{\pm1.2}}$ & $14.6$ \\
-\bottomrule
-\end{tabular}}%
-
-\end{table}
-
-\subsection{EMG2Pose Benchmark Results}
-\label{app:emg2pose_results}
-
-Table~\ref{tab:emg2pose_results} reports \model{} results on the EMG2Pose dataset standard splits.
-
-\begin{table}[t]
-\centering
-\caption{EMG-only baseline results on EMG2Pose test splits. MAE is reported in degrees; lower is better. \model{} values report per-user mean $\pm$ standard deviation across users (n=158 for Stage, n=20 for User and User+Stage). $^\dagger$ Numbers reported in the original papers; all evaluated on the full dataset. $^\ddagger$Evaluated on a 12-subject subset of EMG2Pose (12/27 stages); not directly comparable to full-dataset results. Shaded rows highlight \model{} variants; bold indicates the best \model{} value per column.}
-\label{tab:emg2pose_results}
-\footnotesize
-\setlength{\tabcolsep}{3.5pt}
-\renewcommand{\arraystretch}{1.05}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcccc}
-\toprule
-Method & Params & User & Stage & User+Stage \\
-\midrule
-\multicolumn{5}{l}{\textit{Prior work}} \\
-\midrule
-SensingDynamics$^\dagger$~\citep{sensingdynamics} & -- & $15.5_{\pm1.4}$ & $18.8_{\pm1.6}$ & $18.7_{\pm1.6}$ \\
-NeuroPose$^\dagger$ & 6.4M & $13.2_{\pm1.1}$ & $17.2_{\pm1.7}$ & $17.5_{\pm1.5}$ \\
-vemg2pose$^\dagger$ & 6.0M & $12.2_{\pm1.3}$ & $15.2_{\pm1.6}$ & $15.8_{\pm1.4}$ \\
-CLDM$^\dagger$~\citep{emg2tendon} & -- & $11.3_{\pm1.0}$ & $14.3_{\pm1.5}$ & $14.7_{\pm1.4}$ \\
-
-\midrule
-\multicolumn{5}{l}{\textit{\model{} variants}} \\
-\midrule
-\model{}-S & 3.5M & $12.45_{\pm1.06}$ & $11.10_{\pm1.19}$ & $12.34_{\pm1.07}$ \\
-\model{}-M & 6.6M & $12.40_{\pm1.08}$ & $10.18_{\pm1.13}$ & $12.39_{\pm1.08}$ \\
-\model{}-L & 16.3M & $\mathbf{12.26_{\pm1.08}}$ & $\mathbf{9.28_{\pm1.09}}$ & $\mathbf{12.25_{\pm1.08}}$ \\
-\bottomrule
-\end{tabular}}%
-
-\end{table}
-
-\model{}-L achieves the best user+stage MAE of $12.25^\circ \pm 1.08^\circ$, improving over the vemg2pose baseline~\citep{emg2pose} ($15.8^\circ \pm 1.4^\circ$) by 22\% while using 2.7$\times$ more parameters. SensingDynamics~\citep{sensingdynamics} and NeuroPose~\citep{liu2021neuropose} report user+stage MAE of $18.7^\circ$ and $17.5^\circ$, respectively, on the full EMG2Pose benchmark. CLDM~\citep{emg2tendon} reports $14.7^\circ \pm 1.4^\circ$, also on the full dataset. VQ-MyoPose~\citep{vqmyopose}$^\ddagger$ was evaluated on a 12-subject subset and is not directly comparable. \model{}-L reduces the stage split MAE to $9.28^\circ \pm 1.09^\circ$, a 39\% improvement over vemg2pose, indicating stronger temporal pattern modeling for unseen gesture stages.
 
 \subsection{Per-Joint Error Analysis}
 \label{app:per_joint}
@@ -1060,10 +1153,10 @@ Table~\ref{tab:per_joint_egoemg} presents the per-finger and per-joint-group mea
 
 \begin{table}[t]
 \centering
-\caption{Per-joint MAE ($^\circ$) on \dataset{}, left and right hands pooled within each split, then per-sample weighted average across gesture, user, and both splits. Lower is better. Bold indicates the best mean per row.}
+\caption{Per-joint MAE ($^\circ$) on \dataset{}, left and right hands pooled within each split, then per-sample weighted average across the Gesture, User, and Both splits. Lower is better. Bold indicates the best mean per row.}
 \label{tab:per_joint_egoemg}
-\scriptsize
-\setlength{\tabcolsep}{2.5pt}
+\footnotesize
+\setlength{\tabcolsep}{2.0pt}
 \renewcommand{\arraystretch}{1.05}
 \begin{tabular}{lccc}
 \toprule
@@ -1072,7 +1165,7 @@ Joint group & \model{}-S & \model{}-M & \model{}-L \\
 Distal & $10.2$ & $10.1$ & $\mathbf{10.0}$ \\
 Wrist deviation & $10.8$ & $10.1$ & $\mathbf{10.0}$ \\
 Thumb & $12.8$ & $\mathbf{12.3}$ & $\mathbf{12.3}$ \\
-Index & $13.4$ & $\mathbf{13.3}$ & $13.3$ \\
+Index & $13.4$ & $\mathbf{13.3}$ & $\mathbf{13.3}$ \\
 Proximal & $13.7$ & $\mathbf{13.3}$ & $13.4$ \\
 Ring & $15.2$ & $14.7$ & $\mathbf{14.6}$ \\
 Middle finger & $15.2$ & $14.8$ & $\mathbf{14.8}$ \\
@@ -1115,9 +1208,9 @@ A cross-dataset comparison shows that mid-phalanx and pinky joints are consisten
 
 To characterize where EMG provides complementary information beyond vision,
 we evaluate all three modalities---vision-only, EMG-only, and
-F-RN18+S fusion---on a per-gesture basis across the full test set (all
-splits, both hands). Following the vocabulary in
-Appendix~\ref{app:gesture_vocabulary}, we group the 60 gesture classes into
+Fusion-RN18+S---on a per-gesture basis across the full test set (all
+splits, both hands). Following the Gesture Vocabulary section, we group the
+60 gesture classes into
 three semantic families: single-hand (30 gestures), symmetric bimanual (18),
 and asymmetric bimanual (12). One bimanual gesture (raw, unconstrained) is excluded from this analysis due to its unbounded pose distribution.
 Table~\ref{tab:per_gesture_family} reports
@@ -1125,12 +1218,11 @@ sample-weighted per-family averages across all three modalities.
 
 \begin{table}[t]
 \centering
-\caption{Per-gesture-family modality comparison on \dataset{} (F-RN18+S fusion). Values are sample-weighted averages across all test splits; MAE is in degrees (lower is better). $\Delta = \text{MAE}_\text{vision} - \text{MAE}_\text{fusion}$; positive $\Delta$ indicates fusion improvement. Gesture families follow the vocabulary in Appendix~\ref{app:gesture_vocabulary}.}
+\caption{Per-gesture-family modality comparison on \dataset{} (Fusion-RN18+S). Values are sample-weighted averages across all test splits; MAE is in degrees (lower is better). $\Delta = \text{MAE}_\text{vision} - \text{MAE}_\text{fusion}$; positive $\Delta$ indicates fusion improvement. Gesture families follow the Gesture Vocabulary section.}
 \label{tab:per_gesture_family}
 \footnotesize
-\setlength{\tabcolsep}{3.8pt}
+\setlength{\tabcolsep}{2.5pt}
 \renewcommand{\arraystretch}{1.08}
-\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrrrrr}
 \toprule
 Gesture family & \#G & \#Samp. & Vis. & EMG & Fusion & $\Delta$ \\
@@ -1141,14 +1233,14 @@ Asymmetric bimanual & 12 & 584 & 6.8 & 14.6 & 6.4 & $+0.41$ \\
 \midrule
 Overall & 59 & 4,278 & 6.1 & 14.6 & 5.6 & $+0.46$ \\
 \bottomrule
-\end{tabular}}%
+\end{tabular}
 
 \end{table}
 
-Three patterns emerge. First, the fusion gain is systematic: fusion
-improves over vision-only on 54 of 59 analyzed gesture classes, ruling out the
-possibility that the aggregate improvement is driven by a few outlier
-gestures. Second, the largest family-level gain occurs on single-hand
+Three patterns emerge. First, the fusion gain is broadly distributed: fusion
+improves over vision-only on 54 of 59 analyzed gesture classes, suggesting that
+the aggregate improvement is not confined to only a few gesture classes.
+Second, the largest family-level gain occurs on single-hand
 gestures ($\Delta = +0.50^\circ$), followed by asymmetric bimanual
 ($\Delta = +0.41^\circ$). This suggests that EMG is most useful
 when the prediction depends on subtle within-hand articulation or asymmetric
@@ -1159,49 +1251,29 @@ visually. Third, even for the few gestures where fusion slightly
 underperforms vision-only (Rock, $-0.22^\circ$; Typing, $-0.21^\circ$;
 Clap, $-0.12^\circ$; FingerPullLeft, $-0.04^\circ$; CrossHand, $-0.01^\circ$), the degradation is negligible and involves
 large-scale hand silhouettes whose visual features are already highly
-discriminative. Figure~\ref{fig:per_gesture_scatter} visualizes the
-per-gesture complementarity: nearly all points lie below the diagonal,
-confirming that fusion provides a systematic, if modest, correction
-across the gesture vocabulary.
+discriminative. Table~\ref{tab:per_gesture_full} provides the complete
+per-gesture breakdown for all 59 analyzed gesture classes, grouped by semantic
+family and sorted by descending fusion gain within each family.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.55\columnwidth]{figures/per_gesture_scatter.pdf}
-\caption{Per-gesture vision-only vs.\ fusion MAE on \dataset{} (F-RN18+S).
-Each point is one gesture class; point size reflects sample count; color
-indicates the semantic gesture family. The diagonal marks parity; points
-below the diagonal indicate fusion improvement. Top-4 most-improved
-gestures and the most notably worsened gestures are annotated.}
-\label{fig:per_gesture_scatter}
-\end{figure}
-
-Table~\ref{tab:per_gesture_full} provides the complete per-gesture breakdown
-for all 59 analyzed gesture classes, grouped by semantic family and sorted by
-descending fusion gain within each family.
-
-\onecolumn
+\makeatletter
+\setlength{\@dblfptop}{0pt}
+\makeatother
+\begin{table*}[t]
+\begingroup
 \scriptsize
-\setlength{\tabcolsep}{3.0pt}
-\renewcommand{\arraystretch}{1.02}
-\begin{longtable}{rlrrrrr}
-\caption{Full per-gesture modality breakdown on \dataset{} using F-RN18+S fusion. MAE is in degrees.
+\setlength{\tabcolsep}{1.8pt}
+\renewcommand{\arraystretch}{1.00}
+\centering
+\captionof{table}{Full per-gesture modality breakdown on \dataset{} using Fusion-RN18+S. MAE is in degrees.
 $\Delta = \text{MAE}_\text{vis} - \text{MAE}_\text{fus}$.
-Gestures are grouped by family and sorted by descending $\Delta$ within each family. Gesture descriptions are provided in Appendix~\ref{app:gesture_vocabulary}.}
-\label{tab:per_gesture_full} \\
+Gestures are grouped by family and sorted by descending $\Delta$ within each family. Gesture descriptions are provided in the Gesture Vocabulary section.}
+\label{tab:per_gesture_full}
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\begin{tabular}{rlrrrrr}
 \toprule
 ID & Name & $N$ & Vis. & EMG & Fus. & $\Delta$ \\
 \midrule
-\endfirsthead
-\caption[]{Full per-gesture modality breakdown (continued)} \\
-\toprule
-ID & Name & $N$ & Vis. & EMG & Fus. & $\Delta$ \\
-\midrule
-\endhead
-\bottomrule
-\endfoot
-\bottomrule
-\endlastfoot
-
 \multicolumn{7}{l}{\textit{Single-hand gestures}} \\
 6  & ASL7                    & 36  & 7.2 & 16.1 & 6.2 & +0.96 \\
 8  & ASL9                    & 38  & 5.7 & 17.5 & 5.0 & +0.71 \\
@@ -1233,8 +1305,16 @@ ID & Name & $N$ & Vis. & EMG & Fus. & $\Delta$ \\
 3  & ASL4                    & 32  & 6.2 & 18.0 & 6.1 & +0.14 \\
 29 & nocontact\_grab          & 36  & 7.4 & 18.6 & 7.4 & +0.06 \\
 25 & Rock                    & 36  & 9.5 & 17.5 & 9.7 & -0.22 \\
-
-\addlinespace[3pt]
+\bottomrule
+\end{tabular}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\begin{tabular}{rlrrrrr}
+\toprule
+ID & Name & $N$ & Vis. & EMG & Fus. & $\Delta$ \\
+\midrule
 \multicolumn{7}{l}{\textit{Symmetric bimanual gestures}} \\
 38 & HandClasp       & 30  & 8.7 & 16.4 & 8.0 & +0.75 \\
 52 & MiddleOppo      & 226 & 5.3 & 12.3 & 4.8 & +0.59 \\
@@ -1253,7 +1333,6 @@ ID & Name & $N$ & Vis. & EMG & Fus. & $\Delta$ \\
 31 & CrossHand       & 26  & 5.6 & 12.8 & 5.7 & -0.01 \\
 30 & Clap            & 14  & 6.7 & 14.3 & 6.8 & -0.12 \\
 49 & Typing          & 34  & 5.3 & 11.9 & 5.5 & -0.21 \\
-
 \addlinespace[3pt]
 \multicolumn{7}{l}{\textit{Asymmetric bimanual gestures}} \\
 34 & FingerPullRight & 28  & 7.1 & 13.6 & 6.1 & +0.96 \\
@@ -1268,31 +1347,28 @@ ID & Name & $N$ & Vis. & EMG & Fus. & $\Delta$ \\
 56 & PairOK          & 32  & 7.6 & 15.6 & 7.5 & +0.07 \\
 57 & Picture         & 32  & 7.1 & 16.7 & 7.1 & +0.03 \\
 33 & FingerPullLeft  & 26  & 6.0 & 13.6 & 6.0 & -0.04 \\
-\end{longtable}
-\twocolumn
+\bottomrule
+\end{tabular}
+\end{minipage}
+\endgroup
+\end{table*}
 
 \subsection{Fusion Benefit vs.\ Hand Self-Occlusion}
 \label{app:occlusion}
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.85\linewidth]{figures/occlusion_fusion_gain.png}
-  \caption{%
-    Fusion benefit as a function of hand self-occlusion on the \dataset{} test set
-    (17{,}168 samples, stride reduced to $\frac{1}{4}$ of the evaluation window for denser coverage).
-    \textbf{(a)}~Mean joint-angle MAE of vision-only and EMG+Vision fusion across
-    fixed-width (0.05) occlusion bins.
-    The annotated $\Delta$ values indicate the fusion gain at the lowest and highest
-    occlusion bins.
-    \textbf{(b)}~Per-bin fusion gain ($\Delta = \text{MAE}_{\text{vision}} - \text{MAE}_{\text{fusion}}$)
-    with LOESS trend line (Spearman $\rho = 0.049$, $p = 0.001$).
-    Error bands in~(a) and the trend confidence in~(b) denote $\pm$1 SEM.
-  }
-  \label{fig:occlusion_gain}
-\end{figure}
-
 To understand when EMG--vision fusion provides the greatest benefit, we
 stratify test-set predictions by the degree of hand self-occlusion.
+
+\begin{center}
+  \centering
+  \includegraphics[width=\columnwidth]{figures/occlusion_fusion_gain.png}
+  \captionof{figure}{Fusion benefit versus hand self-occlusion on \dataset{}.
+  (a) Vision-only and EMG+vision MAE across 0.05-wide occlusion bins.
+  (b) Per-bin fusion gain
+  ($\Delta = \mathrm{MAE}_{\mathrm{vision}} - \mathrm{MAE}_{\mathrm{fusion}}$)
+  with a LOESS trend. Error bands denote $\pm$1 SEM.}
+  \label{fig:occlusion_gain_supp}
+\end{center}
 
 \paragraph{Self-occlusion score.}
 We quantify per-frame hand self-occlusion via z-buffer rasterization of the
@@ -1322,18 +1398,21 @@ ground-truth MANO mesh in camera space.  Concretely, for each test frame:
 \end{enumerate}
 
 \paragraph{Results.}
-Figure~\ref{fig:occlusion_gain}(a) shows that both vision-only and fusion MAE
+Figure~\ref{fig:occlusion_gain_supp}(a) shows that both vision-only and fusion MAE
 vary with occlusion, while the gap between them---the fusion gain---is consistently
 positive across the full range, from $\Delta = 0.24\degree$ at the lowest occlusion
 bin to $\Delta = 0.52\degree$ at the highest.
 The largest fusion benefit occurs at moderate-to-high occlusion
 ($\Delta \approx 0.8\degree$ near occlusion $\approx 0.72$), where visual evidence
 is substantially degraded.
-Panel~(b) visualizes the same trend at the per-bin level with a LOESS smooth,
-showing a statistically significant positive association between occlusion and
-fusion gain (Spearman $\rho = 0.049$, $p = 0.001$).
+Panel~(b) visualizes the same trend at the per-bin level with a LOESS smooth.
+The frame-level association between occlusion and fusion gain is positive but
+weak in magnitude (Spearman $\rho = 0.033$, $p < 0.001$; 16{,}650 valid
+predictions), so we interpret the bin-wise pattern as suggestive rather than as
+evidence of a strong monotonic relationship.
+
+\input{supplementary_references}
 
 \FloatBarrier
-% [Removed NeurIPS checklist for AAAI submission]
-
+\fi
 \end{document}

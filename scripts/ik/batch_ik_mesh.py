@@ -29,12 +29,12 @@ import numpy as np
 import torch
 import torch.utils.data
 
-MANOTORCH_ROOT = Path("/home/xiziheng/develop/manotorch")
+MANOTORCH_ROOT = Path("../manotorch")
 if str(MANOTORCH_ROOT) not in sys.path:
     sys.path.insert(0, str(MANOTORCH_ROOT))
 from manotorch.manolayer import ManoLayer
 
-MANO_ASSETS_ROOT = Path("/home/xiziheng/develop/HandVQVAE/assets/mano")
+MANO_ASSETS_ROOT = Path("../HandVQVAE/assets/mano")
 
 # ── Alignment constants (MANO rest → UmeTrack rest, flat_hand_mean=True) ──
 # Session-independent MANO-rest to UmeTrack-rest calibration constants.

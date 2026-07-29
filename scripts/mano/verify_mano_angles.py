@@ -8,14 +8,14 @@ from pathlib import Path
 import numpy as np
 import torch
 
-MANOTORCH_ROOT = Path("/home/xiziheng/develop/manotorch")
+MANOTORCH_ROOT = Path("../manotorch")
 if str(MANOTORCH_ROOT) not in sys.path:
     sys.path.insert(0, str(MANOTORCH_ROOT))
 
 from manotorch.axislayer import AxisLayerFK
 from manotorch.manolayer import ManoLayer
 
-MANO_ASSETS_ROOT = Path("/home/xiziheng/develop/HandVQVAE/assets/mano")
+MANO_ASSETS_ROOT = Path("../HandVQVAE/assets/mano")
 
 ANGLE_NAMES = [
     "thumb_cmc_fe", "thumb_cmc_aa", "thumb_mcp_fe", "thumb_ip_fe",
@@ -81,7 +81,7 @@ class AngleRecomputer:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--memmap-root", type=str,
-                        default="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap")
+                        default="./data/EgoEMG_memmap")
     parser.add_argument("--num-samples", type=int, default=200)
     parser.add_argument("--num-episodes", type=int, default=5)
     parser.add_argument("--samples-per-episode", type=int, default=40)

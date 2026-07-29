@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /home/xiziheng/develop/emg2pose
+cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
 export PYTHONUNBUFFERED=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-exec /home/xiziheng/miniconda3/envs/emg2pose_env/bin/python -u -m emg2pose.train \
+exec python -u -m emg2pose.train \
   experiment=emgformer/_archive/regression_emgformer_middle_aug_search_egoemg \
-  egoemg_memmap_dir=/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap \
+  egoemg_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap \
   +egoemg_emg_field_preference=filtered_paper \
   module.featurizer.conv_blocks.0.in_channels=16 \
   'trainer.devices=[1,2,3,4,5]' \
@@ -42,4 +42,4 @@ exec /home/xiziheng/miniconda3/envs/emg2pose_env/bin/python -u -m emg2pose.train
   batch_augmentation.gaussian_noise.min_snr_db=44.0937 \
   batch_augmentation.gaussian_noise.max_snr_db=50.0000 \
   batch_augmentation.gaussian_noise.apply_prob=0.7761 \
-  hydra.run.dir=/home/xiziheng/develop/emg2pose/logs/reproduce_aug_v5_trial81_wl12000/run_2026-06-17_bs250_acc2
+  hydra.run.dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/reproduce_aug_v5_trial81_wl12000/run_2026-06-17_bs250_acc2

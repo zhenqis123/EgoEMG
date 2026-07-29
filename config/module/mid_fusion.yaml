@@ -14,11 +14,30 @@ fusion_proj_dim: 256
 vision_pretrained_checkpoint: null
 mano_model_path: null
 vision_freeze: {}
-fusion_mode: fusion  # fusion | emg_only | vision_only | center_supervised
+fusion_mode: fusion  # fusion | emg_only | vision_only | center_supervised | token_self_attention | frozen_cross_attention
 skip_vision_backbone: false  # set true when using cached ViT features
 moddrop_prob: 0.0  # probability of dropping EMG during training (0=off)
 input_emg_length: null  # pre-compute featurizer output T in vision_only mode
 force_zero_emg: false  # always zero EMG (vision-only fair baseline, train+eval)
+freeze_vision_branch: false  # freeze backbone + vision head and lock BN/dropout
+vision_trainable_prefixes: null  # optional relative backbone prefixes, e.g. ["7.2."]
+freeze_vision_head: false
+lock_vision_batch_norm: false
+
+# Shared Transformer used only by fusion_mode=token_self_attention.
+token_dim: 256
+token_num_heads: 8
+token_num_layers: 3
+token_ffn_dim: 512
+token_dropout: 0.1
+token_max_vision_grid_size: 16
+
+# EMG-query / frozen multi-scale ResNet cross-attention.
+cross_attention_dim: 256
+cross_attention_num_heads: 8
+cross_attention_ffn_dim: 512
+cross_attention_dropout: 0.1
+cross_attention_max_vision_grid_size: 16
 
 decoder:
   causal: false

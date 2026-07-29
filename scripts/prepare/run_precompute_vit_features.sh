@@ -16,9 +16,9 @@ set -euo pipefail
 export LD_PRELOAD="/lib/x86_64-linux-gnu/libffi.so.7:${CONDA_PREFIX:-$HOME/miniconda3/envs/emg2pose_env}/lib/libstdc++.so.6"
 
 # ── Configurable via env vars ─────────────────────────────────────────────
-CROPS_DIR="${CROPS_DIR:-/mnt/nvme/xiziheng/EgoEMG_v2_crops}"
-OUTPUT_DIR="${OUTPUT_DIR:-/mnt/nvme/xiziheng/EgoEMG_v2_vit_features_lmdb}"
-PRETRAINED_PATH="${PRETRAINED_PATH:-/home/xiziheng/develop/WiLoR/pretrained_models/wilor_final.ckpt}"
+CROPS_DIR="${CROPS_DIR:-data/EgoEMG_v2_crops}"
+OUTPUT_DIR="${OUTPUT_DIR:-data/EgoEMG_v2_vit_features_lmdb}"
+PRETRAINED_PATH="${PRETRAINED_PATH:-${WILOR_PATH:-../WiLoR}/pretrained_models/wilor_final.ckpt}"
 
 BATCH_SIZE="${BATCH_SIZE:-780}"
 NUM_WORKERS="${NUM_WORKERS:-8}"

@@ -78,6 +78,24 @@ def _build_emg_frequency_mask(n_samples: int, fs: float = _FS) -> np.ndarray:
     return mask
 
 
+def filter_emg_fft(x: np.ndarray, fs: float = _FS) -> np.ndarray:
+    """Apply the canonical offline ``filtered_paper`` filter.
+
+    This is the shared implementation for dataset conversion and realtime
+    inference. Filtering is performed independently over the supplied episode
+    or window, including per-channel mean subtraction.
+    """
+    if x.ndim != 2:
+        raise ValueError(f"Expected (time, channels), got shape {x.shape}")
+    if x.size == 0:
+        return x.astype(np.float32, copy=True)
+    x64 = x.astype(np.float64, copy=False)
+    x0 = x64 - np.mean(x64, axis=0, keepdims=True)
+    spectrum = np.fft.rfft(x0, axis=0)
+    spectrum *= _build_emg_frequency_mask(x0.shape[0], fs=fs)[:, None]
+    return np.fft.irfft(spectrum, n=x0.shape[0], axis=0).astype(np.float32)
+
+
 class RealtimeFFTFilter:
     """Per-window FFT filter matching the offline pipeline exactly.
 
@@ -118,14 +136,7 @@ class RealtimeFFTFilter:
             )
 
         x64 = x.astype(np.float64, copy=False)
-
-        # DC removal (per-channel mean subtraction)
-        mean = np.mean(x64, axis=0, keepdims=True)
-        x0 = x64 - mean
-
-        # FFT filter
-        spec = np.fft.rfft(x0, axis=0)
-        spec *= self._mask
-        y = np.fft.irfft(spec, n=x0.shape[0], axis=0)
-
-        return y.astype(np.float32)
+        x0 = x64 - np.mean(x64, axis=0, keepdims=True)
+        spectrum = np.fft.rfft(x0, axis=0)
+        spectrum *= self._mask
+        return np.fft.irfft(spectrum, n=x0.shape[0], axis=0).astype(np.float32)

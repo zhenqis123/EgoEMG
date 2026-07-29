@@ -38,7 +38,7 @@ generalization 标注规则:
 #### 快速评估最佳 checkpoint
 
 ```bash
-cd /home/xiziheng/develop/emg2pose
+cd . (repo root)
 
 # 方法 1: 使用封装脚本
 ./scripts/evaluate_ssl_ft.sh \

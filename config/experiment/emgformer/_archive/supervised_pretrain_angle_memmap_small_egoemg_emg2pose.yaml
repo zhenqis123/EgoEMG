@@ -21,9 +21,9 @@ module:
 
 checkpoint: null
 
-data_root: /home/xiziheng/develop/emg2pose/data/emg_corpus
+data_root: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus
 data_location: ${data_root}/emg2pose_v3_memmap
-egoemg_memmap_dir: /mnt/nvme/xiziheng/EgoEMG_v2_memmap
+egoemg_memmap_dir: data/EgoEMG_v2_memmap
 egoemg_emg_layout: emg2pose_interpolate16
 egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
 

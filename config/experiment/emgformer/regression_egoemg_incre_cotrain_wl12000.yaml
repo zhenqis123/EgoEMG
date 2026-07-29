@@ -17,8 +17,8 @@ checkpoint:
 pretrained_checkpoint: null
 pretrained_strict: false
 
-egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
-egoemg_incre_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_incre/data_right_merged
+egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
+egoemg_incre_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_incre/data_right_merged
 egoemg_emg_field_preference: filtered_paper
 egoemg_emg_layout: target_hand
 egoemg_channel_interpolate: false
@@ -146,7 +146,7 @@ datamodule:
   stride: 1_200
   val_test_stride: 12_000
   norm_mode: per-dataset
-  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
   skip_ik_failures: false
   eval_multiprocessing_context: forkserver
 

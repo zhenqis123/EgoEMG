@@ -201,7 +201,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--wl-max", type=int, default=15000)
     p.add_argument("--storage", default=DEFAULT_STORAGE)
     p.add_argument("--study-name", default="egoemg-window-v1")
-    p.add_argument("--egoemg-memmap-dir", default="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap")
+    p.add_argument("--egoemg-memmap-dir", default="./data/EgoEMG_memmap")
     p.add_argument("--sampler", choices=["tpe", "random"], default="tpe")
     p.add_argument("--sampler-seed", type=int, default=42)
     return p.parse_args()

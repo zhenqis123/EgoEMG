@@ -64,7 +64,7 @@ datamodule:
   val_test_window_length: 14638
   val_test_stride: 14638
   norm_mode: per-dataset
-  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  per_dataset_norm_stats_path: . (repo root)/assets/per_dataset_norm_stats.json
 
 batch_augmentation:
   random_gain.mask_prob: 0.1422
@@ -124,7 +124,7 @@ config/dataset/egoemg_angle_regression.yaml
 The active memmap directory resolves to:
 
 ```text
-/mnt/nvme/xiziheng/EgoEMG_v2_memmap
+data/EgoEMG_v2_memmap
 ```
 
 Current EMG fields in `manifest.json` include:
@@ -309,7 +309,7 @@ That directory has only one episode and cannot reproduce the ablation dataset.
 Useful search command:
 
 ```bash
-find /home/xiziheng/develop /mnt/nvme/xiziheng -maxdepth 6 \
+find . data -maxdepth 6 \
   \( -name 'emg_left_filtered.dat' -o -name 'emg_right_filtered.dat' -o -name 'manifest.json' \) \
   2>/dev/null | sort
 ```
@@ -334,8 +334,8 @@ Evaluate old checkpoint on current `filtered_paper_global`:
 python -m emg2pose.train \
   experiment=emgformer/regression_egoemg_window_ablation_wl12000 \
   train=False eval=True \
-  "checkpoint='/home/xiziheng/develop/emg2pose/logs/optuna_window/egoemg-window-v4/trial_0006_2026-05-21_11-25-39/regression_emgformer_middle_aug_search_egoemg/version_0/checkpoints/egoemg-middle-epoch=133-val_mae=0.2401.ckpt'" \
-  egoemg_memmap_dir=/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap \
+  "checkpoint='. (repo root)/logs/optuna_window/egoemg-window-v4/trial_0006_2026-05-21_11-25-39/regression_emgformer_middle_aug_search_egoemg/version_0/checkpoints/egoemg-middle-epoch=133-val_mae=0.2401.ckpt'" \
+  egoemg_memmap_dir=. (repo root)/data/EgoEMG_memmap \
   'trainer.devices=[0]' \
   datamodule.window_length=14638 \
   datamodule.val_test_window_length=14638 \

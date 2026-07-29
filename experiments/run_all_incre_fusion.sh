@@ -5,7 +5,7 @@
 # Prerequisites:
 #   - GPU 2,3,4,5 available (4 GPUs)
 #   - data/EgoEMG_memmap and data/EgoEMG_incre/data_right_merged present
-#   - Vision crops at /mnt/nvme/xiziheng/EgoEMG_v2_crops
+#   - Vision crops at data/EgoEMG_v2_crops
 #   - Vision-only checkpoints at logs/fusion/vision_resnet/version_9/ and vision_vit_small/version_0/
 #
 # Usage:
@@ -13,9 +13,8 @@
 #   bash experiments/run_all_incre_fusion.sh --step 1   # run only step 1
 #   bash experiments/run_all_incre_fusion.sh --from 3   # run from step 3
 set -euo pipefail
-cd /home/xiziheng/develop/emg2pose
+cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
-source /home/xiziheng/miniconda3/etc/profile.d/conda.sh
 conda activate emg2pose_env
 
 export PYTHONUNBUFFERED=1

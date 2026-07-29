@@ -11,7 +11,7 @@ defaults:
   # Hydra's defaults-list has an `experiment` group entry to override.
   - experiment: emgformer/regression_egoemg
 
-data_location: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+data_location: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
 manus_memmap_dir: data/manus_memmap
 
 seed: 42
@@ -25,6 +25,7 @@ num_workers: 4  # Number of workers for dataloading
 train: True  # Whether to run training
 eval: True  # Whether to run evaluation on validation and test splits
 checkpoint: null
+resume_ckpt: null  # Path to Lightning checkpoint to resume training from (ckpt_path for trainer.fit)
 pretrained_checkpoint: null  # For loading backbone from pretrained model
 pretrained_strict: false
 freeze_backbone: false

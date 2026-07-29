@@ -8,11 +8,11 @@ set -euo pipefail
 
 CONFIG="experiment=fusion/vision_resnet_small_emgfusion_center"
 
-EGOEMG_MEMMAP="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
-CROPS_LMDB="/mnt/nvme/xiziheng/EgoEMG_v2_crops"
+EGOEMG_MEMMAP="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
+CROPS_LMDB="data/EgoEMG_v2_crops"
 
-BEST_VISION_RESNET="/home/xiziheng/develop/emg2pose/logs/fusion/vision_resnet/version_9/checkpoints/resnet-vision-epoch=011-val_mae=0.1022.ckpt"
-BEST_FUSION_RESNET="/home/xiziheng/develop/emg2pose/logs/fusion/resnet_small_emgfusion_center/version_14/checkpoints/resnet-small-centerfusion-epoch=137-val_mae=0.0945.ckpt"
+BEST_VISION_RESNET="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/vision_resnet/version_9/checkpoints/resnet-vision-epoch=011-val_mae=0.1022.ckpt"
+BEST_FUSION_RESNET="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/resnet_small_emgfusion_center/version_14/checkpoints/resnet-small-centerfusion-epoch=137-val_mae=0.0945.ckpt"
 
 python -m emg2pose.train \
   ${CONFIG} \

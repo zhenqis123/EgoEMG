@@ -11,10 +11,10 @@ defaults:
   - override /module/decoder: transformer/preset/middle
   - _self_
 
-data_root: /home/xiziheng/develop/emg2pose/data/emg_corpus
+data_root: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus
 data_location: ${data_root}/emg2pose_v3_memmap
 
-checkpoint: /home/xiziheng/develop/emg2pose/logs/2026-04-08/17-05-45_emg2pose/logs/emg2pose_finetune/finetune_from_pretrain/version_0/checkpoints/finetune-epoch=026-val_mae=0.2300.ckpt
+checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-08/17-05-45_emg2pose/logs/emg2pose_finetune/finetune_from_pretrain/version_0/checkpoints/finetune-epoch=026-val_mae=0.2300.ckpt
 pretrained_strict: true
 
 module:
@@ -40,7 +40,7 @@ ignore_head_tail_dims: 2
 dataset:
   train:
     - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${data_location}
       window_length: 7_790
       stride: null
@@ -50,7 +50,7 @@ dataset:
       allowed_splits: [train]
   val:
     - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${data_location}
       window_length: 7_790
       stride: null
@@ -60,7 +60,7 @@ dataset:
       allowed_splits: [val]
   test:
     - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${data_location}
       window_length: 7_790
       stride: null
@@ -81,7 +81,7 @@ datamodule:
   stride: 7_790
   val_test_stride: 7_790
   norm_mode: batch
-  norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
+  norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/emg_norm_stats.npz
   skip_ik_failures: False
   prefetch_factor: 3
   persistent_workers: true

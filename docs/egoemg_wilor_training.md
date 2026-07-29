@@ -130,7 +130,7 @@ and MANO forward passes stay inside the WiLoR model path.
 The default `mano_model_path` points to the existing MANO asset directory:
 
 ```yaml
-mano_model_path: /home/xiziheng/develop/WiLoR/mano_data
+mano_model_path: ../WiLoR/mano_data
 ```
 
 This path is used by the WiLoR model for MANO assets and can be overridden in
@@ -146,8 +146,8 @@ python -m emg2pose.train_vision \
     video_root=data/EgoEMG \
     allintra_root=data/EgoEMG_allintra \
     vision_index_dir=data/EgoEMG_memmap/vision_index \
-    mano_model_path=/home/xiziheng/develop/WiLoR/mano_data \
-    wilor_checkpoint_path=/home/xiziheng/develop/WiLoR/pretrained_models/wilor_final.ckpt \
+    mano_model_path=../WiLoR/mano_data \
+    wilor_checkpoint_path=../WiLoR/pretrained_models/wilor_final.ckpt \
     train=True \
     eval=True
 ```
@@ -212,3 +212,33 @@ Hydra writes outputs under the run directory. Checkpoints are saved under
 - `scripts/visualize_egoemg_vision_dataset.py`: dataset sample debug.
 - `scripts/visualize_egoemg_mesh.py`: world-space MANO mesh projection debug.
 - `emg2pose/train_vision.py`: WiLoR fine-tuning and evaluation entrypoint.
+
+## Mixed EgoEMG and ShowEE training
+
+The converted ShowEE shard is exposed through
+`dataset=egoemg_showee_angle_regression`. It contributes independent left- and
+right-hand samples to train, validation, and test. Its 20 finger angles use the
+same canonical MANO-right semantics as EgoEMG. ShowEE does not provide reliable
+wrist pitch/yaw, so channels 20 and 21 are zero-filled and masked from losses
+and metrics only for samples whose `dataset_name` is `showee`.
+
+Ready-to-run experiment deltas are provided for all three main modes:
+
+```bash
+# EMG-only
+python -m emg2pose.train experiment=emgformer/regression_egoemg_showee
+
+# Vision-only
+python -m emg2pose.train \
+    experiment=fusion/vision_resnet_middle_egoemg_showee
+
+# EMG + vision fusion
+python -m emg2pose.train \
+    experiment=fusion/fusion_rn18_s_center_8ch_egoemg_showee
+```
+
+ShowEE vision training reads the precomputed crops from
+`data/ShowEE_202607_crops`; the all-intra videos remain available
+for rebuilding or checking those crops. Dataset-specific filtered-paper EMG
+statistics are stored in
+`assets/per_dataset_norm_stats_repro_filtered_paper_alias.json`.

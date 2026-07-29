@@ -23,7 +23,7 @@ module:
 
 checkpoint: null
 
-data_root: /home/xiziheng/develop/emg2pose/data/emg_corpus
+data_root: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus
 data_location: ${data_root}/emg2pose_v3_memmap
 
 gesture_spaces: []
@@ -38,7 +38,7 @@ datamodule:
   stride: 7_790
   val_test_stride: 7_790
   norm_mode: batch
-  norm_stats_path: /home/xiziheng/develop/emg2pose/assets/emg_norm_stats.npz
+  norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/emg_norm_stats.npz
   skip_ik_failures: false
   prefetch_factor: 3
   persistent_workers: true

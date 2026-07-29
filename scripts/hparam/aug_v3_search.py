@@ -37,7 +37,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_STORAGE = f"sqlite:///{PROJECT_ROOT}/assets/aug_v3_search.db"
 DEFAULT_LOG_ROOT = PROJECT_ROOT / "logs" / "aug_v3_search"
 EXPERIMENT = "emgformer/regression_egoemg_window_ablation_wl12000"
-DATA_DIR = "/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
+DATA_DIR = "./data/EgoEMG_memmap"
 NORM_STATS_PATH = (
     PROJECT_ROOT / "assets" / "per_dataset_norm_stats_repro_filtered_paper_alias.json"
 )

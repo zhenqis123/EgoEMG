@@ -22,9 +22,9 @@ markers — existing episodes are skipped.
 
 Usage:
     python scripts/prepare/precompute_vit_features_to_lmdb.py \\
-        --crops-dir /mnt/nvme/xiziheng/EgoEMG_v2_crops \\
-        --output-dir /mnt/nvme/xiziheng/EgoEMG_v2_vit_features_lmdb \\
-        --pretrained-path /home/xiziheng/develop/WiLoR/pretrained_models/wilor_final.ckpt
+        --crops-dir data/EgoEMG_v2_crops \\
+        --output-dir data/EgoEMG_v2_vit_features_lmdb \\
+        --pretrained-path ../WiLoR/pretrained_models/wilor_final.ckpt
 
     # Parallel across GPUs:
     CUDA_VISIBLE_DEVICES=0 python scripts/prepare/precompute_vit_features_to_lmdb.py \\

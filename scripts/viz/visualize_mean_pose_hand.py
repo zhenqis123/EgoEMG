@@ -26,9 +26,9 @@ import trimesh
 import smplx
 
 # 和 verify_training_with_emg.py 保持一致
-MANO_MODEL_PATH = Path("/home/xiziheng/develop/WiLoR/mano_data/models")
-MANOTORCH_REPO_ROOT = Path("/home/xiziheng/develop/manotorch")
-MANOTORCH_MANO_ASSETS_ROOT = Path("/home/xiziheng/develop/HandVQVAE/assets/mano")
+MANO_MODEL_PATH = Path("../WiLoR/mano_data/models")
+MANOTORCH_REPO_ROOT = Path("../manotorch")
+MANOTORCH_MANO_ASSETS_ROOT = Path("../HandVQVAE/assets/mano")
 
 # 21 个红外标记点对应顶点序号
 DEFAULT_MARKER_INDICES = [

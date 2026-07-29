@@ -5,7 +5,7 @@
 # emg2pose: 16ch → 8ch via channel_indices [10,12,0,1,2,4,5,6]
 # Val: EgoEMG only (user/gesture/both generalization splits)
 set -e
-cd /home/xiziheng/develop/emg2pose
+cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
 BASE_CONFIG="emgformer/regression_egoemg_cotrain"
 GPUS="0,1,2,3,4,5"
@@ -15,8 +15,8 @@ LR=0.0005
 EPOCHS=150
 SEED=42
 BASE_LOG="logs/regression/egoemg_cotrain"
-DATA_DIR="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
-EMG2POSE_DATA="/home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap"
+DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
+EMG2POSE_DATA="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/emg_corpus/emg2pose_v3_memmap"
 
 echo "=== Co-Training: EgoEMG + emg2pose (8ch aligned) ==="
 echo "Config: ${BASE_CONFIG}"

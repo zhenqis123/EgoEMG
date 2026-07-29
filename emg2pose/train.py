@@ -63,6 +63,8 @@ def make_lightning_module(config: DictConfig):
         datamodule=config.datamodule,
         batch_augmentation=config.get("batch_augmentation"),
         val_episode_name_mapping=config.get("val_episode_name_mapping"),
+        anchor_loss_weight=config.get("anchor_loss_weight", 0.0),
+        anchor_shuffle_fraction=config.get("anchor_shuffle_fraction", 0.0),
     )
 
 

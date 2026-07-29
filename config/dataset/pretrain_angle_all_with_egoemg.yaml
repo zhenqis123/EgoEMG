@@ -3,7 +3,7 @@
 # emg2pose uses stride=7790 (no overlap)
 # EgoEMG, NinaPro, PimForce use stride=1560 (5x data)
 
-egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
 egoemg_emg_layout: emg2pose_interpolate16
 egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
 

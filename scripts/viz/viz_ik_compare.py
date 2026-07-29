@@ -20,12 +20,12 @@ import numpy as np
 import torch
 import trimesh
 
-MANOTORCH_ROOT = Path("/home/xiziheng/develop/manotorch")
+MANOTORCH_ROOT = Path("../manotorch")
 if str(MANOTORCH_ROOT) not in sys.path:
     sys.path.insert(0, str(MANOTORCH_ROOT))
 from manotorch.manolayer import ManoLayer
 
-MANO_ASSETS_ROOT = Path("/home/xiziheng/develop/HandVQVAE/assets/mano")
+MANO_ASSETS_ROOT = Path("../HandVQVAE/assets/mano")
 ALIGN_SCALE = 1.0843137502670288
 ALIGN_TRANS = np.array([106.72334, -11.8804455, -4.48328], dtype=np.float32)
 

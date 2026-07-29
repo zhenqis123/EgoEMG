@@ -155,7 +155,7 @@ def main() -> None:
     parser.add_argument(
         "--mano-model-path",
         type=Path,
-        default=Path("/home/xiziheng/develop/WiLoR/mano_data/models"),
+        default=Path("../WiLoR/mano_data/models"),
     )
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--n-samples", type=int, default=8)

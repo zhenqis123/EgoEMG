@@ -365,12 +365,12 @@ def main() -> None:
     parser.add_argument("--data_root", default="data/EgoEMG")
     parser.add_argument(
         "--allintra_root",
-        default="/mnt/nvme/xiziheng/EgoEMG_allintra",
+        default="data/EgoEMG_allintra",
     )
     parser.add_argument("--allintra_suffix", default="_allintra")
     parser.add_argument(
         "--mano_model_path",
-        default="/home/xiziheng/develop/WiLoR/mano_data/models",
+        default="../WiLoR/mano_data/models",
     )
     parser.add_argument("--output", default="/tmp/egoemg_mesh_samples")
     parser.add_argument("--n_samples", type=int, default=10)

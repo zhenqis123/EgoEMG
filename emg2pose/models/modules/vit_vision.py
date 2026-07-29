@@ -10,6 +10,8 @@ from __future__ import annotations
 import torch
 from torch import nn
 
+from emg2pose.models.modules._vision_constants import DINOV2_VARIANTS as _DINOV2_VARIANTS
+
 
 # DINOv2 ViT variants from timm
 

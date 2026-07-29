@@ -358,7 +358,9 @@ def main():
                 allowed_splits=[split],
                 modalities=["emg", "joint_angles", "labels"],
                 target_hand=hand,
-                emg_field_preference="filtered",
+                emg_field_preference=cfg.get(
+                    "egoemg_emg_field_preference", "filtered"
+                ),
                 emg_layout=emg_layout,
                 emg2pose_channel_indices=channel_indices,
                 channel_interpolate=channel_interpolate,
@@ -373,6 +375,7 @@ def main():
                 vision_patch_size=cfg.get("vision_patch_size", 256),
                 center_target_only=cfg.get("center_target_only", False),
                 skip_emg_loading=skip_emg,
+                eval_center_stride=cfg.datamodule.get("eval_center_stride"),
             )
 
             n = len(dataset)

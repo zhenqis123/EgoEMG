@@ -155,7 +155,8 @@ def main():
 
     # Spearman annotation
     rho, pval = spearmanr(occ, delta)
-    p_str = f"$p < 10^{{{int(np.floor(np.log10(pval)))}}}$" if pval < 1e-5 else f"$p$ = {pval:.3f}"
+    # Avoid reporting a rounded p-value of 0.000.
+    p_str = "$p < 0.001$" if pval < 1e-3 else f"$p$ = {pval:.3f}"
     ax_b.text(0.97, 0.07,
               f"Spearman $\\rho = {rho:.3f}$\n{p_str}",
               transform=ax_b.transAxes, ha="right", va="bottom",

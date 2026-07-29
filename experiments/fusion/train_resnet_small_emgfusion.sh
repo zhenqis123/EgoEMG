@@ -6,10 +6,10 @@ set -euo pipefail
 
 CONFIG="experiment=fusion/vision_resnet_small_emgfusion"
 
-EGOEMG_MEMMAP="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
-CROPS_LMDB="/mnt/nvme/xiziheng/EgoEMG_v2_crops"
+EGOEMG_MEMMAP="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
+CROPS_LMDB="data/EgoEMG_v2_crops"
 
-RESNET_CKPT="/home/xiziheng/develop/emg2pose/logs/fusion/vision_resnet/version_7/checkpoints/last.ckpt"
+RESNET_CKPT="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/vision_resnet/version_7/checkpoints/last.ckpt"
 
 python -m emg2pose.train \
   ${CONFIG} \

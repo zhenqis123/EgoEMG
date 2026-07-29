@@ -1,4 +1,4 @@
-data_location: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+data_location: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
 manus_memmap_dir: data/manus_memmap
 seed: 42
 matmul_precision: high
@@ -200,7 +200,7 @@ datamodule:
   max_open_files: 32
   norm_mode: per-dataset
   norm_stats_path: null
-  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
   norm_eps: 1.0e-06
   eval_multiprocessing_context: forkserver
 optimizer:
@@ -296,8 +296,8 @@ module:
   _target_: emg2pose.models.modules.emgformer.Emg2PoseFormer
   out_channels: 22
   provide_initial_pos: false
-egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
-egoemg_incre_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_incre/data_right_merged
+egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
+egoemg_incre_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_incre/data_right_merged
 egoemg_emg_field_preference: filtered_paper
 egoemg_emg_layout: target_hand
 egoemg_channel_interpolate: false

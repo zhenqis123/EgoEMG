@@ -2,7 +2,8 @@
 dataset:
   train:
     - _target_: emg2pose.datasets.pimforce_dataset.PimforceDataset
-      root_dirs: [${data_location}]
+      root_dirs:
+        - ${data_location}
       window_start: 0
       window_stop: null
       window_stride: 1

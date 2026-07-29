@@ -56,7 +56,7 @@ import torch
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib")
 os.environ.setdefault("XDG_CACHE_HOME", "/tmp/xdg-cache")
 
-WILOR_ROOT = Path("/home/xiziheng/develop/WiLoR")
+WILOR_ROOT = Path("../WiLoR")
 if str(WILOR_ROOT) not in sys.path:
     sys.path.append(str(WILOR_ROOT))
 
@@ -66,13 +66,16 @@ from markers2mano.geometry import (
     transform_joints_coordinates_torch,
 )
 from markers2mano.graph_transformer import EfficientGraphTransformer, six_d_to_rot_matrix
-from markers2mano.rigid_align import compute_aligned_error
-
-EGOEMG_ROOT = Path("/home/xiziheng/develop/emg2pose/data/EgoEMG")
-CKPT_PATH = Path(
-    "/home/xiziheng/develop/WiLoR/tb_logs/m2m_pose_shape_run/version_51/checkpoints/best-model-epoch=12-val/loss_total=0.0002.ckpt"
+from markers2mano.rigid_align import (
+    compute_aligned_error,
+    compute_aligned_error_batched,
 )
-MANO_ASSETS_ROOT = Path("/home/xiziheng/develop/HandVQVAE/assets/mano")
+
+EGOEMG_ROOT = Path("./data/EgoEMG")
+CKPT_PATH = Path(
+    "../WiLoR/tb_logs/m2m_pose_shape_run/version_51/checkpoints/best-model-epoch=12-val/loss_total=0.0002.ckpt"
+)
+MANO_ASSETS_ROOT = Path("../HandVQVAE/assets/mano")
 DATA_DIR = EGOEMG_ROOT / "data" / "chunk-000"
 # Output dirs are overridden by --output-dir / --viz-dir args
 MANO_DIR = EGOEMG_ROOT / "mano" / "chunk-000"
@@ -101,23 +104,54 @@ def load_model(ckpt_path: Path, device: torch.device) -> torch.nn.Module:
     num_layers = hp.get("num_layers", 12)
     heads = hp.get("heads", 8)
 
-    model = EfficientGraphTransformer(
-        num_markers=21,
-        beta_dim=10,
-        embed_dim=hidden_dim,
-        num_layers=num_layers,
-        num_heads=heads,
-        dropout=0.0,
-        ffn_ratio=4,
-    )
     state_dict = ckpt["state_dict"]
     cleaned = {
         k[len("model.") :] if k.startswith("model.") else k: v
         for k, v in state_dict.items()
+        if k.startswith("model.")
     }
-    model.load_state_dict(cleaned, strict=False)
+    if any(key.startswith("pose_head.") for key in cleaned):
+        # v51 was trained with the archived global pose-head architecture.
+        # Loading it into the newer per-joint-head class with strict=False
+        # silently leaves an identity-initialized pose head and produces all
+        # zero axis-angle labels.
+        from markers2mano.archive.graph_transformer_4x import (
+            EfficientGraphTransformer4x,
+        )
+
+        model = EfficientGraphTransformer4x(
+            num_markers=21,
+            beta_dim=10,
+            embed_dim=hidden_dim,
+            num_layers=num_layers,
+            num_heads=heads,
+            dropout=0.0,
+            ffn_ratio=hp.get("ffn_ratio", 4),
+        )
+        architecture = "EfficientGraphTransformer4x"
+    else:
+        model = EfficientGraphTransformer(
+            num_markers=21,
+            beta_dim=10,
+            embed_dim=hidden_dim,
+            num_layers=num_layers,
+            num_heads=heads,
+            dropout=0.0,
+            ffn_ratio=hp.get("ffn_ratio", 4),
+        )
+        architecture = "EfficientGraphTransformer"
+    incompatible = model.load_state_dict(cleaned, strict=False)
+    if incompatible.missing_keys or incompatible.unexpected_keys:
+        raise RuntimeError(
+            "markers2mano checkpoint architecture mismatch: "
+            f"missing={incompatible.missing_keys}, "
+            f"unexpected={incompatible.unexpected_keys}"
+        )
     model = model.to(device).eval()
-    print(f"Model loaded: dim={hidden_dim}, layers={num_layers}, heads={heads}")
+    print(
+        f"Model loaded: architecture={architecture}, dim={hidden_dim}, "
+        f"layers={num_layers}, heads={heads}"
+    )
     return model
 
 
@@ -284,9 +318,16 @@ def infer_hand(
     T = keypoints.shape[0]
     frame_valid = valid.any(axis=1) if valid.ndim == 2 else np.ones(T, dtype=bool)
     valid_indices = np.where(frame_valid)[0]
+    if len(valid_indices) == 0:
+        return {
+            "pose_full": np.zeros((T, 48), dtype=np.float32),
+            "beta_mean": np.zeros(10, dtype=np.float32),
+            "trans_mean": np.zeros(3, dtype=np.float32),
+            "aligned_error_mm": float("nan"),
+            "sampled_indices": np.empty((0,), dtype=np.int64),
+            "viz_samples": [],
+        }
     sampled_indices = valid_indices[::stride]
-    if len(sampled_indices) == 0:
-        sampled_indices = np.arange(0, T, stride)
 
     sampled_kp = keypoints[sampled_indices]
     all_poses: list[torch.Tensor] = []
@@ -324,10 +365,11 @@ def infer_hand(
             with torch.no_grad():
                 mano_out = mano_layer(pred_pose_ax, pred_betas)
                 pred_surface_markers = mano_out.verts[:, marker_idx, :]  # (B, 21, 3)
-            for f in range(pred_surface_markers.shape[0]):
-                err, R, t = compute_aligned_error(pred_surface_markers[f], batch_local[f])
-                all_trans.append(t.cpu())
-                all_aligned_errors.append(err.cpu())
+            errors, _, translations = compute_aligned_error_batched(
+                pred_surface_markers, batch_local
+            )
+            all_trans.extend(translations.cpu().unbind(0))
+            all_aligned_errors.extend(errors.cpu().unbind(0))
 
         if viz_frames > 0:
             all_markers_local.append(batch_local.cpu())
@@ -452,6 +494,14 @@ def build_viz_records(
         strict=True,
     ):
         gt_local = torch.from_numpy(sample["markers_local"])
+        # Visualization is auxiliary to label generation.  A pathological
+        # prediction (or source frame) must not abort a long full-dataset run.
+        if not (
+            torch.isfinite(verts).all()
+            and torch.isfinite(markers_pred).all()
+            and torch.isfinite(gt_local).all()
+        ):
+            continue
         _, R, t = compute_aligned_error(markers_pred, gt_local)
         verts_aligned = (verts @ R.T + t).numpy().astype(np.float32)
 

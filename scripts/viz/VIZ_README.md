@@ -141,7 +141,7 @@ python scripts/viz/viz_mano_from_dataset.py --episode 3 --hand left --device 0
 **Prerequisites:**
 ```bash
 pip install trimesh manotorch
-# MANO assets: /home/xiziheng/develop/HandVQVAE/assets/mano
+# MANO assets: ../HandVQVAE/assets/mano
 ```
 
 ---

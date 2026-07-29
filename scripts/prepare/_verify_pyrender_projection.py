@@ -72,7 +72,7 @@ def main():
     parser.add_argument("--memmap_dir", default="data/EgoEMG_memmap")
     parser.add_argument("--data_root", default="data/EgoEMG")
     parser.add_argument("--mano_model_path",
-                        default="/home/xiziheng/develop/WiLoR/mano_data/models")
+                        default="../WiLoR/mano_data/models")
     parser.add_argument("--device", default="cuda", choices=["cpu", "cuda"])
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--output", default="/tmp/pyrender_verify")

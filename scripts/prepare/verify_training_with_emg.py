@@ -28,16 +28,16 @@ import trimesh
 from tqdm import tqdm
 
 # ── Paths ──────────────────────────────────────────────────────────────────
-DEFAULT_MEMMAP_DIR = Path("/mnt/nvme/xiziheng/EgoEMG_v2_memmap")
-DEFAULT_DATA_ROOT = Path("/home/xiziheng/develop/emg2pose/data/EgoEMG")
-DEFAULT_VIDEO_ROOT = Path("/mnt/nvme/xiziheng/EgoEMG_allintra")
-MANO_MODEL_PATH = "/home/xiziheng/develop/WiLoR/mano_data/models"
+DEFAULT_MEMMAP_DIR = Path("data/EgoEMG_v2_memmap")
+DEFAULT_DATA_ROOT = Path("./data/EgoEMG")
+DEFAULT_VIDEO_ROOT = Path("data/EgoEMG_allintra")
+MANO_MODEL_PATH = "../WiLoR/mano_data/models"
 DEFAULT_EMG_CKPT = (
-    "/home/xiziheng/develop/emg2pose/logs/2026-04-30/23-28-41_emg2pose/"
+    "./logs/2026-04-30/23-28-41_emg2pose/"
     "regression_emgformer_small_aggressive_egoemg/version_0/checkpoints/"
     "egoemg-small-epoch=007-val_mae=0.2625.ckpt"
 )
-DEFAULT_NORM_STATS = "/home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json"
+DEFAULT_NORM_STATS = "./assets/per_dataset_norm_stats.json"
 # Default channel mapping matching config: emg2pose_interpolate16
 DEFAULT_CHANNEL_INDICES_1BASED = [10, 12, 0, 1, 2, 4, 5, 6]
 EMG_WINDOW_LENGTH = 7790

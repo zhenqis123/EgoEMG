@@ -1,7 +1,7 @@
 #!/bin/bash
 # EgoEMG Large 无增强回归训练
 set -e
-cd /home/xiziheng/develop/emg2pose
+cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
 EXPERIMENT="emgformer/regression_egoemg"
 GPUS="0,1,2,3,4,5"
@@ -14,7 +14,7 @@ LOG_DIR="logs/regression/egoemg_large_no_aug"
 
 python -m emg2pose.train \
   experiment=${EXPERIMENT} \
-  egoemg_memmap_dir=/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap \
+  egoemg_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap \
   trainer.devices=[${GPUS}] \
   +trainer.strategy=ddp \
   trainer.max_epochs=${EPOCHS} \

@@ -35,7 +35,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--memmap_dir",
-        default="/home/xiziheng/develop/emg2pose/data/EgoEMG_incre/data_right_merged",
+        default="./data/EgoEMG_incre/data_right_merged",
     )
     parser.add_argument("--episode", type=int, default=3,
                         help="Episode index to sample from (default: 3, the last one)")

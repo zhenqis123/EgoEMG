@@ -18,11 +18,11 @@ import numpy as np
 import pyarrow.parquet as pq
 
 # ---------- paths ----------
-DATASET_ROOT = Path("/mnt/nvme/xiziheng/training_dataset_lerobot_full_NEW")
+DATASET_ROOT = Path("data/training_dataset_lerobot_full_NEW")
 DATA_DIR = DATASET_ROOT / "data" / "chunk-000"
 VIDEO_DIR = DATASET_ROOT / "videos" / "observation.images.webcam" / "chunk-000"
-CALIB_PATH = Path("/home/xiziheng/develop/emg2pose/data/EgoEMG/reprojection_assets/GX010023_standard_calibration.json")
-OUTPUT_DIR = Path("/home/xiziheng/develop/emg2pose/visualizations/verify_parquet_projection")
+CALIB_PATH = Path("./data/EgoEMG/reprojection_assets/GX010023_standard_calibration.json")
+OUTPUT_DIR = Path("./visualizations/verify_parquet_projection")
 
 STRIDE = 30
 SAMPLE_OFFSET = 2  # pick the 3rd sample at coarse stride (mid-episode)

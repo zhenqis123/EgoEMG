@@ -6,6 +6,7 @@ datamodule:
   val_test_window_length: 10_000  # 20 sec windows for 2kHz EMG
   stride: null
   val_test_stride: null
+  eval_center_stride: null  # set to a fixed stride (e.g. 7790) for unified center-frame eval across WLs
   padding: [0, 0]
   pin_memory: true
   persistent_workers: true

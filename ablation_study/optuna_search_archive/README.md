@@ -50,7 +50,7 @@ be treated as primary evidence unless there is a specific reason.
 
 ## Raw Logs
 
-`logs` in the repository is a symlink to `/mnt/nvme/xiziheng/logs`. During
+`logs` in the repository is a symlink to `data/logs`. During
 cleanup, bulky stale and non-top trial directories were removed. The reliable
 records are:
 

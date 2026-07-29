@@ -130,7 +130,7 @@ def main():
     parser.add_argument("--config-name", required=True,
                         help="e.g. experiment/fusion/vision_resnet_small_emgfusion_center")
     parser.add_argument("--checkpoint", required=True)
-    parser.add_argument("--data-location", default="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap")
+    parser.add_argument("--data-location", default="./data/EgoEMG_memmap")
     parser.add_argument("--splits", nargs="+", default=["gesture"])
     parser.add_argument("--hands", nargs="+", default=["left", "right"])
     parser.add_argument("--batch-size", type=int, default=64)

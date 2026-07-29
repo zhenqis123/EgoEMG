@@ -2,7 +2,7 @@
 # Clean WL=10K no-aug model size scaling on emg2pose_v3
 # All 5 model sizes with identical hyperparameters for fair comparison.
 set -e
-cd /home/xiziheng/develop/emg2pose
+cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
 EXPERIMENT="emgformer/regression_emg2pose"
 GPUS="0,1,2,3,4,5"

@@ -39,7 +39,7 @@ from emg2pose.UmeTrack.lib.common.hand_skinning import _skin_points
 from emg2pose.UmeTrack.lib.tracker.video_pose_data import load_hand_model_from_dict
 import json
 
-MANO_ASSETS_ROOT = Path("/home/xiziheng/develop/HandVQVAE/assets/mano")
+MANO_ASSETS_ROOT = Path("../HandVQVAE/assets/mano")
 
 
 # ── FK mesh skinning (same logic as emg2pose.visualization.skin_mesh_from_angles) ─
@@ -240,7 +240,7 @@ def main():
         emg2pose_channel_indices=[10, 12, 0, 1, 2, 4, 5, 6],
         channel_interpolate=False,
         norm_mode="per-dataset",
-        norm_stats_path="/home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json",
+        norm_stats_path="./assets/per_dataset_norm_stats.json",
         dataset_name="egoemg",
         mano_npy_dir=args.mano_npy_dir,
         jitter=False,

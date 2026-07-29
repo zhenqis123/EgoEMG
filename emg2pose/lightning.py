@@ -36,7 +36,11 @@ def _load_state_dict_from_checkpoint(checkpoint_path: str) -> dict[str, torch.Te
     if not path.is_file():
         raise FileNotFoundError(f"Pretrained checkpoint not found: {path}")
 
-    checkpoint = torch.load(path, map_location="cpu")
+    # These experiment checkpoints are trusted local artifacts and include
+    # OmegaConf objects in their saved metadata.  PyTorch 2.6+ defaults to
+    # ``weights_only=True``, which rejects that metadata before the state dict
+    # can be extracted.
+    checkpoint = torch.load(path, map_location="cpu", weights_only=False)
     if isinstance(checkpoint, dict):
         if "model_state_dict" in checkpoint:
             return checkpoint["model_state_dict"]
@@ -64,7 +68,9 @@ class EmgPredictionModule(pl.LightningModule):
         component_lr_scales: dict[str, float] | None = None,
         batch_augmentation: DictConfig | None = None,
         val_episode_name_mapping: dict[str, str] | None = None,
-    ) -> None:
+        anchor_loss_weight: float = 0.0,
+        anchor_shuffle_fraction: float = 0.0,
+    ):
 
         super().__init__()
         self.save_hyperparameters()
@@ -72,6 +78,10 @@ class EmgPredictionModule(pl.LightningModule):
         self.loss_weights = loss_weights or {"mae": 1}
         self.ignore_head_tail_dims = int(ignore_head_tail_dims)
         self.component_lr_scales = component_lr_scales or {}
+        self.anchor_loss_weight = float(anchor_loss_weight)
+        self.anchor_shuffle_fraction = float(anchor_shuffle_fraction)
+        if not 0.0 <= self.anchor_shuffle_fraction <= 1.0:
+            raise ValueError("anchor_shuffle_fraction must be in [0, 1]")
         self.task_type = "regression"
 
         # Batch augmentation on GPU (replaces per-sample CPU transforms)
@@ -152,6 +162,8 @@ class EmgPredictionModule(pl.LightningModule):
                 "featurizer.", "decoder.", "backbone.", "avgpool.",
                 "vision_backbone.", "vision_proj.", "fusion_proj.", "head_vision.",
                 "temporal_attn.",  # EMG temporal attention pooling (center_supervised fusion)
+                "token_fusion.",  # joint EMG/vision token Transformer
+                "early_fusion.",  # frozen multi-scale visual cross-attention
             )):
                 continue
             if stripped in model_state and model_state[stripped].shape == value.shape:
@@ -176,7 +188,7 @@ class EmgPredictionModule(pl.LightningModule):
                 if key.startswith((
                     "featurizer.", "decoder.", "backbone.", "avgpool.",
                     "vision_backbone.", "vision_proj.", "fusion_proj.", "head_vision.",
-                    "temporal_attn.",
+                    "temporal_attn.", "token_fusion.",
                 ))
             ]
             if missing_backbone or unexpected_keys:
@@ -507,16 +519,16 @@ class EmgPredictionModule(pl.LightningModule):
         valid_mask = mask.bool()
         mark("mask_bool")
 
-        # Incre dataset has no wrist annotations (channels 20,21 are zero-padded).
-        # Mask wrist only for incre samples, while keeping EgoEMG wrist supervised
-        # in mixed batches.
+        # Some datasets have no wrist annotations (channels 20,21 are
+        # zero-padded). Mask wrist only for those samples, while keeping EgoEMG
+        # wrist supervised in mixed batches.
         if "dataset_name" in batch:
-            incre_rows = torch.tensor(
-                [d == "egoemg_incre" for d in batch["dataset_name"]],
+            wrist_invalid_rows = torch.tensor(
+                [d in {"egoemg_incre", "showee"} for d in batch["dataset_name"]],
                 device=preds.device,
                 dtype=torch.bool,
             )
-            if incre_rows.any() and preds.shape[1] > 20:
+            if wrist_invalid_rows.any() and preds.shape[1] > 20:
                 if valid_mask.ndim == 2:
                     n_joints = preds.shape[1]
                     valid_mask = (
@@ -526,8 +538,8 @@ class EmgPredictionModule(pl.LightningModule):
                     )
                 else:
                     valid_mask = valid_mask.clone()
-                valid_mask[incre_rows, -2:, :] = False  # wrist pitch/yaw
-        mark("incre_wrist_mask")
+                valid_mask[wrist_invalid_rows, -2:, :] = False  # wrist pitch/yaw
+        mark("wrist_mask")
 
         metrics = {}
         for metric in self.regression_metrics:
@@ -664,6 +676,27 @@ class EmgPredictionModule(pl.LightningModule):
             self.log(f"{stage}_delta_l2", delta_l2, sync_dist=True, batch_size=batch_size)
             if delta_reg_weight > 0 and stage == "train":
                 loss = loss + delta_reg_weight * delta_l2
+
+        # ── Invalid-EMG anchor: push the residual branch to 0 when EMG is
+        # absent or deliberately mismatched, so delta cannot encode a visual
+        # shortcut merely gated by the presence of a nonzero EMG signal.
+        if (
+            stage == "train"
+            and self.anchor_loss_weight > 0.0
+            and hasattr(self.model, "compute_anchor_emg_delta")
+        ):
+            anchor_delta = self.model.compute_anchor_emg_delta(
+                batch, shuffle_fraction=self.anchor_shuffle_fraction
+            )
+            if anchor_delta is not None:
+                anchor_l2 = (anchor_delta ** 2).mean()
+                self.log(
+                    f"{stage}_anchor_l2",
+                    anchor_l2,
+                    sync_dist=True,
+                    batch_size=batch_size,
+                )
+                loss = loss + self.anchor_loss_weight * anchor_l2
 
         self.log(f"{stage}_loss", loss, sync_dist=True, batch_size=batch_size)
         mark("log_loss_return")

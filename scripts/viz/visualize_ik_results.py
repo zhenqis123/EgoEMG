@@ -22,12 +22,12 @@ import cv2
 import numpy as np
 import torch
 
-MANOTORCH_ROOT = Path("/home/xiziheng/develop/manotorch")
+MANOTORCH_ROOT = Path("../manotorch")
 if str(MANOTORCH_ROOT) not in sys.path:
     sys.path.insert(0, str(MANOTORCH_ROOT))
 from manotorch.manolayer import ManoLayer
 
-MANO_ASSETS_ROOT = Path("/home/xiziheng/develop/HandVQVAE/assets/mano")
+MANO_ASSETS_ROOT = Path("../HandVQVAE/assets/mano")
 MEMMAP_ROOT = Path("data/EgoEMG_memmap")
 FLIP_MATRIX = np.diag([-1.0, 1.0, 1.0]).astype(np.float32)
 ALIGN_SCALE = 1.0843137502670288
@@ -75,7 +75,7 @@ def main():
     parser.add_argument("--data-root", default="data/EgoEMG",
                         help="Root of EgoEMG video data (for webcam frames).")
     parser.add_argument("--allintra-root",
-                        default="/mnt/nvme/xiziheng/EgoEMG_allintra",
+                        default="data/EgoEMG_allintra",
                         help="Root of all-intra re-encoded webcam videos.")
     args = parser.parse_args()
 

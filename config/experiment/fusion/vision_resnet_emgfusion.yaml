@@ -16,13 +16,13 @@ defaults:
   - _self_
 
 # ── Data paths ───────────────────────────────────────────────────────────────
-egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
 egoemg_emg_layout: emg2pose_interpolate16
 egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
 egoemg_channel_interpolate: false
 
 # ── Vision (ResNet, pre-crops) ───────────────────────────────────────────────
-per_episode_crops_dir: /mnt/nvme/xiziheng/EgoEMG_v2_crops
+per_episode_crops_dir: data/EgoEMG_v2_crops
 vision_num_frames: 1
 vision_frame_selection: center
 vision_patch_size: 256
@@ -30,9 +30,9 @@ skip_emg_loading: false  # EMG is used for fusion
 
 # ── Checkpoints ──────────────────────────────────────────────────────────────
 # ResNet18 vision backbone (loaded into MidFusionPoseFormer via vision_pretrained_checkpoint)
-vision_resnet_checkpoint: /home/xiziheng/develop/emg2pose/logs/fusion/vision_resnet/version_3/checkpoints/last.ckpt
+vision_resnet_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/fusion/vision_resnet/version_3/checkpoints/last.ckpt
 # EMGFormer small (loaded via pretrained_emg_checkpoint → featurizer + decoder only)
-pretrained_emg_checkpoint: /home/xiziheng/develop/emg2pose/logs/2026-04-30/23-28-41_emg2pose/regression_emgformer_small_aggressive_egoemg/version_0/checkpoints/egoemg-small-epoch=007-val_mae=0.2625.ckpt
+pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-30/23-28-41_emg2pose/regression_emgformer_small_aggressive_egoemg/version_0/checkpoints/egoemg-small-epoch=007-val_mae=0.2625.ckpt
 
 # ── Hydra output ─────────────────────────────────────────────────────────────
 hydra:
@@ -47,8 +47,8 @@ hydra:
     chdir: false
 
 # ── Not used (config compatibility) ──────────────────────────────────────────
-wilor_checkpoint_path: /home/xiziheng/develop/WiLoR/pretrained_models/wilor_final.ckpt
-mano_model_path: /home/xiziheng/develop/WiLoR/mano_data
+wilor_checkpoint_path: ${oc.env:WILOR_PATH,../WiLoR}/pretrained_models/wilor_final.ckpt
+mano_model_path: ${oc.env:WILOR_PATH,../WiLoR}/mano_data
 
 # ── Training ─────────────────────────────────────────────────────────────────
 seed: 42
@@ -75,7 +75,7 @@ datamodule:
   val_test_stride: 7790
   dataset_repeat: 1
   norm_mode: per-dataset
-  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
   skip_ik_failures: false
   persistent_workers: true
   prefetch_factor: 2

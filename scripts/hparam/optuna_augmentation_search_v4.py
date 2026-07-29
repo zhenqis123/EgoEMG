@@ -441,7 +441,7 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument(
         "--egoemg-memmap-dir",
-        default="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap",
+        default="./data/EgoEMG_memmap",
         help="Path to EgoEMG memmap directory",
     )
     p.add_argument(

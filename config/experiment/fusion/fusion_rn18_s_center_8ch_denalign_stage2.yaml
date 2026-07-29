@@ -18,14 +18,14 @@ defaults:
   - _self_
 
 # ── Data paths ───────────────────────────────────────────────────────────────
-egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
 egoemg_emg_layout: target_hand
 egoemg_emg2pose_channel_indices: null
 egoemg_channel_interpolate: false
 egoemg_emg_field_preference: filtered_paper
 
 # ── Vision (ResNet18, pre-crops) ─────────────────────────────────────────────
-per_episode_crops_dir: /mnt/nvme/xiziheng/EgoEMG_v2_crops
+per_episode_crops_dir: data/EgoEMG_v2_crops
 vision_num_frames: 1
 vision_frame_selection: center
 vision_patch_size: 256
@@ -33,14 +33,14 @@ skip_emg_loading: false
 center_target_only: true
 
 # ── Checkpoints ──────────────────────────────────────────────────────────────
-vision_resnet_checkpoint: /home/xiziheng/develop/emg2pose/logs/fusion/vision_resnet/version_9/checkpoints/last.ckpt
-pretrained_emg_checkpoint: /home/xiziheng/develop/emg2pose/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
+vision_resnet_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/fusion/vision_resnet/version_9/checkpoints/last.ckpt
+pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
 # STAGE 2: load weights from denalign epoch100, then fresh optimizer (cosine restart)
-checkpoint: /home/xiziheng/develop/emg2pose/runs_local/denalign/fusion_rn18_s_8ch_denalign/version_0/checkpoints/last.ckpt
+checkpoint: ${oc.env:EMG2POSE_ROOT,.}/runs_local/denalign/fusion_rn18_s_8ch_denalign/version_0/checkpoints/last.ckpt
 
 # ── Not used (config compatibility) ──────────────────────────────────────────
-wilor_checkpoint_path: /home/xiziheng/WiLoR/pretrained_models/wilor_final.ckpt
-mano_model_path: /home/xiziheng/WiLoR/mano_data
+wilor_checkpoint_path: ${oc.env:WILOR_PATH,../WiLoR}/pretrained_models/wilor_final.ckpt
+mano_model_path: ${oc.env:WILOR_PATH,../WiLoR}/mano_data
 
 # ── Training ─────────────────────────────────────────────────────────────────
 seed: 42
@@ -67,7 +67,7 @@ datamodule:
   val_test_stride: 12_000
   dataset_repeat: 2      # same as denalign
   norm_mode: per-dataset
-  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
   skip_ik_failures: false
   persistent_workers: true
   prefetch_factor: 2

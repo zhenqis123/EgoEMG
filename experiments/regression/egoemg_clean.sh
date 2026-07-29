@@ -3,7 +3,7 @@
 # Train: EgoEMG train split (left + right hands)
 # Val:   EgoEMG user, gesture, both splits → val_stage_mae, val_user_mae, val_user_stage_mae
 set -e
-cd /home/xiziheng/develop/emg2pose
+cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
 BASE_CONFIG="emgformer/regression_egoemg_clean"
 GPUS="0,1,2,3,4,5"
@@ -13,7 +13,7 @@ LR=0.0005
 EPOCHS=150
 SEED=42
 BASE_LOG="logs/regression/egoemg_clean"
-DATA_DIR="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
+DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
 
 # No augmentation — clean baseline
 AUG="batch_augmentation=null"

@@ -102,7 +102,13 @@ def run_train_eval(
     """
     results: dict[str, Any] = {}
     if config.train:
-        trainer.fit(module, datamodule)
+        resume_ckpt = config.get("resume_ckpt", None)
+        if resume_ckpt:
+            resume_ckpt = os.path.expanduser(resume_ckpt)
+            if not os.path.isfile(resume_ckpt):
+                raise FileNotFoundError(f"resume_ckpt not found: {resume_ckpt}")
+            log.info("Resuming training from checkpoint: %s", resume_ckpt)
+        trainer.fit(module, datamodule, ckpt_path=resume_ckpt)
         checkpoint_callback = trainer.checkpoint_callback
         if checkpoint_callback is None:
             raise RuntimeError("No checkpoint callback found in trainer")
@@ -116,7 +122,12 @@ def run_train_eval(
             results_key = "last_checkpoint"
 
         if reload_best and chosen and os.path.isfile(chosen):
-            module = module.__class__.load_from_checkpoint(chosen)
+            # Our own checkpoint is a trusted local artifact.  It records
+            # OmegaConf hyperparameters, which PyTorch 2.6+'s weights-only
+            # default cannot deserialize.
+            module = module.__class__.load_from_checkpoint(
+                chosen, weights_only=False
+            )
         if chosen:
             results[results_key] = chosen
 

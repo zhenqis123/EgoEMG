@@ -7,7 +7,7 @@ defaults:
   - transforms: pretrain_mae
   - experiment: emgformer/pretrain_emgformer_small
 
-data_root: /home/xiziheng/develop/emg2pose/data/emg_corpus
+data_root: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus
 data_location: ${data_root}/emg2pose_v3
 
 seed: 42

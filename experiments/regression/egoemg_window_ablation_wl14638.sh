@@ -30,7 +30,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 cd "$PROJECT_DIR"
 
-source /home/xiziheng/miniconda3/etc/profile.d/conda.sh
 conda activate emg2pose_env
 
 BASE_CONFIG="emgformer/regression_egoemg_window_ablation_wl14638"

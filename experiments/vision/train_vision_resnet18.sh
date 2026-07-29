@@ -8,8 +8,8 @@ set -euo pipefail
 CONFIG="experiment=fusion/vision_resnet18"
 
 # ── Data paths (override if needed) ────────────────────────────────────────────
-EGOEMG_MEMMAP="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
-CROPS_LMDB="/mnt/nvme/xiziheng/EgoEMG_v2_crops"
+EGOEMG_MEMMAP="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
+CROPS_LMDB="data/EgoEMG_v2_crops"
 
 # ── Run training ───────────────────────────────────────────────────────────────
 python -m emg2pose.train \

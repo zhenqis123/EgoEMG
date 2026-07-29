@@ -20,7 +20,7 @@ import numpy as np
 import torch
 import pyarrow.parquet as pq
 
-WILOR_ROOT = Path("/home/xiziheng/develop/WiLoR")
+WILOR_ROOT = Path("../WiLoR")
 if str(WILOR_ROOT) not in sys.path:
     sys.path.append(str(WILOR_ROOT))
 
@@ -119,7 +119,7 @@ def main() -> None:
     # --- Load MANO ---
     mano = ManoLayer(
         use_pca=False,
-        mano_assets_root="/home/xiziheng/develop/HandVQVAE/assets/mano",
+        mano_assets_root="../HandVQVAE/assets/mano",
         flat_hand_mean=False,
     ).to(device)
 

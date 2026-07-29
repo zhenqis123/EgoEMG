@@ -11,7 +11,6 @@ PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 cd "$PROJECT_DIR"
 
 # Activate conda
-source /home/xiziheng/miniconda3/etc/profile.d/conda.sh
 conda activate emg2pose_env
 
 echo "=== Launching EMG2Pose Incre Small Training ==="

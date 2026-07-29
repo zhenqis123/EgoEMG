@@ -20,11 +20,11 @@ _VIZ_SPEC.loader.exec_module(_VIZ_MOD)
 skin_mesh_from_angles = _VIZ_MOD.skin_mesh_from_angles
 
 # MANO
-MANOTORCH_ROOT = Path("/home/xiziheng/develop/manotorch")
+MANOTORCH_ROOT = Path("../manotorch")
 if str(MANOTORCH_ROOT) not in sys.path:
     sys.path.insert(0, str(MANOTORCH_ROOT))
 from manotorch.manolayer import ManoLayer
-MANO_ASSETS = "/home/xiziheng/develop/HandVQVAE/assets/mano"
+MANO_ASSETS = "../HandVQVAE/assets/mano"
 
 from wilor_mini.pipelines.wilor_hand_pose3d_estimation_pipeline import WiLorHandPose3dEstimationPipeline
 from wilor_mini.utils import utils as wilor_utils
@@ -35,7 +35,7 @@ SESSIONS = {
     "sess_20260531_142701": {"ep": 6, "name": "xzh_bare_2"},
     "sess_20260531_150809": {"ep": 7, "name": "dyb_bare_2"},
 }
-DATA_ROOT = Path("/home/xiziheng/develop/emg2pose/data")
+DATA_ROOT = Path("./data")
 FOCAL_LENGTH = 5000
 IMAGE_SIZE = 256
 

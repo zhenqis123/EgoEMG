@@ -6,12 +6,12 @@ set -euo pipefail
 # EMG models use temporal attention pooling to aggregate decoder output.
 # Rotation-only augmentation (no channel/time/freq masking, no noise).
 
-EGOEMG_MEMMAP="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
+EGOEMG_MEMMAP="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
 
 # Best full-window pretrained checkpoints for weight initialization
-BEST_SMALL="/home/xiziheng/develop/emg2pose/logs/2026-05-05/01-57-33_emg2pose/regression_emgformer_small_aggressive_egoemg/version_0/checkpoints/egoemg-small-epoch=259-val_mae=0.2551.ckpt"
-BEST_MIDDLE="/home/xiziheng/develop/emg2pose/logs/2026-04-29/11-06-44_emg2pose/regression_emgformer_middle_aggressive_egoemg/version_0/checkpoints/egoemg-epoch=107-val_mae=0.2623.ckpt"
-BEST_LARGE="/home/xiziheng/develop/emg2pose/logs/2026-05-05/05-24-34_emg2pose/regression_emgformer_large_aggressive_egoemg/version_0/checkpoints/egoemg-large-epoch=188-val_mae=0.2618.ckpt"
+BEST_SMALL="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/2026-05-05/01-57-33_emg2pose/regression_emgformer_small_aggressive_egoemg/version_0/checkpoints/egoemg-small-epoch=259-val_mae=0.2551.ckpt"
+BEST_MIDDLE="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/2026-04-29/11-06-44_emg2pose/regression_emgformer_middle_aggressive_egoemg/version_0/checkpoints/egoemg-epoch=107-val_mae=0.2623.ckpt"
+BEST_LARGE="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/2026-05-05/05-24-34_emg2pose/regression_emgformer_large_aggressive_egoemg/version_0/checkpoints/egoemg-large-epoch=188-val_mae=0.2618.ckpt"
 
 COMMON_OPTS=(
   egoemg_memmap_dir="${EGOEMG_MEMMAP}"
@@ -75,7 +75,7 @@ echo "============================================"
 python -m emg2pose.train \
   experiment=fusion/vision_wilor_vit_scratch \
   egoemg_memmap_dir="${EGOEMG_MEMMAP}" \
-  per_episode_crops_dir="/mnt/nvme/xiziheng/EgoEMG_v2_crops" \
+  per_episode_crops_dir="data/EgoEMG_v2_crops" \
   optimizer.lr=0.00005 \
   lr_scheduler.scheduler.eta_min=0.000005 \
   trainer.max_epochs=100 \

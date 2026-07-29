@@ -15,9 +15,9 @@ import numpy as np
 from tqdm import tqdm
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-MEMMAP_DIR = "/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
-VIDEO_ROOT = "/mnt/nvme/xiziheng/training_dataset_lerobot_full_NEW"
-DATA_ROOT = "/mnt/nvme/xiziheng/training_dataset_lerobot_full_NEW"
+MEMMAP_DIR = "./data/EgoEMG_memmap"
+VIDEO_ROOT = "data/training_dataset_lerobot_full_NEW"
+DATA_ROOT = "data/training_dataset_lerobot_full_NEW"
 
 if str(DATA_ROOT) not in sys.path:
     sys.path.insert(0, str(DATA_ROOT))
@@ -194,7 +194,7 @@ def detect_video_frozen_frames(video_path: str, threshold: float = 2.0) -> set:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output-dir", default="/home/xiziheng/develop/emg2pose/visualizations/episode_videos")
+    parser.add_argument("--output-dir", default="./visualizations/episode_videos")
     parser.add_argument("--episodes", type=str, nargs="*", default=None,
                         help="Episode IDs to process (default: all)")
     parser.add_argument("--stride", type=int, default=600,

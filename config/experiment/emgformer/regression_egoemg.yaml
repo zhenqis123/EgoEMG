@@ -8,8 +8,8 @@ defaults:
 
 pretrained_strict: false
 
-egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
-egoemg_incre_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_incre/data_right_merged
+egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
+egoemg_incre_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_incre/data_right_merged
 egoemg_emg_layout: target_hand
 egoemg_emg2pose_channel_indices: null
 egoemg_channel_interpolate: false

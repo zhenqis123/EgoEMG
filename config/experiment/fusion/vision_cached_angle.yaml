@@ -16,14 +16,14 @@ defaults:
   - _self_
 
 # ── EMG data ────────────────────────────────────────────────────────────────
-egoemg_memmap_dir: /home/xiziheng/develop/emg2pose/data/EgoEMG_memmap
+egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
 egoemg_emg_layout: emg2pose_interpolate16
 egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
 egoemg_channel_interpolate: false
 egoemg_skip_fields: [label_gesture_class, label_gesture_active]
 
 # ── Cached ViT features ─────────────────────────────────────────────────────
-cached_vit_features_dir: /mnt/nvme/xiziheng/EgoEMG_v2_vit_features_lmdb
+cached_vit_features_dir: data/EgoEMG_v2_vit_features_lmdb
 
 # ── Hydra output ─────────────────────────────────────────────────────────────
 hydra:
@@ -38,22 +38,22 @@ hydra:
     chdir: false
 
 # ── WiLoR (not used for inference, kept for config compatibility) ────────────
-wilor_checkpoint_path: /home/xiziheng/develop/WiLoR/pretrained_models/wilor_final.ckpt
-mano_model_path: /home/xiziheng/develop/WiLoR/mano_data
+wilor_checkpoint_path: ${oc.env:WILOR_PATH,../WiLoR}/pretrained_models/wilor_final.ckpt
+mano_model_path: ${oc.env:WILOR_PATH,../WiLoR}/mano_data
 
 # ── Training ────────────────────────────────────────────────────────────────
 seed: 42
 train: true
 eval: true
-# checkpoint: /home/xiziheng/develop/emg2pose/logs/fusion/mid_fusion_cached_aggressive/version_13/checkpoints/reinit.ckpt
+# checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/fusion/mid_fusion_cached_aggressive/version_13/checkpoints/reinit.ckpt
 checkpoint:
 # ── Stage 2: load vision weights from vision_only ckpt ────────────────────────
 # Comment out or set to null to train from scratch (Stage 1).
 # Set to a vision_only checkpoint path to initialize vision_proj, fusion_proj, head.
-stage2_vision_checkpoint: /home/xiziheng/develop/emg2pose/logs/fusion/vision_stage1/version_62/checkpoints/last.ckpt  # e.g. logs/fusion/.../version_2/checkpoints/last.ckpt
+stage2_vision_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/fusion/vision_stage1/version_62/checkpoints/last.ckpt  # e.g. logs/fusion/.../version_2/checkpoints/last.ckpt
 # ── Optional: load EMG backbone (featurizer + decoder) from EMG-only ckpt ──────
 # Skips angle head — only featurizer + decoder weights are loaded.
-pretrained_emg_checkpoint: /home/xiziheng/develop/emg2pose/logs/2026-04-29/11-06-44_emg2pose/regression_emgformer_middle_aggressive_egoemg/version_0/checkpoints/egoemg-epoch=087-val_mae=0.2629.ckpt  # e.g. logs/.../egoemg-epoch=087-val_mae=0.2629.ckpt
+pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-29/11-06-44_emg2pose/regression_emgformer_middle_aggressive_egoemg/version_0/checkpoints/egoemg-epoch=087-val_mae=0.2629.ckpt  # e.g. logs/.../egoemg-epoch=087-val_mae=0.2629.ckpt
 # Per-component LR scales (applied to base optimizer.lr). 0 = freeze.
 component_lr_scales:
   featurizer: 0.0
@@ -89,7 +89,7 @@ datamodule:
   val_test_stride: 7790
   dataset_repeat: 1
   norm_mode: per-dataset
-  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
   skip_ik_failures: false
   persistent_workers: true
   pin_memory: false

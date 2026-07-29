@@ -15,9 +15,9 @@ import pyarrow.parquet as pq
 from tqdm import tqdm
 from scipy.spatial.transform import Rotation
 
-DATA_DIR = Path("/home/xiziheng/develop/emg2pose/data/EgoEMG/data")
-ASSETS_DIR = Path("/home/xiziheng/develop/emg2pose/data/EgoEMG/reprojection_assets")
-MEMMAP_DIR = Path("/mnt/nvme/xiziheng/EgoEMG_v2_memmap")
+DATA_DIR = Path("./data/EgoEMG/data")
+ASSETS_DIR = Path("./data/EgoEMG/reprojection_assets")
+MEMMAP_DIR = Path("data/EgoEMG_v2_memmap")
 
 # Permutation to apply to markers to match reference (Ep 1) geometry
 # (2, 0, 1) means: new_M0 = old_M2, new_M1 = old_M0, new_M2 = old_M1

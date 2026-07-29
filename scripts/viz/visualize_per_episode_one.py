@@ -16,10 +16,10 @@ os.environ.setdefault("XDG_CACHE_HOME", str(_runtime_cache_root / "xdg-cache"))
 import cv2
 from emg2pose.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
 
-MEMMAP_DIR = Path("/mnt/nvme/xiziheng/EgoEMG_v2_memmap")
-VIDEO_ROOT = Path("/home/xiziheng/develop/emg2pose/data/EgoEMG")
-ALLINTRA_ROOT = Path("/mnt/nvme/xiziheng/EgoEMG_allintra")
-OUTPUT_DIR = Path("/home/xiziheng/develop/emg2pose/visualizations/per_episode_samples").resolve()
+MEMMAP_DIR = Path("data/EgoEMG_v2_memmap")
+VIDEO_ROOT = Path("./data/EgoEMG")
+ALLINTRA_ROOT = Path("data/EgoEMG_allintra")
+OUTPUT_DIR = Path("./visualizations/per_episode_samples").resolve()
 PATCH_SIZE = 256
 
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

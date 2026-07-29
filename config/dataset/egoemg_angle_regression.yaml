@@ -64,6 +64,7 @@ dataset:
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
+      eval_center_stride: ${oc.select:datamodule.eval_center_stride,null}
       allowed_splits: [user, gesture, both]
       modalities: [emg, joint_angles, labels]
       target_hand: left
@@ -92,6 +93,7 @@ dataset:
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
+      eval_center_stride: ${oc.select:datamodule.eval_center_stride,null}
       allowed_splits: [user, gesture, both]
       modalities: [emg, joint_angles, labels]
       target_hand: right
@@ -121,6 +123,7 @@ dataset:
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
+      eval_center_stride: ${oc.select:datamodule.eval_center_stride,null}
       allowed_splits: [user, gesture, both]
       modalities: [emg, joint_angles, labels]
       target_hand: left
@@ -149,6 +152,7 @@ dataset:
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
+      eval_center_stride: ${oc.select:datamodule.eval_center_stride,null}
       allowed_splits: [user, gesture, both]
       modalities: [emg, joint_angles, labels]
       target_hand: right

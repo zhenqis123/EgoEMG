@@ -320,7 +320,9 @@ class BatchAugmentation(nn.Module):
             expand_dims = (B, C, T)
         else:
             # Legacy: same mask across all channels.
-            mask_shape = (B,)
+            # Keep the singleton channel axis so unsqueeze(-1) produces
+            # (B, 1, 1), which broadcasts correctly against (B, C, T).
+            mask_shape = (B, 1)
             expand_dims = (B, 1, T)
 
         time_range = torch.arange(T, device=x.device).view(1, 1, T)

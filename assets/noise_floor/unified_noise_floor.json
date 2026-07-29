@@ -40,14 +40,14 @@
         "left",
         "right"
       ],
-      "dir": "/mnt/nvme/xiziheng/EgoEMG_v2_memmap"
+      "dir": "data/EgoEMG_v2_memmap"
     },
     {
       "name": "Incre",
       "hands": [
         "right"
       ],
-      "dir": "/mnt/nvme/xiziheng/EgoEMG_incre/data_right_merged"
+      "dir": "data/EgoEMG_incre/data_right_merged"
     }
   ],
   "results": {

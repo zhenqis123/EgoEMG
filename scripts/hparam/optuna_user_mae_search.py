@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_STORAGE = f"sqlite:///{PROJECT_ROOT}/assets/optuna_user_mae.db"
 EXPERIMENT = "emgformer/regression_egoemg_clean"
-DATA_DIR = "/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
+DATA_DIR = "./data/EgoEMG_memmap"
 
 # batch_aug.yaml defaults as warm-start baseline
 BATCH_AUG_DEFAULTS = {

@@ -9,6 +9,8 @@ from __future__ import annotations
 import torch
 from torch import nn
 
+from emg2pose.models.modules._vision_constants import RESNET_DIMS as _RESNET_DIMS
+
 
 _RESNET_BUILDERS = {
     "resnet18": ("resnet18", "ResNet18_Weights"),

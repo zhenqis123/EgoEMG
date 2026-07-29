@@ -15,8 +15,8 @@ import torch
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-WILOR_ROOT = Path("/home/xiziheng/develop/WiLoR")
-EGOEMG_ROOT = Path("/home/xiziheng/develop/emg2pose")
+WILOR_ROOT = Path("../WiLoR")
+EGOEMG_ROOT = Path(".")
 if str(WILOR_ROOT) not in sys.path:
     sys.path.insert(0, str(WILOR_ROOT))
 
@@ -166,7 +166,7 @@ def main():
 
     # Load model
     model = load_model(CKPT_PATHS[args.ckpt], device)
-    mano = ManoLayer(use_pca=False, mano_assets_root="/home/xiziheng/develop/HandVQVAE/assets/mano",
+    mano = ManoLayer(use_pca=False, mano_assets_root="../HandVQVAE/assets/mano",
                      flat_hand_mean=False).to(device)
     faces = mano.get_mano_closed_faces().detach().cpu().numpy()
 

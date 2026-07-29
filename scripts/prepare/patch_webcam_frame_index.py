@@ -19,8 +19,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-MEMMAP_DIR = Path("/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap")
-PARQUET_DIR = Path("/home/xiziheng/develop/emg2pose/data/EgoEMG/data/chunk-000")
+MEMMAP_DIR = Path("./data/EgoEMG_memmap")
+PARQUET_DIR = Path("./data/EgoEMG/data/chunk-000")
 
 
 def main():

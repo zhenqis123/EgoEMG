@@ -19,13 +19,13 @@ import numpy as np
 import torch
 
 PROJ_ROOT = Path(__file__).resolve().parent.parent
-WILOR_ROOT = Path("/home/xiziheng/develop/WiLoR")
+WILOR_ROOT = Path("../WiLoR")
 if str(WILOR_ROOT) not in sys.path:
     sys.path.append(str(WILOR_ROOT))
 
 from manotorch.manolayer import ManoLayer
 
-MANO_ASSETS_ROOT = Path("/home/xiziheng/develop/HandVQVAE/assets/mano")
+MANO_ASSETS_ROOT = Path("../HandVQVAE/assets/mano")
 MEMMAP_DIR = PROJ_ROOT / "data" / "EgoEMG_memmap"
 MANO_NPY_DIR = PROJ_ROOT / "data" / "EgoEMG" / "mano" / "chunk-000"
 

@@ -65,6 +65,7 @@ class WindowedEmgDataModule(pl.LightningDataModule):
         eval_multiprocessing_context: str | None = None,
         val_test_window_length: int | None = None,
         val_test_stride: int | None = None,
+        eval_center_stride: int | None = None,
         skip_ik_failures: bool = False,
         pin_memory: bool = True,
         persistent_workers: bool = True,
@@ -82,6 +83,7 @@ class WindowedEmgDataModule(pl.LightningDataModule):
         self.val_test_window_length = val_test_window_length or window_length
         self.stride = stride
         self.val_test_stride = val_test_stride if val_test_stride is not None else stride
+        self.eval_center_stride = eval_center_stride
         self.padding = padding
         self.batch_size = batch_size
         self.num_workers = num_workers

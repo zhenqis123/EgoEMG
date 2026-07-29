@@ -6,8 +6,8 @@ set -euo pipefail
 
 CONFIG="experiment=fusion/vision_vit_small_emgfusion"
 
-EGOEMG_MEMMAP="/home/xiziheng/develop/emg2pose/data/EgoEMG_memmap"
-VIT_FEATURES="/mnt/nvme/xiziheng/EgoEMG_v2_vit_features_lmdb"
+EGOEMG_MEMMAP="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
+VIT_FEATURES="data/EgoEMG_v2_vit_features_lmdb"
 
 python -m emg2pose.train \
   ${CONFIG} \

@@ -7,6 +7,7 @@ from emg2pose.transforms import (
     RandomSpectrogramBandTimeMask,
     ToSpectrogram,
 )
+from emg2pose.transforms_batch import BatchAugmentation
 
 
 def test_random_gain_per_channel_in_range() -> None:
@@ -76,3 +77,20 @@ def test_spectrogram_block_mask_zeroes_some_bins() -> None:
     k_high = int(round(250.0 * 256 / 2000.0))
     assert zeros[:, :k_low, :].sum().item() == 0
     assert zeros[:, k_high + 1 :, :].sum().item() == 0
+
+
+def test_batch_time_mask_broadcasts_over_channels() -> None:
+    torch.manual_seed(0)
+    aug = BatchAugmentation({
+        "time_mask": {
+            "num_masks": 1,
+            "min_mask_size": 5,
+            "max_mask_size": 5,
+            "per_channel": False,
+        },
+    })
+    x = torch.ones(2, 8, 32)
+    out = aug._time_mask(x)
+    assert out.shape == x.shape
+    expected = (out[:, :1] == 0).expand_as(out[:, 1:])
+    assert torch.equal(expected, out[:, 1:] == 0)

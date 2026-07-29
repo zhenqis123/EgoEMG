@@ -4,7 +4,7 @@ Writes a grid image per sampled frame showing left/right hand crops side by side
 
 Usage:
     python scripts/viz/visualize_egoemg_crops.py \
-        --crops-dir /mnt/nvme/xiziheng/EgoEMG_v2_crops \
+        --crops-dir data/EgoEMG_v2_crops \
         --output-dir /tmp/egoemg_crops_viz \
         --num-frames 16
 """

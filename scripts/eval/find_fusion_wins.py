@@ -9,8 +9,8 @@ Usage:
     python scripts/eval/find_fusion_wins.py \
         --config-name experiment/fusion/vision_resnet_small_emgfusion_center \
         --checkpoint logs/fusion/resnet_small_emgfusion_center/version_12/checkpoints/resnet-small-centerfusion-epoch=039-val_mae=0.0978.ckpt \
-        --data-location /mnt/nvme/xiziheng/EgoEMG_v2_memmap \
-        --video-root /mnt/nvme/xiziheng/EgoEMG_allintra \
+        --data-location data/EgoEMG_v2_memmap \
+        --video-root data/EgoEMG_allintra \
         --num-samples 20 \
         --output-dir ./fusion_wins_viz
 """
@@ -55,7 +55,7 @@ from emg2pose.models.modules.vit_vision import VisionViTPose
 from emg2pose.models.modules.resnet_vision import ResNetVisionPose
 
 # ── UmeTrack / reprojection imports (matching verify_training_with_emg.py) ─────
-_DATA_ROOT = Path("/home/xiziheng/develop/emg2pose/data/EgoEMG")
+_DATA_ROOT = Path("./data/EgoEMG")
 if str(_DATA_ROOT) not in sys.path:
     sys.path.insert(0, str(_DATA_ROOT))
 from reproject_hand_keypoints import (
@@ -73,7 +73,7 @@ import smplx
 import trimesh
 
 CONFIG_DIR = str(_PROJECT_DIR / "config")
-MANO_MODEL_PATH = "/home/xiziheng/develop/WiLoR/mano_data/models"
+MANO_MODEL_PATH = "../WiLoR/mano_data/models"
 UMETRACK_HAND_MODEL_PATH = str(
     _PROJECT_DIR / "emg2pose" / "UmeTrack" / "dataset" / "generic_hand_model.json"
 )
@@ -1099,8 +1099,8 @@ def main():
         description="Find samples where fusion most outperforms vision-only")
     parser.add_argument("--config-name", default="experiment/fusion/vision_resnet_small_emgfusion_center")
     parser.add_argument("--checkpoint", required=True)
-    parser.add_argument("--data-location", default="/mnt/nvme/xiziheng/EgoEMG_v2_memmap")
-    parser.add_argument("--video-root", default="/mnt/nvme/xiziheng/EgoEMG_allintra")
+    parser.add_argument("--data-location", default="data/EgoEMG_v2_memmap")
+    parser.add_argument("--video-root", default="data/EgoEMG_allintra")
     parser.add_argument("--num-samples", type=int, default=100)
     parser.add_argument("--output-dir", default="./fusion_wins_viz")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
