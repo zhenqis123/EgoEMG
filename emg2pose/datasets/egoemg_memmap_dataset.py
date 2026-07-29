@@ -421,6 +421,16 @@ class EgoEmgMemmapDataset(Dataset):
             split_ids = np.zeros((len(self._episode_id),), dtype=np.int32)
         self._episode_split_id = np.asarray(split_ids, dtype=np.int32)
 
+        # Per-frame source provenance, used to restore a per-sample dataset_name
+        # when multiple datasets are physically merged into one memmap (see
+        # scripts/data/merge_datasets_to_unified_memmap.py).  When absent the
+        # dataset falls back to the instance-level ``dataset_name``.
+        ds_sources = self._manifest.get("dataset_sources") if self._manifest else None
+        if ds_sources:
+            self._source_id_to_name = {int(k): str(v) for k, v in ds_sources.items()}
+        else:
+            self._source_id_to_name = None
+
     def _resolve_allowed_split_ids(self) -> set[int]:
         if not self.allowed_splits:
             return set()
@@ -1326,6 +1336,7 @@ class EgoEmgMemmapDataset(Dataset):
             "emg2pose_sparse16", "emg2pose_interpolate16"
         } else 8
 
+        dataset_name = self._resolve_dataset_name(center_idx)
         return {
             "vision_features": feature,
             "vision_valid_mask": np.array([feature_valid], dtype=bool),
@@ -1333,7 +1344,7 @@ class EgoEmgMemmapDataset(Dataset):
             "label_valid_mask": np.array([label_valid], dtype=bool),
             "target_hand": hand,
             "target_hand_index": hand_idx,
-            "dataset_name": self.dataset_name,
+            "dataset_name": dataset_name,
             "emg": np.zeros((n_channels, 0), dtype=np.float32),
             "emg_channel_mask": np.ones((n_channels,), dtype=bool),
         }
@@ -1397,6 +1408,7 @@ class EgoEmgMemmapDataset(Dataset):
             "emg2pose_sparse16", "emg2pose_interpolate16"
         } else 8
 
+        dataset_name = self._resolve_dataset_name(center_idx)
         return {
             "vision_img": img_patch,  # (3, 256, 256)
             "vision_valid_mask": np.array([True], dtype=bool),
@@ -1405,7 +1417,7 @@ class EgoEmgMemmapDataset(Dataset):
             "label_valid_mask": np.array([label_valid], dtype=bool),
             "target_hand": hand,
             "target_hand_index": hand_idx,
-            "dataset_name": self.dataset_name,
+            "dataset_name": dataset_name,
             "emg": np.zeros((n_channels, 0), dtype=np.float32),
             "emg_channel_mask": np.ones((n_channels,), dtype=bool),
         }
@@ -1490,6 +1502,7 @@ class EgoEmgMemmapDataset(Dataset):
         for c in range(3):
             img_patch[c] = (img_patch[c] - self.vision_mean[c]) / self.vision_std[c]
 
+        dataset_name = self._resolve_dataset_name(center_idx)
         return {
             "vision_img": img_patch,  # (3, 256, 256)
             "vision_valid_mask": np.array([True], dtype=bool),
@@ -1498,7 +1511,7 @@ class EgoEmgMemmapDataset(Dataset):
             "label_valid_mask": np.array([label_valid], dtype=bool),
             "target_hand": hand,
             "target_hand_index": hand_idx,
-            "dataset_name": self.dataset_name,
+            "dataset_name": dataset_name,
             "emg": emg.astype(np.float32),  # (16, T)
             "emg_channel_mask": emg_channel_mask,
         }
@@ -1562,6 +1575,7 @@ class EgoEmgMemmapDataset(Dataset):
         lv = self._frame_memmaps["generated_label_valid"][center]
         label_valid = bool(lv[hand_idx])
 
+        dataset_name = self._resolve_dataset_name(center)
         return {
             "emg": emg.astype(np.float32),
             "emg_channel_mask": emg_channel_mask,
@@ -1569,7 +1583,7 @@ class EgoEmgMemmapDataset(Dataset):
             "label_valid_mask": np.array([label_valid], dtype=bool),
             "target_hand": hand,
             "target_hand_index": hand_idx,
-            "dataset_name": self.dataset_name,
+            "dataset_name": dataset_name,
         }
 
     def _resolve_index_to_center(self, idx: int) -> tuple[int, int]:
@@ -1599,6 +1613,23 @@ class EgoEmgMemmapDataset(Dataset):
         if gc_mm is not None:
             return int(gc_mm[center])
         return -1
+
+    def _resolve_dataset_name(self, center_idx: int) -> str:
+        """Return the per-sample dataset name.
+
+        For a physically-merged memmap with a ``dataset_source_id`` field, this
+        restores the origin dataset name (e.g. egoemg/showee/egoemg_incre) so
+        downstream loss masking (lightning.py wrist-mask keyed on dataset_name)
+        behaves as in the mixed-dataset regime.  Falls back to the instance
+        ``dataset_name`` when the field is absent (non-merged datasets).
+        """
+        if self._source_id_to_name is None:
+            return self.dataset_name
+        sid_mm = self._frame_memmaps.get("dataset_source_id")
+        if sid_mm is None:
+            return self.dataset_name
+        sid = int(sid_mm[center_idx])
+        return self._source_id_to_name.get(sid, self.dataset_name)
 
     def __getitem__(self, idx: int) -> dict[str, Any]:
         if idx < 0 or idx >= len(self):
@@ -1822,10 +1853,10 @@ class EgoEmgMemmapDataset(Dataset):
 
             result["target_hand"] = hand
             result["target_hand_index"] = hand_idx
-            result["dataset_name"] = self.dataset_name
+            result["dataset_name"] = self._resolve_dataset_name(center_idx)
             result.update(self._build_vision_sample(result, hand, hand_idx, idx))
         else:
-            result["dataset_name"] = self.dataset_name
+            result["dataset_name"] = self._resolve_dataset_name(center_idx)
 
         # Remove raw hand-specific memmap fields to keep collation keys
         # consistent when left-hand and right-hand datasets are concatenated.
