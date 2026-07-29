@@ -176,7 +176,8 @@ checkpoints/
 *.pth
 *.db
 *.bak
-data/
+# Repo-root data dir only (anchored) — must not match scripts/data/.
+/data/
 emg2pose_model_checkpoints/
 vis_dir/
 image.png
