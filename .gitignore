@@ -251,6 +251,7 @@ experiments/logs/
 local_artifacts/
 .claude/
 .agents/
+.zcode/
 
 # Symlinked large data (moved to NVMe)
 emg2pose_model_checkpoints
@@ -263,3 +264,19 @@ figures/
 
 # Local training run outputs (checkpoints, tfevents) — never commit
 runs_local/
+
+# --- Open-source release hygiene (added 2026-07) ---
+# Heavy local-only output dirs (regenerate from scripts; never commit)
+viz_results/
+tb_logs/
+
+# Personal scratch launcher (user-specific paths)
+run.sh
+
+# Large binary inputs (release as downloadable assets, not repo blobs)
+experiment_inputs/
+*.zip
+
+# Stray editor/build artifacts
+texput.log
+
