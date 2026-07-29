@@ -300,6 +300,10 @@ class EgoEmgMemmapDataset(Dataset):
             }
             manifest_fields = set(self._manifest["fields"].keys())
             self._frame_fields_to_load |= (extra_fields & manifest_fields)
+        # Always load the per-frame source-id field when present (needed by
+        # _resolve_dataset_name for physically-merged memmaps).
+        if "dataset_source_id" in self._manifest.get("fields", {}):
+            self._frame_fields_to_load.add("dataset_source_id")
         # Prune unused hand-specific fields to reduce memmap I/O.
         # __getitem__ only accesses the target hand's EMG/JA/wrist/MANO fields,
         # but MODALITY_GROUPS is coarse-grained (e.g. "emg" pulls 4 variants,
