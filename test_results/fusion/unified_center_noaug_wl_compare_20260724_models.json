@@ -1,0 +1,12 @@
+{
+  "rn18_noaug_wl12000_50e": {
+    "ckpt": "data/logs/fusion_rn18_s_egoemg_only_noaug_wl12000_50e_20260724/train/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=047-val_mae=0.0963.ckpt",
+    "config_path": "data/logs/fusion_rn18_s_egoemg_only_noaug_wl12000_50e_20260724/train/hydra/hydra_configs/config.yaml",
+    "uses_vision": true
+  },
+  "rn18_noaug_wl4000_50e": {
+    "ckpt": "data/logs/fusion_rn18_s_egoemg_only_noaug_wl4000_50e_20260724/train/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=048-val_mae=0.0976.ckpt",
+    "config_path": "data/logs/fusion_rn18_s_egoemg_only_noaug_wl4000_50e_20260724/train/hydra/hydra_configs/config.yaml",
+    "uses_vision": true
+  }
+}

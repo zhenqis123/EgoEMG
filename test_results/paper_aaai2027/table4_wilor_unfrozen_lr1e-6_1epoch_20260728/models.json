@@ -1,0 +1,7 @@
+{
+  "wilor_s_simple_unfrozen_lr1e-6_ep00": {
+    "ckpt": "./logs/20260728/wilor_s_unfrozen_lr1e-6_stride1560_repeat1_1epoch/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=000-val_mae=0.0821.ckpt",
+    "config_path": "./logs/20260728/wilor_s_unfrozen_lr1e-6_stride1560_repeat1_1epoch/hydra/hydra_configs/config.yaml",
+    "uses_vision": true
+  }
+}

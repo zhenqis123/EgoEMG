@@ -1,0 +1,12 @@
+{
+  "crossattn_lastblock_20e_ep16": {
+    "ckpt": "./logs/20260726/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_20e/train/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=016-val_mae=0.0925.ckpt",
+    "config_path": "./logs/20260726/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_20e/train/hydra/hydra_configs/config.yaml",
+    "uses_vision": true
+  },
+  "vision_rn50": {
+    "ckpt": "./logs/fusion/vision_resnet50/version_0/checkpoints/resnet50-vision-epoch=145-val_mae=0.0923.ckpt",
+    "config_path": "./logs/fusion/vision_resnet50/version_0/hparams.yaml",
+    "uses_vision": true
+  }
+}

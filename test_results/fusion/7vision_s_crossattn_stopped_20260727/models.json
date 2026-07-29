@@ -1,0 +1,22 @@
+{
+  "rn50_s_crossattn_ep20": {
+    "ckpt": "./logs/20260727/fusion_rn50_s_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_50e/train/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=020-val_mae=0.0924.ckpt",
+    "config_path": "./logs/20260727/fusion_rn50_s_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_50e/train/hydra/hydra_configs/config.yaml"
+  },
+  "rn18_s_crossattn_ep46": {
+    "ckpt": "./logs/20260727/fusion_7vision_emgformer_s_crossattn_50e/rn18_s/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=046-val_mae=0.1038.ckpt",
+    "config_path": "./logs/20260727/fusion_7vision_emgformer_s_crossattn_50e/rn18_s/hydra/hydra_configs/config.yaml"
+  },
+  "vits_s_crossattn_ep31": {
+    "ckpt": "./logs/20260727/fusion_7vision_emgformer_s_crossattn_50e/vits_s/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=031-val_mae=0.1093.ckpt",
+    "config_path": "./logs/20260727/fusion_7vision_emgformer_s_crossattn_50e/vits_s/hydra/hydra_configs/config.yaml"
+  },
+  "vitb_s_crossattn_ep31": {
+    "ckpt": "./logs/20260727/fusion_7vision_emgformer_s_crossattn_50e/vitb_s/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=031-val_mae=0.1045.ckpt",
+    "config_path": "./logs/20260727/fusion_7vision_emgformer_s_crossattn_50e/vitb_s/hydra/hydra_configs/config.yaml"
+  },
+  "vitl_s_crossattn_ep0": {
+    "ckpt": "./logs/20260727/fusion_7vision_emgformer_s_crossattn_50e/vitl_s/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=000-val_mae=0.0970.ckpt",
+    "config_path": "./logs/20260727/fusion_7vision_emgformer_s_crossattn_50e/vitl_s/hydra/hydra_configs/config.yaml"
+  }
+}

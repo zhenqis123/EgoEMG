@@ -1,0 +1,27 @@
+{
+  "n_samples": 4154,
+  "vision_mae": 0.09121254086494446,
+  "fusion_alpha_1_mae": 0.09047139436006546,
+  "best_in_sample_alpha": 0.835,
+  "best_in_sample_mae": 0.09042207896709442,
+  "leave_one_episode_out_mae": 0.09045492112636566,
+  "leave_one_episode_out_alpha_mean": 0.8332499999999999,
+  "leave_one_episode_out_alpha_std": 0.01783781096435321,
+  "leave_one_episode_out_alpha_min": 0.74,
+  "leave_one_episode_out_alpha_max": 0.87,
+  "fusion_wins_sample_fraction": 0.5722195474241695,
+  "sample_oracle_mae": 0.08972557634115219,
+  "element_oracle_mae": 0.0874580517411232,
+  "by_hand": {
+    "left": {
+      "best_alpha": 0.86,
+      "best_mae": 0.09328904747962952,
+      "alpha_1_mae": 0.09332866221666336
+    },
+    "right": {
+      "best_alpha": 0.745,
+      "best_mae": 0.08752723038196564,
+      "alpha_1_mae": 0.08759479969739914
+    }
+  }
+}

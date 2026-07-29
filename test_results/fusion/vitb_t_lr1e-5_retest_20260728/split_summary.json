@@ -1,0 +1,20 @@
+{
+  "protocol": "unified center-frame evaluation; per-subject mean and population standard deviation in degrees",
+  "checkpoint": "./logs/20260728/vitb_vitl_wilor_s_simple_tf_lr1e-5_eta1e-6_50e_stride400/vitb_t/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=000-val_mae=0.1048.ckpt",
+  "gesture": {
+    "mean": 4.789486295647091,
+    "std": 1.2742979176894744,
+    "n_subjects": 36
+  },
+  "user": {
+    "mean": 7.028667545318603,
+    "std": 0.3175877159660125,
+    "n_subjects": 5
+  },
+  "both": {
+    "mean": 6.867629528045654,
+    "std": 0.4235281984095126,
+    "n_subjects": 5
+  },
+  "sample_weighted_average": 5.75878381729126
+}

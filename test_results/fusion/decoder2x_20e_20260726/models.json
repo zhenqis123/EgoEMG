@@ -1,0 +1,15 @@
+{
+  "decoder2x_ep6": {
+    "ckpt": "./logs/20260726/fusion_rn50_m_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_decoder2x_20e/train/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=006-val_mae=0.0925.ckpt",
+    "config_path": "./logs/20260726/fusion_rn50_m_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_decoder2x_20e/train/hydra/hydra_configs/config.yaml"
+  },
+  "decoder2x_ep18": {
+    "ckpt": "./logs/20260726/fusion_rn50_m_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_decoder2x_20e/train/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=018-val_mae=0.0925.ckpt",
+    "config_path": "./logs/20260726/fusion_rn50_m_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_decoder2x_20e/train/hydra/hydra_configs/config.yaml"
+  },
+  "vision_rn50": {
+    "ckpt": "./logs/fusion/vision_resnet50/version_0/checkpoints/resnet50-vision-epoch=145-val_mae=0.0923.ckpt",
+    "config_path": "./logs/fusion/vision_resnet50/version_0/hparams.yaml",
+    "uses_vision": true
+  }
+}

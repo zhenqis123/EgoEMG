@@ -1,0 +1,27 @@
+{
+  "evaluation_protocol": "unified center-frame, WL=12000 on WL=7790/stride=7790 reference centers, both hands",
+  "new_checkpoint": {
+    "gesture_deg_mean": 4.813157081604004,
+    "gesture_deg_std": 1.2541565895080566,
+    "user_deg_mean": 7.03598165512085,
+    "user_deg_std": 0.3314930498600006,
+    "both_deg_mean": 6.842296600341797,
+    "both_deg_std": 0.4082510471343994,
+    "sample_weighted_avg_deg": 5.761570453643799
+  },
+  "paper_vitb_frozen": {
+    "gesture_deg_mean": 4.804265975952148,
+    "gesture_deg_std": 1.258705973625183,
+    "user_deg_mean": 7.021933555603027,
+    "user_deg_std": 0.3262772560119629,
+    "both_deg_mean": 6.8381667137146,
+    "both_deg_std": 0.4137587547302246,
+    "sample_weighted_avg_deg": 5.752973556518555
+  },
+  "new_minus_paper_deg": {
+    "gesture": 0.008891105651855469,
+    "user": 0.014048099517822266,
+    "both": 0.004129886627197266,
+    "sample_weighted_avg": 0.00859689712524414
+  }
+}

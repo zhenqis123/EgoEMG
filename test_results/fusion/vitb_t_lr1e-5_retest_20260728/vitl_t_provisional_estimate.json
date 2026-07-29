@@ -1,0 +1,17 @@
+{
+  "status": "provisional estimate; not directly evaluated",
+  "derivation": "Apply the observed ViT-B low-LR fine-tuned minus frozen change independently to each ViT-L frozen statistic.",
+  "gesture": {
+    "mean": 4.3237737,
+    "std": 1.2730406
+  },
+  "user": {
+    "mean": 6.6858673,
+    "std": 0.3493502
+  },
+  "both": {
+    "mean": 6.6293115,
+    "std": 0.5711694
+  },
+  "sample_weighted_average": 5.3663422
+}

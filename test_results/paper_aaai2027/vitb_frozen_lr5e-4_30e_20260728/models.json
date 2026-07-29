@@ -1,0 +1,7 @@
+{
+  "vitb_s_frozen_lr5e-4_30e": {
+    "ckpt": "./logs/20260728/vitb_s_simple_frozen_lr5e-4_eta5e-6_30e_stride400_repeat1/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=018-val_mae=0.1048.ckpt",
+    "config_path": "./logs/20260728/vitb_s_simple_frozen_lr5e-4_eta5e-6_30e_stride400_repeat1/hydra/hydra_configs/config.yaml",
+    "uses_vision": true
+  }
+}
