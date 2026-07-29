@@ -38,8 +38,7 @@ The `metadata.csv` file includes the following information for each HDF5 file:
 
 ```shell
 # Clone the repo, setup environment, and install local package
-# NOTE: the facebookresearch github repo will be available for the camera-ready version
-git clone git@github.com:facebookresearch/emg2pose.git ~/emg2pose
+git clone https://github.com/<your-org>/emg2pose.git ~/emg2pose
 cd ~/emg2pose
 conda env create -f environment.yml
 
@@ -52,6 +51,25 @@ pip install -e .
 # Install the UmeTrack package (for forward kinematics and mesh skinning)
 pip install -e emg2pose/UmeTrack
 ```
+
+### Data and External Dependency Paths
+
+Configs use relative paths by default (data under `./data/`, the WiLoR
+dependency at `../WiLoR`) but resolve them through Hydra `${oc.env:VAR,default}`
+interpolation, so you can point them at your own locations via environment
+variables:
+
+```shell
+# Repository / data root (defaults to the current directory).
+export EMG2POSE_ROOT=/path/to/emg2pose
+# WiLoR dependency checkout (defaults to ../WiLoR).
+export WILOR_PATH=/path/to/WiLoR
+# Optional: EMG corpus root used by stats scripts (defaults to ./data/emg_corpus).
+export EMG_CORPUS_ROOT=/path/to/emg_corpus
+```
+
+See `docs/egoemg_wilor_training.md` for the full EgoEMG data layout and how to
+prepare the memmap dataset, all-intra videos, and vision index.
 
 ## Getting Started (Small, Sanity-Check Dataset)
 
@@ -178,8 +196,8 @@ checkpoint="${HOME}/emg2pose_model_checkpoints/tracking_vemg2pose.ckpt"
 
 ## Notebook and Visualization
 
-Check out the Jupyter Notebook in `notebooks/getting_started.ipynb` for a brief walkthrough of data
-loading, inference, and data visualization.
+A brief walkthrough of data loading, inference, and data visualization is
+available via the training/eval entrypoints documented in the sections above.
 
 For EgoEMG vision supervision and WiLoR fine-tuning, see
 `docs/egoemg_wilor_training.md`. This covers the memmap dataset, all-intra

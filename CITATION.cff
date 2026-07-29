@@ -1,0 +1,62 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+title: "emg2pose: A Large and Diverse Benchmark for Surface Electromyographic Hand Pose Estimation"
+type: proceedings
+authors:
+  - family-names: Salter
+    given-names: Sasha
+  - family-names: Warren
+    given-names: Richard
+  - family-names: Schlager
+    given-names: Collin
+  - family-names: Spurr
+    given-names: Adrian
+  - family-names: Han
+    given-names: Shangchen
+  - family-names: Bhasin
+    given-names: Rohin
+  - family-names: Cai
+    given-names: Yujun
+  - family-names: Walkington
+    given-names: Peter
+  - family-names: Bolarinwa
+    given-names: Anuoluwapo
+  - family-names: Wang
+    given-names: Robert
+conference:
+  name: "The Thirty-eighth Conference on Neural Information Processing Systems Datasets and Benchmarks Track"
+  year: 2024
+preferred-citation:
+  type: conference-paper
+  title: "emg2pose: A Large and Diverse Benchmark for Surface Electromyographic Hand Pose Estimation"
+  authors:
+    - family-names: Salter
+      given-names: Sasha
+    - family-names: Warren
+      given-names: Richard
+    - family-names: Schlager
+      given-names: Collin
+    - family-names: Spurr
+      given-names: Adrian
+    - family-names: Han
+      given-names: Shangchen
+    - family-names: Bhasin
+      given-names: Rohin
+    - family-names: Cai
+      given-names: Yujun
+    - family-names: Walkington
+      given-names: Peter
+    - family-names: Bolarinwa
+      given-names: Anuoluwapo
+    - family-names: Wang
+      given-names: Robert
+  conference:
+    name: "The Thirty-eighth Conference on Neural Information Processing Systems Datasets and Benchmarks Track"
+  year: 2024
+keywords:
+  - electromyography
+  - hand pose estimation
+  - emg
+  - egocentric vision
+  - sensor fusion
+license: "CC-BY-NC-SA-4.0"
