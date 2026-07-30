@@ -226,7 +226,7 @@ experiment=tracking_vemg2pose \
 checkpoint="${HOME}/emg2pose_model_checkpoints/tracking_vemg2pose.ckpt"
 ```
 
-## Notebook and Visualization
+## Visualization
 
 A brief walkthrough of data loading, inference, and data visualization is
 available via the training/eval entrypoints documented in the sections above.
@@ -257,6 +257,7 @@ UmeTrack is licensed under Attribution-NonCommercial 4.0 International, as found
 @inproceedings{salteremg2pose,
   title={emg2pose: A Large and Diverse Benchmark for Surface Electromyographic Hand Pose Estimation},
   author={Salter, Sasha and Warren, Richard and Schlager, Collin and Spurr, Adrian and Han, Shangchen and Bhasin, Rohin and Cai, Yujun and Walkington, Peter and Bolarinwa, Anuoluwapo and Wang, Robert and others},
-  booktitle={The Thirty-eight Conference on Neural Information Processing Systems Datasets and Benchmarks Track}
+  booktitle={The Thirty-eight Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
+  year={2024}
 }
 ```

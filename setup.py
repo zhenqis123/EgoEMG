@@ -9,9 +9,9 @@ from setuptools import find_packages, setup
 setup(
     name="emg2pose",
     version="0.1.0",
-    description="",
+    description="sEMG hand-pose estimation benchmark + EgoEMG vision/fusion models",
     author="CTRL Research Team, Meta Reality Labs",
-    author_email="",
+    author_email="opensource-conduct@fb.com",
     packages=find_packages(),
     install_requires=[
         # Left empty so you use the conda environment.yml file

@@ -5,12 +5,10 @@ from __future__ import annotations
 import json
 import logging
 import os
-from bisect import bisect_right
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Sequence
 
-import cv2
 import numpy as np
 from torch.utils.data import Dataset, get_worker_info
 
@@ -565,8 +563,6 @@ class EgoEmgMemmapDataset(Dataset):
         emg_layout: str,
     ) -> set[str]:
         """Remove fields for the non-target hand and unused EMG variants."""
-        other_hand = "right" if target_hand == "left" else "left"
-
         # Fields that __getitem__ will actually access for the target hand
         needed = {
             f"emg_{target_hand}_{emg_field_preference}",
@@ -1808,7 +1804,8 @@ class EgoEmgMemmapDataset(Dataset):
                     result.pop(pitch_key, None)
                     result.pop(yaw_key, None)
                     if wrist_valid_key in result:
-                        wrist_valid = np.asarray(result[wrist_valid_key], dtype=bool)
+                        # Loaded for completeness; currently not surfaced to the
+                        # loss (wrist-masking is driven by dataset_name instead).
                         result.pop(wrist_valid_key, None)
 
                 result["joint_angles"] = ja

@@ -260,6 +260,9 @@ def main():
     }
 
     # ── Renumber episode_index across sources ─────────────────────────
+    # NOTE: episode_index.dat was already created (zero-filled then copied) by
+    # the union-field loop above, so we open it in-place (r+) to renumber.
+    # This step must run AFTER the frame-field loop.
     print("Renumbering episode_index...")
     ep_out = np.memmap(
         args.out / "episode_index.dat", dtype=np.int64, mode="r+",

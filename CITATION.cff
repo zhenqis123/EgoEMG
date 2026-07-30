@@ -2,6 +2,9 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it using these metadata."
 title: "emg2pose: A Large and Diverse Benchmark for Surface Electromyographic Hand Pose Estimation"
 type: proceedings
+date-released: "2024-12-03"
+repository-code: "https://github.com/facebookresearch/emg2pose"
+url: "https://emg2pose.github.io/"
 authors:
   - family-names: Salter
     given-names: Sasha
