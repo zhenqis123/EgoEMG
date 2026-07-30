@@ -1,0 +1,151 @@
+module_conf:
+  featurizer:
+    _target_: emg2pose.models.featurizers.tds.TdsNetwork
+    se:
+      enable: true
+      reduction: 4
+      residual: true
+      mode: global
+    conv_blocks:
+    - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+      in_channels: 16
+      out_channels: 256
+      kernel_size: 11
+      stride: 5
+    - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+      in_channels: 256
+      out_channels: 256
+      kernel_size: 5
+      stride: 2
+    tds_stages:
+    - _target_: emg2pose.models.featurizers.tds.TdsStage
+      in_channels: 256
+      in_conv_kernel_width: 9
+      in_conv_stride: 5
+      num_blocks: 1
+      channels: 8
+      feature_width: 32
+      kernel_width: 5
+    - _target_: emg2pose.models.featurizers.tds.TdsStage
+      in_channels: 256
+      in_conv_kernel_width: 3
+      in_conv_stride: 1
+      num_blocks: 1
+      channels: 8
+      feature_width: 32
+      kernel_width: 3
+  decoder:
+    _target_: emg2pose.models.decoders.transformer.TransformerDecoder
+    in_channels: 256
+    model_dim: 640
+    num_heads: 10
+    num_layers: 10
+    ffn_dim: 2560
+    dropout: 0.15
+    causal: false
+    activation: relu
+    norm_first: true
+    pos_encoding: rope
+    out_proj: true
+    preset: middle
+  head:
+    _target_: emg2pose.models.heads.mlp.MLPHead
+    in_channels: 640
+    out_channels: 20
+    hidden_sizes:
+    - 512
+    activation: relu
+    dropout: 0.1
+  _target_: emg2pose.models.modules.emgformer.Emg2PoseFormer
+  out_channels: 20
+  provide_initial_pos: false
+optimizer_conf:
+  _target_: torch.optim.AdamW
+  lr: 0.0001
+  betas:
+  - 0.9
+  - 0.999
+  eps: 1.0e-08
+  weight_decay: 0.01
+  amsgrad: false
+lr_scheduler_conf:
+  scheduler:
+    _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+    T_max: 150
+    eta_min: 5.0e-06
+  interval: epoch
+  frequency: 1
+loss_weights:
+  mae: 1.0
+  fingertip_distance: 0.01
+task_type: regression
+ignore_index: -100
+label_smoothing: 0.0
+gumbel_recon: null
+pretrained_checkpoint: null
+pretrained_strict: true
+pretrained_emg_checkpoint: null
+freeze_backbone: false
+ignore_head_tail_dims: 0
+datamodule:
+  _target_: emg2pose.datamodule.WindowedEmgDataModule
+  dataset_conf:
+    train:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 10000
+      stride: 5000
+      padding:
+      - 0
+      - 0
+      jitter: true
+      skip_ik_failures: false
+      allowed_splits:
+      - train
+    val:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 10000
+      stride: 10000
+      padding:
+      - 0
+      - 0
+      jitter: false
+      skip_ik_failures: false
+      allowed_splits:
+      - val
+      - test
+    test:
+    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3
+      memmap_dir: /home/xiziheng/develop/emg2pose/data/emg_corpus/emg2pose_v3_memmap
+      window_length: 10000
+      stride: 10000
+      padding:
+      - 0
+      - 0
+      jitter: false
+      skip_ik_failures: false
+      allowed_splits:
+      - test
+  window_length: 10000
+  val_test_window_length: 10000
+  stride: 5000
+  val_test_stride: 10000
+  padding:
+  - 0
+  - 0
+  pin_memory: false
+  persistent_workers: true
+  prefetch_factor: 2
+  skip_ik_failures: false
+  max_open_files: 32
+  norm_mode: null
+  norm_stats_path: null
+  per_dataset_norm_stats_path: /home/xiziheng/develop/emg2pose/assets/per_dataset_norm_stats.json
+  norm_eps: 1.0e-06
+stage2_vision_checkpoint: null
+component_lr_scales: {}
+batch_augmentation: null
