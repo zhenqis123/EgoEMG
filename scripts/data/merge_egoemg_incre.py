@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path("/home/xiziheng/develop/emg2pose/data/EgoEMG_incre")
+ROOT = Path("./data/EgoEMG_incre")
 SRC_DIRS = ["data_20260526_172725", "data_20260526_230859", "data_20260527_124150"]
 OUT_DIR = ROOT / "data_merged"
 OUT_DIR.mkdir(parents=True, exist_ok=True)

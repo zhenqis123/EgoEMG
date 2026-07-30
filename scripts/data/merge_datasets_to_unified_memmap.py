@@ -30,10 +30,10 @@ across sources to avoid namespace collisions (EgoEMG episodes 0..40, ShowEE
 
 Usage:
     python scripts/data/merge_datasets_to_unified_memmap.py \
-        --egoemg /mnt/nvme/xiziheng/EgoEMG_v2_memmap \
-        --showee /mnt/nvme/xiziheng/ShowEE_202607_memmap \
-        --incre  /mnt/nvme/xiziheng/EgoEMG_incre/data_right_merged \
-        --out    /mnt/nvme/xiziheng/EgoEMG_unified_memmap
+        --egoemg data/EgoEMG_v2_memmap \
+        --showee data/ShowEE_202607_memmap \
+        --incre  data/EgoEMG_incre/data_right_merged \
+        --out    data/EgoEMG_unified_memmap
 
 Requires ~229 GB of free disk at --out.  Idempotent on a per-field basis: a
 field whose output .dat already exists with the correct shape is skipped, so
