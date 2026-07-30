@@ -1698,6 +1698,10 @@ class EgoEmgMemmapDataset(Dataset):
         if self._center_target_only and not self._vision_enabled:
             return self._getitem_center_supervised_emg(ep_idx, start, end)
 
+        # Center frame index for the main (full-window) path. Needed by
+        # _resolve_dataset_name below; the fast paths above compute their own.
+        center_idx = start + self.window_length // 2
+
         result: dict[str, Any] = {}
         for name, mm in self._frame_memmaps.items():
             if name == "image_webcam_frame_index" and self._cached_vit_enabled:
