@@ -141,7 +141,8 @@ config or CLI.
 The training entrypoint is:
 
 ```bash
-python -m emg2pose.train_vision \
+python -m emg2pose.train \
+    experiment=fusion/vision_resnet_small \
     data_location=data/EgoEMG_memmap \
     video_root=data/EgoEMG \
     allintra_root=data/EgoEMG_allintra \
@@ -165,7 +166,8 @@ The defaults live in `config/vision_base.yaml`. Common overrides:
 Example evaluation-only run:
 
 ```bash
-python -m emg2pose.train_vision \
+python -m emg2pose.train \
+    experiment=fusion/vision_resnet_small \
     data_location=data/EgoEMG_memmap \
     video_root=data/EgoEMG \
     allintra_root=data/EgoEMG_allintra \
@@ -177,7 +179,8 @@ python -m emg2pose.train_vision \
 
 ## Training Flow
 
-`emg2pose.train_vision` performs the following steps:
+`python -m emg2pose.train` (with a fusion or vision-only experiment config)
+performs the following steps:
 
 1. Loads `config/vision_base.yaml` through Hydra.
 2. Builds the WiLoR config from `WiLoR/pretrained_models/model_config.yaml`.
@@ -211,7 +214,8 @@ Hydra writes outputs under the run directory. Checkpoints are saved under
 - `scripts/reencode_egoemg_webcam_allintra.py`: all-intra webcam conversion.
 - `scripts/visualize_egoemg_vision_dataset.py`: dataset sample debug.
 - `scripts/visualize_egoemg_mesh.py`: world-space MANO mesh projection debug.
-- `emg2pose/train_vision.py`: WiLoR fine-tuning and evaluation entrypoint.
+- `emg2pose/train.py`: the unified training entrypoint; vision/fusion training
+  is launched with `experiment=fusion/...` or a vision-only experiment config.
 
 ## Mixed EgoEMG and ShowEE training
 

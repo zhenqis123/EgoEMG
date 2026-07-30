@@ -234,7 +234,8 @@ available via the training/eval entrypoints documented in the sections above.
 For EgoEMG vision supervision and WiLoR fine-tuning, see
 `docs/egoemg_wilor_training.md`. This covers the memmap dataset, all-intra
 video decoding, sidecar vision index generation, dataset visualization, and the
-`emg2pose.train_vision` training/evaluation flow.
+vision/fusion training/evaluation flow (run via `python -m emg2pose.train`
+with a fusion or vision-only experiment config).
 
 ## Workspace Organization
 
