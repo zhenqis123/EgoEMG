@@ -71,7 +71,39 @@ export EMG_CORPUS_ROOT=/path/to/emg_corpus
 See `docs/egoemg_wilor_training.md` for the full EgoEMG data layout and how to
 prepare the memmap dataset, all-intra videos, and vision index.
 
+### Unified EgoEMG + ShowEE + Incre memmap (recommended for training)
+
+The three recording corpora can be physically merged into a single
+`egoemg_v2_memmap` so training loads one dataset instead of a mixed
+`ConcatDataset`. Per-source availability is preserved via a per-frame
+`dataset_source_id` field:
+
+- **EgoEMG** — full supervision (EMG + joint angles + wrist + vision).
+- **ShowEE** — wrist angles are **unavailable** (zero-filled,
+  `wrist_angles_valid=false`); the loss masks wrist channels for ShowEE rows.
+- **Incre** — vision/mocap are **unavailable** (stale/invalid flags); only
+  right-hand EMG + finger joint angles are supervised.
+
+Build it with:
+
+```shell
+python scripts/data/merge_datasets_to_unified_memmap.py \
+    --egoemg <egoemg_v2_memmap_dir> \
+    --showee <showee_memmap_dir> \
+    --incre  <egoemg_incre>/data_right_merged \
+    --out    <unified_memmap_dir>          # needs ~229 GB free
+python scripts/data/compute_unified_norm_stats.py \
+    --input assets/per_dataset_norm_stats_repro_filtered_paper_alias.json \
+    --output assets/per_dataset_norm_stats_unified.json
+```
+
+Then train with `dataset=egoemg_unified_angle_regression` and point
+`egoemg_unified_memmap_dir` at the merged directory (see the config header for
+details). Validation/test automatically use EgoEMG-only rows (ShowEE/Incre are
+train-only augmentations).
+
 ## Getting Started (Small, Sanity-Check Dataset)
+
 
 The full dataset is $431$ GiB -- which can be cumbersome for a quick start. As a solution, we
 also host a smaller (~ $600$ MiB) version of the dataset which can be downloaded and used to run
