@@ -4,8 +4,8 @@ set -Eeuo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 REPO=${EMG2POSE_REPO:-$(cd -- "${SCRIPT_DIR}/../.." && pwd)}
-SHARED_ROOT=${EMG2POSE_SHARED_ROOT:-/share/being-h/xizh/develop}
-PYTHON_BIN=${PYTHON_BIN:-/share/conda_envs/miniconda3/envs/v2c_env/bin/python}
+SHARED_ROOT=${EMG2POSE_SHARED_ROOT:-${EMG2POSE_SHARED_ROOT:-/shared}/develop}
+PYTHON_BIN=${PYTHON_BIN:-python}
 INPUT_ROOT=${SHARED_ROOT}/experiment_inputs
 
 EGOEMG_MEMMAP_DIR=${EGOEMG_MEMMAP_DIR:-${SHARED_ROOT}/data/EgoEMG_memmap}

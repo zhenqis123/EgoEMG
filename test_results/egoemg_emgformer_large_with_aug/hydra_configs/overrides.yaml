@@ -1,3 +1,0 @@
-- experiment=emgformer/regression_emgformer_large_aggressive_egoemg
-- checkpoint=/home/xiziheng/develop/emg2pose/test_results/egoemg_large_best.ckpt
-- +per_group_stats=true

@@ -6,7 +6,7 @@ set -Eeuo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 SCRIPT_REPO=$(cd -- "${SCRIPT_DIR}/../.." && pwd)
-SHARED_ROOT=${EMG2POSE_SHARED_ROOT:-/share/being-h/xizh/develop}
+SHARED_ROOT=${EMG2POSE_SHARED_ROOT:-${EMG2POSE_SHARED_ROOT:-/shared}/develop}
 
 first_existing_path() {
     local candidate
@@ -36,8 +36,8 @@ resolve_python() {
     # Direct interpreter paths avoid relying on `conda init` inside a Pod.
     for candidate in \
         "${CONDA_PREFIX:-}/bin/python" \
-        /share/conda_envs/miniconda3/envs/v2c_env/bin/python \
-        /share/conda_envs/miniconda3/envs/emg2pose_env/bin/python \
+        python \
+        python \
         python \
         /root/miniconda3/envs/v2c_env/bin/python \
         /opt/conda/envs/emg2pose_env/bin/python; do

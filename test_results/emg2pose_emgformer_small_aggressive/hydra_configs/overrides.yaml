@@ -1,4 +1,0 @@
-- experiment=emgformer/regression_emgformer_small_aggressive
-- checkpoint=/home/xiziheng/develop/emg2pose/test_results/emg2pose_small_aggressive/checkpoints/best.ckpt
-- +per_user=true
-- datamodule.norm_mode=per-dataset

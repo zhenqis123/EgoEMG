@@ -1,12 +1,12 @@
 {
   "fusion_rn18_s_stage2": {
-    "ckpt": "/share/being-h/xizh/develop/emg2pose/test_results/fusion/staging/fusion_rn18_s_stage2_best.ckpt",
-    "config_path": "/share/being-h/xizh/develop/emg2pose/test_results/fusion/staging/fusion_rn18_s_stage2_config.yaml",
+    "ckpt": "./test_results/fusion/staging/fusion_rn18_s_stage2_best.ckpt",
+    "config_path": "./test_results/fusion/staging/fusion_rn18_s_stage2_config.yaml",
     "config_overrides": [
-      "egoemg_memmap_dir=/share/being-h/xizh/develop/data/EgoEMG_memmap",
-      "egoemg_per_episode_crops_dir=/share/being-h/xizh/develop/data/EgoEMG_v2_crops",
-      "per_episode_crops_dir=/share/being-h/xizh/develop/data/EgoEMG_v2_crops",
-      "datamodule.per_dataset_norm_stats_path=/share/being-h/xizh/develop/emg2pose/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json"
+      "egoemg_memmap_dir=./data/EgoEMG_memmap",
+      "egoemg_per_episode_crops_dir=./data/EgoEMG_v2_crops",
+      "per_episode_crops_dir=./data/EgoEMG_v2_crops",
+      "datamodule.per_dataset_norm_stats_path=./assets/per_dataset_norm_stats_repro_filtered_paper_alias.json"
     ],
     "uses_vision": true
   }

@@ -5,8 +5,8 @@ set -Eeuo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 REPO=${EMG2POSE_REPO:-$(cd -- "${SCRIPT_DIR}/../.." && pwd)}
-SHARED_ROOT=${EMG2POSE_SHARED_ROOT:-/share/being-h/xizh/develop}
-PYTHON_BIN=${PYTHON_BIN:-/share/conda_envs/miniconda3/envs/v2c_env/bin/python}
+SHARED_ROOT=${EMG2POSE_SHARED_ROOT:-${EMG2POSE_SHARED_ROOT:-/shared}/develop}
+PYTHON_BIN=${PYTHON_BIN:-python}
 TORCH_HOME=${TORCH_HOME:-${SHARED_ROOT}/experiment_inputs/torch_cache}
 RESNET50_WEIGHTS=${TORCH_HOME}/hub/checkpoints/resnet50-0676ba61.pth
 
