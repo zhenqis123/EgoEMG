@@ -74,12 +74,22 @@ def test_serial_protocol_decodes_8ch_int24_emg_packet():
 
 
 def test_predict_window_uses_default_half_second_delay(monkeypatch, tmp_path):
-    class DummyModel:
+    class DummyModel(torch.nn.Module):
         left_context = 510
 
-        def __call__(self, batch):
+        def __init__(self):
+            super().__init__()
+            # pipeline reads featurizer.layers[0].conv[0].weight.shape[1] (=8 in-ch).
+            self.featurizer = torch.nn.Module()
+            self.featurizer.layers = [torch.nn.Module()]
+            self.featurizer.layers[0].conv = [torch.nn.Conv1d(8, 8, kernel_size=1)]
+
+        def forward(self, batch):
             t = 230
             return torch.arange(t, dtype=torch.float32).view(1, 1, t).expand(1, 22, t)
+
+        def __call__(self, batch):
+            return self.forward(batch)
 
     def fake_load(*_args, **_kwargs):
         return DummyModel()

@@ -34,7 +34,8 @@ def load_hand_model_from_json(filepath: str) -> HandModel:
 
 
 def load_default_hand_model():
-    umetrack_dir = pathlib.Path(__file__).parent / "UmeTrack"
+    # UmeTrack/ lives one level up from this package (emg2pose/UmeTrack/).
+    umetrack_dir = pathlib.Path(__file__).resolve().parents[1] / "UmeTrack"
     default_hand_model_path = umetrack_dir / "dataset" / "generic_hand_model.json"
     return load_hand_model_from_json(default_hand_model_path)
 
