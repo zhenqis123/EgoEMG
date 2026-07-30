@@ -217,6 +217,7 @@ refine-logs/
 research-wiki/
 review-stage/
 tensorboard/
+visualizations
 visualizations/
 scripts/viz/emg_verification_samples/
 scripts/viz/verification_samples/
