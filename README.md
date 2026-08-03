@@ -216,23 +216,37 @@ See the package `README.md` for the full layout.
 
 ## Reproducing Paper Results
 
-Key numbers from the paper, reproduced by the provided checkpoints:
+Key numbers from the paper, reproduced by the provided checkpoints.
 
-| Task | Method | Checkpoint | Test MAE (rad) | Test MAE (°) | Aggregation |
-|------|--------|-----------|---------------|-------------|-------------|
-| EMG-to-Pose (EMG2Pose) | EMGFormer-Small | `emg2pose_emgformer_small.ckpt` | 0.2153 | 12.34° | user_stage |
-| EMG-to-Pose (EgoEMG) | EMGFormer-Small | `egoemg_emgformer_small.ckpt` | 0.262 | 15.0° | sample_weighted |
-| Vision-to-Pose | ResNet-18 | `vision_resnet18.ckpt` | 0.1021 | 5.85° | sample_weighted |
-| Vision-to-Pose | ViT-Small | `vision_vit_small.ckpt` | 0.1052 | 6.03° | sample_weighted |
-| EMG+Vision Fusion | ResNet-18 + EMGFormer-Small | `fusion_resnet_small_emgfusion_center.ckpt` | 0.0978 | 5.60° | center-frame |
-| EMG+Vision Fusion | ViT-Small + EMGFormer-Small | `fusion_vit_small_emgfusion_center.ckpt` | 0.0966 | 5.53° | center-frame |
+**EMG-to-pose on EgoEMG** (MAE in degrees, per-user mean ± std across the
+Gesture / User / Both test splits; Avg. is the mean MAE):
 
-Aggregation strategy used by `test_analysis.py` and `test_analysis_fusion.py`:
-**user_stage** = held-out user generalization averaged across stage splits;
-**sample_weighted** = weighted average across all 6 EgoEMG splits (user/left,
-user/right, gesture/left, gesture/right, both/left, both/right);
-**center-frame** = MAE computed on the center frame of the sliding window,
-used for vision and fusion models that predict on single frames.
+| Method | Params | Gesture | User | Both | Avg. |
+|--------|--------|---------|------|------|------|
+| EMGFormer-S | 3.5M | 12.8 ± 1.4 | 15.6 ± 2.5 | 17.4 ± 1.2 | 14.7 |
+| EMGFormer-M | 6.6M | 11.8 ± 1.6 | 15.6 ± 1.4 | 17.4 ± 0.9 | 14.2 |
+| EMGFormer-L | 16.3M | 11.7 ± 1.5 | 15.7 ± 3.0 | 17.7 ± 1.1 | 14.2 |
+| vEMG2Pose | 6.0M | 15.0 ± 1.4 | 16.3 ± 1.7 | 17.3 ± 1.3 | 15.9 |
+| NeuroPose | 6.4M | 15.8 ± 1.2 | 15.7 ± 1.3 | 16.3 ± 0.7 | 16.1 |
+
+**Vision-only → EMG+vision fusion on EgoEMG** (MAE in degrees on identical
+center frames; Frz./FT = frozen/fine-tuned visual predictor; Avg. is the mean,
+Δavg the fusion gain):
+
+| Backbone | Update | Vision Avg | Fusion Avg | Δavg |
+|----------|--------|-----------|-----------|------|
+| ResNet-18 | FT | 5.84 | 5.40 | +0.44 |
+| ViT-S/14 | FT | 6.02 | 5.54 | +0.48 |
+| ResNet-50 | Frz. | 5.27 | 5.19 | +0.09 |
+| ResNet-152 | Frz. | 5.11 | 5.06 | +0.05 |
+| ViT-B/14 | Frz. | 5.78 | 5.75 | +0.03 |
+| ViT-L/14 | Frz. | 5.39 | 5.36 | +0.03 |
+| WiLoR | Frz. | 4.73 | 4.68 | +0.04 |
+
+Aggregation follows `test_analysis.py` / `test_analysis_fusion.py`:
+per-user mean ± std across the Gesture / User / Both splits, with the Avg.
+column the mean MAE over all test splits. Vision and fusion report MAE on the
+center frame of the sliding window.
 
 ## Evaluation / Testing
 

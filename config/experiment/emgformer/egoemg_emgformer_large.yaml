@@ -1,13 +1,13 @@
 # @package _global_
 # EMG→pose (EgoEMG) EMGFormer-Small, on the unified EgoEMG memmap.
 #
-# Mirrors the released egoemg_emgformer_small.ckpt architecture (16-ch
+# Mirrors the released egoemg_emgformer_large.ckpt architecture (16-ch
 # interpolate16 layout, 3-layer small decoder) and evaluates on the post-merge
 # unified memmap (EgoEMG + ShowEE + Incre). EMG field preference = filtered_paper.
 defaults:
   - /module: emgformer
   - override /module/featurizer: tds_slim
-  - override /module/decoder: transformer/preset/small
+  - override /module/decoder: transformer/preset/large_aggressive
   - override /dataset: egoemg_unified_angle_regression
   - override /lr_scheduler: cosine
   - override /transforms: rotation_augmentation
@@ -28,16 +28,16 @@ module:
   provide_initial_pos: false
   decoder:
     causal: false
-    preset: small
+    preset: large
     pos_encoding: rope
     dropout: 0.15
-    in_channels: 256
-    model_dim: 256
-    num_heads: 4
-    num_layers: 3
-    ffn_dim: 512
+    in_channels: 384
+    model_dim: 384
+    num_heads: 12
+    num_layers: 8
+    ffn_dim: 1536
   head:
-    in_channels: 256
+    in_channels: 384
     out_channels: 22
 
 ignore_head_tail_dims: 0
@@ -76,6 +76,6 @@ loss_weights:
 logger:
   _target_: pytorch_lightning.loggers.TensorBoardLogger
   save_dir: .
-  name: egoemg_emgformer_small
+  name: egoemg_emgformer_large
   version: null
   default_hp_metric: false
