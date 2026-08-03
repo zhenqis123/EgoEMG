@@ -1,7 +1,0 @@
-{
-  "vitb_t_lr1e-5_ep0": {
-    "ckpt": "./logs/20260728/vitb_vitl_wilor_s_simple_tf_lr1e-5_eta1e-6_50e_stride400/vitb_t/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=000-val_mae=0.1048.ckpt",
-    "config_path": "./logs/20260728/vitb_vitl_wilor_s_simple_tf_lr1e-5_eta1e-6_50e_stride400/vitb_t/hydra/hydra_configs/config.yaml",
-    "uses_vision": true
-  }
-}

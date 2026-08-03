@@ -1,7 +1,0 @@
-{
-  "rn50_noaug_wl12000_300e": {
-    "ckpt": "./logs/fusion_rn50_s_egoemg_only_noaug_dense_lr5e-4_300e/train/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=202-val_mae=0.0958.ckpt",
-    "config_path": "./logs/fusion_rn50_s_egoemg_only_noaug_dense_lr5e-4_300e/train/hydra/hydra_configs/config.yaml",
-    "uses_vision": true
-  }
-}

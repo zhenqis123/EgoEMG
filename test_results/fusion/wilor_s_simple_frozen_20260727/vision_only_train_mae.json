@@ -1,9 +1,0 @@
-{
-  "train_mae": 0.13380155624427467,
-  "valid_elements": 10365784,
-  "sample_count_with_sampler_padding": 490128,
-  "dataset_length": 490128,
-  "world_size": 6,
-  "batch_size_per_gpu": 400,
-  "fusion_mode": "vision_only"
-}

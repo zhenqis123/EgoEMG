@@ -1,7 +1,0 @@
-{
-  "vits_s_simple_frozen_ep04": {
-    "ckpt": "./logs/20260728/fusion_5vision_s_simple_unfrozen_augbest_30e/vits_s_frozen/train/version_0/checkpoints/rn18-s-8ch-centerfusion-epoch=004-val_mae=0.1097.ckpt",
-    "config_path": "./logs/20260728/fusion_5vision_s_simple_unfrozen_augbest_30e/vits_s_frozen/hydra/hydra_configs/config.yaml",
-    "uses_vision": true
-  }
-}

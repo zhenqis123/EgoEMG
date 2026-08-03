@@ -1,7 +1,0 @@
-- experiment=emgformer/regression_egoemg_incre_cotrain_wl12000
-- egoemg_memmap_dir=${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
-- augmentation=batch_aug_best_v2
-- trainer.devices=[2,3,4,5]
-- +trainer.strategy=ddp
-- trainer.max_epochs=150
-- seed=42
