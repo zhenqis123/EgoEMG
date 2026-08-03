@@ -14,7 +14,7 @@ LOG_DIR="logs/finetune/egoemg_from_pretrain_middle"
 # 预训练 checkpoint 路径
 CHECKPOINT="logs/pretrain/latest/checkpoints/last.ckpt"
 
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=${EXPERIMENT} \
   egoemg_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap \
   trainer.devices=[${GPUS}] \

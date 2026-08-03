@@ -40,7 +40,7 @@ PY
 
 cd "$REPO"
 echo "Continuing epoch ${SOURCE_EPOCH} through $((TARGET_MAX_EPOCHS - 1)); cosine ${BASE_LR} -> ${ETA_MIN}"
-CUDA_VISIBLE_DEVICES=${VISIBLE_GPUS} python -m emg2pose.train \
+CUDA_VISIBLE_DEVICES=${VISIBLE_GPUS} python -m egoemg.train \
     experiment=fusion/fusion_rn18_s_imagenet_emgscratch_noaug \
     "batch_size=${BATCH_SIZE}" "val_batch_size=${BATCH_SIZE}" \
     "optimizer.lr=${BASE_LR}" "lr_scheduler.scheduler.T_max=${EXTRA_EPOCHS}" \

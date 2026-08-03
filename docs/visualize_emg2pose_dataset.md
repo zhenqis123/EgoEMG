@@ -8,7 +8,7 @@ channel stored in the dataset.
 ## Data flow overview
 
 1) Load session data
-- `Emg2PoseSessionData(path)` opens the HDF5 and exposes the `emg2pose/timeseries`
+- `Emg2PoseSessionData(path)` opens the HDF5 and exposes the `egoemg/timeseries`
   structured dataset with fields `time`, `emg`, and `joint_angles`.
 - Slicing the session (`session[start:stop]`) returns an array of records; the script
   extracts `emg` and `joint_angles` from that window.
@@ -30,7 +30,7 @@ channel stored in the dataset.
 - `generate_hand_mesh_from_joint_angles` -> `skin_mesh_from_angles` -> `skin_vertices_np`
   -> `_skin_points` -> `_hand_skinning_transform` (UmeTrack) -> `so3_exp_map`.
 - The joint angle values are treated as rotations about per-joint axes stored in the
-  hand model (see `emg2pose/UmeTrack/dataset/generic_hand_model.json`). For each
+  hand model (see `egoemg/UmeTrack/dataset/generic_hand_model.json`). For each
   joint, UmeTrack computes a local transform from axis-angle and chains the transforms
   along each finger.
 
@@ -45,7 +45,7 @@ channel stored in the dataset.
 ## Joint-angle channel definitions (index -> meaning)
 
 The 20 channels correspond to 5 fingers x 4 DoF per finger. The ordering and naming
-are defined in `emg2pose/constants.py`.
+are defined in `egoemg/constants.py`.
 
 Legend:
 - `FE` = flexion/extension
@@ -85,9 +85,9 @@ Legend:
 ## Relevant code references
 
 - Script entrypoint: `scripts/legacy/visualize_emg2pose_dataset.py`
-- Dataset reader: `emg2pose/datasets/emg2pose_dataset.py`
-- Downsampling: `emg2pose/utils.py`
-- Plotly mesh rendering: `emg2pose/visualization.py`
-- Hand skinning and FK: `emg2pose/UmeTrack/lib/common/hand_skinning.py`
-- Joint definitions: `emg2pose/constants.py`
-- Default hand model: `emg2pose/UmeTrack/dataset/generic_hand_model.json`
+- Dataset reader: `egoemg/datasets/emg2pose_dataset.py`
+- Downsampling: `egoemg/utils.py`
+- Plotly mesh rendering: `egoemg/visualization.py`
+- Hand skinning and FK: `egoemg/UmeTrack/lib/common/hand_skinning.py`
+- Joint definitions: `egoemg/constants.py`
+- Default hand model: `egoemg/UmeTrack/dataset/generic_hand_model.json`

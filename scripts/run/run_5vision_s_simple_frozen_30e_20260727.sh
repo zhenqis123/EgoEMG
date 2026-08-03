@@ -45,7 +45,7 @@ run_job() {
 
     mkdir -p "${job_dir}"
     log "START ${name} batch_size=${batch_size}"
-    CUDA_VISIBLE_DEVICES="${GPUS}" python -m emg2pose.train \
+    CUDA_VISIBLE_DEVICES="${GPUS}" python -m egoemg.train \
         "experiment=fusion/${experiment}" \
         "batch_size=${batch_size}" "val_batch_size=${batch_size}" \
         train=true eval=false "trainer.devices=${DEVICES}" \

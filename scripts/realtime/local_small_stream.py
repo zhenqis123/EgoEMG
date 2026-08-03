@@ -19,9 +19,9 @@ _DATA_COLLECT_ROOT = _PROJECT_ROOT / "data_collect"
 if _DATA_COLLECT_ROOT.exists() and str(_DATA_COLLECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_DATA_COLLECT_ROOT))
 
-from emg2pose.realtime_local import FullModelOnlineTrainer, LocalSmallStreamer
-from emg2pose.realtime_local.mesh_visualizer import RealtimeMeshVisualizer
-from emg2pose.realtime_local.serial import SerialEmgReader, SerialProtocol
+from egoemg.realtime_local import FullModelOnlineTrainer, LocalSmallStreamer
+from egoemg.realtime_local.mesh_visualizer import RealtimeMeshVisualizer
+from egoemg.realtime_local.serial import SerialEmgReader, SerialProtocol
 
 
 def _make_writer(path: str | None):

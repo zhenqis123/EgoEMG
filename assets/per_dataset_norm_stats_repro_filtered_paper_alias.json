@@ -3,7 +3,7 @@
     "mean": -1.2921936313689584e-11,
     "std": 12.302869458508644,
     "n_samples": 132323450,
-    "note": "Recomputed from data/EgoEMG_memmap/emg_*_filtered_paper.dat over the FULL dataset (132,323,450 frames, both hands) with the target_hand 8ch layout matching the sweep config (emg2pose/optuna_aug_search_wl12000.py). Per-hand: left std_rms=4.2334, right std_rms=16.8760. Supersedes the earlier 8M-sample 16ch-interpolate estimate."
+    "note": "Recomputed from data/EgoEMG_memmap/emg_*_filtered_paper.dat over the FULL dataset (132,323,450 frames, both hands) with the target_hand 8ch layout matching the sweep config (egoemg/optuna_aug_search_wl12000.py). Per-hand: left std_rms=4.2334, right std_rms=16.8760. Supersedes the earlier 8M-sample 16ch-interpolate estimate."
   },
   "egoemg__filtered_paper_left": {
     "mean": -8.064209587978645e-12,

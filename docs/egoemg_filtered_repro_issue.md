@@ -103,7 +103,7 @@ It converts `[10, 12, 0, 1, 2, 4, 5, 6]` to 0-based positions:
 Relevant file:
 
 ```text
-emg2pose/datasets/egoemg_memmap_dataset.py
+egoemg/datasets/egoemg_memmap_dataset.py
 ```
 
 The `egoemg_angle_regression` dataset config now accepts a top-level EMG field
@@ -331,7 +331,7 @@ find . data -maxdepth 6 \
 Evaluate old checkpoint on current `filtered_paper_global`:
 
 ```bash
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emgformer/regression_egoemg_window_ablation_wl12000 \
   train=False eval=True \
   "checkpoint='. (repo root)/logs/optuna_window/egoemg-window-v4/trial_0006_2026-05-21_11-25-39/regression_emgformer_middle_aug_search_egoemg/version_0/checkpoints/egoemg-middle-epoch=133-val_mae=0.2401.ckpt'" \
@@ -406,7 +406,7 @@ genuinely compatible with the historical checkpoint.
      computation script)
    - Legacy `egoemg` key kept as a back-compat alias to `egoemg__raw`.
 
-2. **`emg2pose/datasets/egoemg_memmap_dataset.py::_load_norm_stats`** now
+2. **`egoemg/datasets/egoemg_memmap_dataset.py::_load_norm_stats`** now
    resolves `<dataset>__<emg_field>` first, falls back to legacy
    `<dataset>`, and emits a WARNING when the resolved std is ≥20 on a
    non-raw field (the tell-tale sign of the original bug).

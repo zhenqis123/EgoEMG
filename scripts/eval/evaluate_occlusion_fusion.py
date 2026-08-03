@@ -42,12 +42,12 @@ _PROJECT_DIR = _SCRIPT_DIR.parent
 if str(_PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(_PROJECT_DIR))
 
-from emg2pose.lightning import EmgPredictionModule
-from emg2pose.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
-from emg2pose.models.modules.emgformer import Emg2PoseFormer
-from emg2pose.models.modules.resnet_vision import ResNetVisionPose
-from emg2pose.models.modules.vit_vision import VisionViTPose
-from emg2pose.occlusion import compute_self_occlusion
+from egoemg.lightning import EmgPredictionModule
+from egoemg.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
+from egoemg.models.modules.emgformer import Emg2PoseFormer
+from egoemg.models.modules.resnet_vision import ResNetVisionPose
+from egoemg.models.modules.vit_vision import VisionViTPose
+from egoemg.occlusion import compute_self_occlusion
 
 import smplx
 

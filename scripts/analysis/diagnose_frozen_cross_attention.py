@@ -19,7 +19,7 @@ import torch
 from hydra import compose, initialize_config_dir
 from hydra.utils import instantiate
 
-from emg2pose.datamodule import make_data_module
+from egoemg.datamodule import make_data_module
 
 
 REPO = Path(__file__).resolve().parents[2]

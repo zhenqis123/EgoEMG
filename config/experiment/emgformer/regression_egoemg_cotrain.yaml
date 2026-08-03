@@ -5,7 +5,7 @@
 # Augmentation from Optuna trial #54 (best val_user_mae=0.278829).
 #
 # Usage:
-#   python -m emg2pose.train \
+#   python -m egoemg.train \
 #     experiment=emgformer/regression_egoemg_cotrain \
 #     egoemg_memmap_dir=/path/to/EgoEMG_memmap \
 #     emg2pose_memmap_dir=/path/to/emg2pose_v3_memmap \
@@ -64,7 +64,7 @@ batch_augmentation:
 dataset:
   train:
     # ── EgoEMG left hand (target_hand 8ch) ──────────────────────────
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -80,7 +80,7 @@ dataset:
       jitter: true
 
     # ── EgoEMG right hand (target_hand 8ch) ─────────────────────────
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -97,7 +97,7 @@ dataset:
       jitter: true
 
     # ── emg2pose (16ch, both hands) ─
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       memmap_dir: ${emg2pose_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.val_test_stride}  # stride=WL to balance sample count (~55K)
@@ -111,7 +111,7 @@ dataset:
 
   val:
     # ── EgoEMG val only (user/gesture/both generalization splits) ──
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
@@ -125,7 +125,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}

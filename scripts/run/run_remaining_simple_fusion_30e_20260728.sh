@@ -50,7 +50,7 @@ run_job() {
         log "START ${name} batch_size=${batch_size}"
     fi
 
-    CUDA_VISIBLE_DEVICES="${GPUS}" python -m emg2pose.train \
+    CUDA_VISIBLE_DEVICES="${GPUS}" python -m egoemg.train \
         "experiment=fusion/${experiment}" \
         "batch_size=${batch_size}" "val_batch_size=${batch_size}" \
         train=true eval=false "trainer.devices=${DEVICES}" \
@@ -77,7 +77,7 @@ run_wilor_frozen() {
     }
 
     log "RESUME wilor_s_simple_frozen from ${last_ckpt}"
-    CUDA_VISIBLE_DEVICES="${GPUS}" python -m emg2pose.train \
+    CUDA_VISIBLE_DEVICES="${GPUS}" python -m egoemg.train \
         experiment=fusion/fusion_wilor_s_simple_frozen_augbest_30e \
         batch_size=400 val_batch_size=400 \
         train=true eval=false "trainer.devices=${DEVICES}" \

@@ -12,7 +12,7 @@ EGOEMG_MEMMAP="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 CROPS_LMDB="data/EgoEMG_v2_crops"
 
 # ── Run training ───────────────────────────────────────────────────────────────
-python -m emg2pose.train \
+python -m egoemg.train \
   ${CONFIG} \
   egoemg_memmap_dir="${EGOEMG_MEMMAP}" \
   per_episode_crops_dir="${CROPS_LMDB}" \

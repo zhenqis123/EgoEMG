@@ -57,14 +57,14 @@ EMGFormer decoder size sweep on the emg2pose_v3 dataset.
 
 ```bash
 # Middle (6.6M), WL=20000
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emgformer/regression_emg2pose \
   'trainer.devices=[0,1,2,3,4,5]' +trainer.strategy=ddp \
   trainer.max_epochs=150 batch_size=150 \
   datamodule.window_length=20000 datamodule.stride=10000
 
 # Large (16.1M)
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emgformer/regression_emg2pose \
   'trainer.devices=[0,1,2,3,4,5]' +trainer.strategy=ddp \
   trainer.max_epochs=150 batch_size=150 \
@@ -73,7 +73,7 @@ python -m emg2pose.train \
   module.decoder.num_layers=8 module.decoder.ffn_dim=1536
 
 # XLarge (~27M)
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emgformer/regression_emg2pose \
   'trainer.devices=[0,1,2,3,4,5]' +trainer.strategy=ddp \
   trainer.max_epochs=150 batch_size=150 \
@@ -82,7 +82,7 @@ python -m emg2pose.train \
   module.decoder.num_layers=8 module.decoder.ffn_dim=2048
 
 # XXLarge (~51.8M), WL=10000
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emgformer/regression_emg2pose \
   'trainer.devices=[0,1,2,3,4,5]' +trainer.strategy=ddp \
   trainer.max_epochs=150 batch_size=300 \
@@ -91,7 +91,7 @@ python -m emg2pose.train \
   module.decoder.num_layers=10 module.decoder.ffn_dim=2560
 
 # Huge (~101M)
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emgformer/regression_emg2pose \
   'trainer.devices=[0,1,2,3,4,5]' +trainer.strategy=ddp \
   trainer.max_epochs=150 batch_size=150 \

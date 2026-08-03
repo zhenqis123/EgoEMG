@@ -78,7 +78,7 @@ loss_weights:
 
 # ── Module ──────────────────────────────────────────────────────────────────
 module:
-  _target_: emg2pose.models.modules.vision_mlp.VisionMLP
+  _target_: egoemg.models.modules.vision_mlp.VisionMLP
   vision_embed_dim: 1280
   hidden_dims: [512, 256]
   out_channels: 22

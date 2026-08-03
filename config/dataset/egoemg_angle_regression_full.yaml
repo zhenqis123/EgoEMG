@@ -3,7 +3,7 @@
 # Val set is the same as train (for checkpoint monitoring only).
 dataset:
   train:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -32,7 +32,7 @@ dataset:
       center_target_only: ${oc.select:center_target_only,false}
       skip_fields: ${oc.select:egoemg_skip_fields,null}
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -62,7 +62,7 @@ dataset:
       skip_fields: ${oc.select:egoemg_skip_fields,null}
 
   val:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
@@ -90,7 +90,7 @@ dataset:
       center_target_only: ${oc.select:center_target_only,false}
       skip_fields: ${oc.select:egoemg_skip_fields,null}
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
@@ -119,7 +119,7 @@ dataset:
       skip_fields: ${oc.select:egoemg_skip_fields,null}
 
   test:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
@@ -147,7 +147,7 @@ dataset:
       center_target_only: ${oc.select:center_target_only,false}
       skip_fields: ${oc.select:egoemg_skip_fields,null}
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}

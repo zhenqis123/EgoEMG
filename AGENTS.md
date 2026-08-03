@@ -8,7 +8,7 @@
   details, and this file or `CLAUDE.md` for agent-facing workflow guidance.
 
 ## Project Structure & Module Organization
-- Core package lives in `emg2pose/`: data loading (`datasets/`,
+- Core package lives in `egoemg/`: data loading (`datasets/`,
   `datamodule.py`), EMGFormer models (`models/modules/emgformer.py`,
   `models/modules/emgformer_pretrain.py`), fusion/vision modules
   (`models/modules/mid_fusion.py`, `models/modules/wilor_vit.py`,
@@ -22,25 +22,29 @@
   The active experiment areas are `config/experiment/emgformer/` (EMG→pose),
   `config/experiment/fusion/` (vision→pose / EMG+vision fusion), and
   `config/experiment/emg2pose/` (classic baselines).
-- Tests live in `emg2pose/tests/`; scripts live in `scripts/`; reference docs
+- Tests live in `egoemg/tests/`; scripts live in `scripts/`; reference docs
   live in `docs/`.
 - EgoEMG vision data uses memmaps plus all-intra webcam videos. The sidecar
   vision index is required for fast startup.
 
 ## Build, Test, and Development Commands
 - Set up environment and editable install:
-  `conda env create -f environment.yml && conda activate emg2pose && pip install -e . && pip install -e emg2pose/UmeTrack`.
+  `conda env create -f environment.yml && conda activate emg2pose && pip install -e . && pip install -e egoemg/UmeTrack`.
 - EMGFormer supervised EMG-to-pose training (single entrypoint for all lines):
-  `python -m emg2pose.train experiment=emgformer/regression_egoemg train=true eval=true trainer.devices=[0]`.
-- EMGFormer pretraining: `python -m emg2pose.train_pretrain` (uses
+  `python -m egoemg.train experiment=emgformer/regression_egoemg train=true eval=true trainer.devices=[0]`.
+- EMGFormer pretraining: `python -m egoemg.train_pretrain` (uses
   `config_name=pretrain`; experiment configs in `config/experiment/emgformer/`).
 - EgoEMG vision/fusion training (same entrypoint, fusion experiment):
-  `python -m emg2pose.train experiment=fusion/fusion_rn18_s_center_8ch train=true eval=true trainer.devices=[0,1,2,3,4]`.
+  `python -m egoemg.train experiment=fusion/fusion_rn18_s_center_8ch train=true eval=true trainer.devices=[0,1,2,3,4]`.
 - Build the EgoEMG vision sidecar index once:
   `python scripts/data/build_egoemg_vision_index.py --memmap-dir /path/to/EgoEMG_memmap --output-dir /path/to/EgoEMG_memmap/vision_index`.
 - Visualize actual EgoEMG vision dataset samples:
   `python scripts/viz/visualize_egoemg_vision_dataset.py --memmap-dir /path/to/EgoEMG_memmap --video-root /path/to/EgoEMG --allintra-root /path/to/EgoEMG_allintra --vision-index-dir /path/to/EgoEMG_memmap/vision_index --output-dir /tmp/egoemg_vision_dataset_viz --num-samples 16 --target-hand both`.
-- Run unit tests: `pytest emg2pose/tests -q`; add `-k name` to target a
+- Merge EgoEMG + ShowEE + Incre into one unified memmap, then train with
+  `dataset=egoemg_unified_angle_regression`:
+  `python scripts/data/merge_datasets_to_unified_memmap.py --egoemg <dir> --showee <dir> --incre <egoemg_incre>/data_right_merged --out <dir>` followed by
+  `python scripts/data/compute_unified_norm_stats.py --input assets/per_dataset_norm_stats_repro_filtered_paper_alias.json --output assets/per_dataset_norm_stats_unified.json`.
+- Run unit tests: `pytest egoemg/tests -q`; add `-k name` to target a
   specific module.
 - Validate Hydra config composition (no training): see
   `scripts/migrate/compare_resolved.py` (snapshot / verify-one / diff).
@@ -54,7 +58,7 @@
   descriptive Hydra config names aligned with group folders.
 
 ## Testing Guidelines
-- Place new tests in `emg2pose/tests/` with filenames `test_*.py`.
+- Place new tests in `egoemg/tests/` with filenames `test_*.py`.
 - Keep tests deterministic and fast by relying on small fixtures or synthetic
   tensors. Avoid large dataset downloads in tests.
 - For experiment or dataset changes, include a minimal CLI example in docs or

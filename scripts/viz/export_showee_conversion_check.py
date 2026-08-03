@@ -13,7 +13,7 @@ import numpy as np
 import torch
 import trimesh
 
-from emg2pose.realtime_local.mesh_visualizer import UmeTrackMeshForwarder
+from egoemg.realtime_local.mesh_visualizer import UmeTrackMeshForwarder
 from scripts.mano.infer_mano_for_egoemg import load_mano_layer
 
 

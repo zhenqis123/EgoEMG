@@ -13,36 +13,36 @@ egoemg_emg2pose_channel_indices: null
 egoemg_channel_interpolate: false
 
 module:
-  _target_: emg2pose.models.modules.sensingdynamics.SensingDynamicsModule
+  _target_: egoemg.models.modules.sensingdynamics.SensingDynamicsModule
   out_channels: 22
   featurizer:
-    _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsFeaturizer
+    _target_: egoemg.models.featurizers.sensingdynamics.SensingDynamicsFeaturizer
     out_channels: 256
     sample_rate: 2000.0
     lowpass_hz: 20.0
     lowpass_order: 4
     include_lowpass: true
     conv_blocks:
-      - _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
+      - _target_: egoemg.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
         in_channels: 2
         out_channels: 32
         kernel_size: [3, 5]
         stride: [2, 2]
         dropout_rate: 0.25
-      - _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
+      - _target_: egoemg.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
         in_channels: 32
         out_channels: 128
         kernel_size: [3, 5]
         stride: [2, 2]
         dropout_rate: 0.25
-      - _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
+      - _target_: egoemg.models.featurizers.sensingdynamics.SensingDynamicsConvBlock
         in_channels: 128
         out_channels: 256
         kernel_size: [3, 5]
         stride: [2, 1]
         dropout_rate: 0.25
   decoder:
-    _target_: emg2pose.models.featurizers.sensingdynamics.SensingDynamicsMLP
+    _target_: egoemg.models.featurizers.sensingdynamics.SensingDynamicsMLP
     in_channels: 256
     out_channels: 22
     hidden_channels: 512

@@ -17,7 +17,7 @@ run_eval() {
     mkdir -p "$output_dir"
     (
         cd "$output_dir"
-        python -m emg2pose.test_analysis \
+        python -m egoemg.test_analysis \
             "experiment=${experiment}" \
             "checkpoint=${hydra_checkpoint}" \
             +per_group_stats=true \

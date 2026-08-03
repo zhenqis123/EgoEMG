@@ -19,8 +19,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-from emg2pose.constants import JOINTS
-from emg2pose.datasets.pimforce_dataset import _pimforce_to_emg2pose_angles
+from egoemg.constants import JOINTS
+from egoemg.datasets.pimforce_dataset import _pimforce_to_emg2pose_angles
 
 matplotlib.use("Agg")
 

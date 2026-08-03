@@ -1,10 +1,10 @@
 # @package _global_
 to_tensor:
-  _target_: emg2pose.transforms.ExtractToTensor
+  _target_: egoemg.transforms.ExtractToTensor
   field: emg
 
 random_channel_mask:
-  _target_: emg2pose.transforms.RandomChannelMask
+  _target_: egoemg.transforms.RandomChannelMask
   mask_prob: 0.1
   min_masked: 0
   max_masked: null

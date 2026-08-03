@@ -1,6 +1,6 @@
 # @package _global_
 datamodule:
-  _target_: emg2pose.datamodule.WindowedEmgDataModule
+  _target_: egoemg.datamodule.WindowedEmgDataModule
   dataset_conf: ${dataset}
   window_length: 2_000  # 1 second windows for 2kHz EMG
   val_test_window_length: 10_000  # 20 sec windows for 2kHz EMG

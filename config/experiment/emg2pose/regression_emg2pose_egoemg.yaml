@@ -9,7 +9,7 @@
 #   - decoder in_channels: 84→86 (64 features + 22 state)
 #
 # Usage:
-#   python -m emg2pose.train \
+#   python -m egoemg.train \
 #     experiment=emg2pose/regression_emg2pose_egoemg \
 #     data_location=/path/to/EgoEMG_memmap
 
@@ -28,20 +28,20 @@ pretrained_strict: false
 
 # TDS featurizer (original architecture, outputs 64 dims)
 network:
-  _target_: emg2pose.models.featurizers.tds.TdsNetwork
+  _target_: egoemg.models.featurizers.tds.TdsNetwork
   conv_blocks:
-    - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+    - _target_: egoemg.models.featurizers.tds.Conv1dBlock
       in_channels: 16
       out_channels: 256
       kernel_size: 11
       stride: 5
-    - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+    - _target_: egoemg.models.featurizers.tds.Conv1dBlock
       in_channels: 256
       out_channels: 256
       kernel_size: 5
       stride: 2
   tds_stages:
-    - _target_: emg2pose.models.featurizers.tds.TdsStage
+    - _target_: egoemg.models.featurizers.tds.TdsStage
       in_channels: 256
       in_conv_kernel_width: 17
       in_conv_stride: 4
@@ -49,7 +49,7 @@ network:
       channels: 16
       feature_width: 16
       kernel_width: 9
-    - _target_: emg2pose.models.featurizers.tds.TdsStage
+    - _target_: egoemg.models.featurizers.tds.TdsStage
       in_channels: 256
       in_conv_kernel_width: 9
       in_conv_stride: 2
@@ -64,7 +64,7 @@ module:
   predict_vel: False
   state_condition: True
   decoder:
-    _target_: emg2pose.models.decoders.mlp.MLP
+    _target_: egoemg.models.decoders.mlp.MLP
     in_channels: 86  # 64 features + 22 state
     layer_sizes: [512, 512]
     out_channels: 22
@@ -81,7 +81,7 @@ optimizer:
 
 dataset:
   train:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -96,7 +96,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -112,7 +112,7 @@ dataset:
       dataset_name: egoemg
 
   val:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
@@ -127,7 +127,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}

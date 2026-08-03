@@ -34,7 +34,7 @@ for WL in $WL_LIST; do
     echo "[$(date)] WL=${WL}, BS=${BS}, stride=${STRIDE}"
     echo "[$(date)] Output: ${TRIAL_DIR}"
 
-    python -m emg2pose.train \
+    python -m egoemg.train \
       experiment=${EXPERIMENT} \
       egoemg_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap \
       trainer.devices=[${GPUS}] \

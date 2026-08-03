@@ -13,7 +13,7 @@ _DATA_COLLECT_ROOT = _PROJECT_ROOT / "data_collect"
 if _DATA_COLLECT_ROOT.exists() and str(_DATA_COLLECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_DATA_COLLECT_ROOT))
 
-from emg2pose.realtime_local.mesh_visualizer import angles_to_umetrack_mesh
+from egoemg.realtime_local.mesh_visualizer import angles_to_umetrack_mesh
 
 
 def main() -> None:

@@ -75,7 +75,7 @@ loss_weights:
 
 # ── Module ──────────────────────────────────────────────────────────────────
 module:
-  _target_: emg2pose.models.modules.resnet_vision.ResNetVisionPose
+  _target_: egoemg.models.modules.resnet_vision.ResNetVisionPose
   backbone_type: resnet152
   out_channels: 22
   pretrained: true

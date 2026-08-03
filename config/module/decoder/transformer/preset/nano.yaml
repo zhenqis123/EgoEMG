@@ -1,4 +1,4 @@
-_target_: emg2pose.models.decoders.transformer.TransformerDecoder
+_target_: egoemg.models.decoders.transformer.TransformerDecoder
 
 in_channels: 256  # Match featurizer output
 model_dim: 64

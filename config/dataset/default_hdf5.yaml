@@ -3,7 +3,7 @@
 # Set data_location to the HDF5 directory (e.g. data/emg2pose_data).
 dataset:
   train:
-    - _target_: emg2pose.datasets.multisession_emg2pose_dataset_legacy.SplitFilteredHdf5Dataset
+    - _target_: egoemg.datasets.multisession_emg2pose_dataset_legacy.SplitFilteredHdf5Dataset
       data_dir: ${data_location}
       allowed_splits: [train]
       window_length: ${datamodule.window_length}
@@ -13,7 +13,7 @@ dataset:
       skip_ik_failures: ${datamodule.skip_ik_failures}
       max_open_files: 32
   val:
-    - _target_: emg2pose.datasets.multisession_emg2pose_dataset_legacy.SplitFilteredHdf5Dataset
+    - _target_: egoemg.datasets.multisession_emg2pose_dataset_legacy.SplitFilteredHdf5Dataset
       data_dir: ${data_location}
       allowed_splits: [val]
       window_length: ${datamodule.val_test_window_length}
@@ -23,7 +23,7 @@ dataset:
       skip_ik_failures: ${datamodule.skip_ik_failures}
       max_open_files: 32
   test:
-    - _target_: emg2pose.datasets.multisession_emg2pose_dataset_legacy.SplitFilteredHdf5Dataset
+    - _target_: egoemg.datasets.multisession_emg2pose_dataset_legacy.SplitFilteredHdf5Dataset
       data_dir: ${data_location}
       allowed_splits: [test]
       window_length: ${datamodule.val_test_window_length}

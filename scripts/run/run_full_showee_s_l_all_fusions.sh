@@ -108,7 +108,7 @@ PY
     fi
     log "START ${name}"
     CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 \
-        python -m emg2pose.train "$@" "${resume_arg[@]}" \
+        python -m egoemg.train "$@" "${resume_arg[@]}" \
         train=true eval=false \
         "trainer.devices=${GPU_LIST}" \
         "hydra.run.dir=${job_dir}/hydra" \
@@ -145,7 +145,7 @@ preflight() {
     shift
     log "PREFLIGHT ${name}"
     CUDA_VISIBLE_DEVICES=0 \
-        python -m emg2pose.train "$@" \
+        python -m egoemg.train "$@" \
         train=true eval=false +trainer.fast_dev_run=true trainer.devices=[0] \
         num_workers=0 \
         "hydra.run.dir=${RUN_ROOT}/preflight/${name}" \

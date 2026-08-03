@@ -174,7 +174,7 @@ echo "Per-GPU batch size: $BATCH_SIZE"
 echo "Resume: epoch $source_epoch; additional epochs: $ADDITIONAL_EPOCHS; final epoch: $((target_max_epochs - 1))"
 echo "Learning rate: $BASE_LR -> $ETA_MIN"
 
-CUDA_VISIBLE_DEVICES=$GPU_INDEX "$PYTHON_BIN" -m emg2pose.train \
+CUDA_VISIBLE_DEVICES=$GPU_INDEX "$PYTHON_BIN" -m egoemg.train \
     experiment=fusion/fusion_allvision_s_egoemg_showee \
     +augmentation=batch_aug_best_v2 \
     module.vision_backbone_type=resnet152 \

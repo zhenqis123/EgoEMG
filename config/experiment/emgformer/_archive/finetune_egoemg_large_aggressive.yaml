@@ -39,14 +39,14 @@ ignore_head_tail_dims: 0
 
 dataset:
   train:
-    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+    - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: egoemg
       gesture_spaces: null
       angle_dim: 22
       norm_mode: per-dataset
       norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
       base:
-        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
         memmap_dir: ${egoemg_memmap_dir}
         window_length: 7_790
         stride: 780
@@ -57,14 +57,14 @@ dataset:
         emg_layout: ${egoemg_emg_layout}
         emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
         channel_interpolate: ${egoemg_channel_interpolate}
-    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+    - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: egoemg
       gesture_spaces: null
       angle_dim: 22
       norm_mode: per-dataset
       norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
       base:
-        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
         memmap_dir: ${egoemg_memmap_dir}
         window_length: 7_790
         stride: 780
@@ -76,14 +76,14 @@ dataset:
         emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
         channel_interpolate: ${egoemg_channel_interpolate}
   val:
-    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+    - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: egoemg
       gesture_spaces: null
       angle_dim: 22
       norm_mode: per-dataset
       norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
       base:
-        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
         memmap_dir: ${egoemg_memmap_dir}
         window_length: 7_790
         stride: 7_790
@@ -94,14 +94,14 @@ dataset:
         emg_layout: ${egoemg_emg_layout}
         emg2pose_channel_indices: ${egoemg_emg2pose_channel_indices}
         channel_interpolate: ${egoemg_channel_interpolate}
-    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+    - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: egoemg
       gesture_spaces: null
       angle_dim: 22
       norm_mode: per-dataset
       norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
       base:
-        _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+        _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
         memmap_dir: ${egoemg_memmap_dir}
         window_length: 7_790
         stride: 7_790

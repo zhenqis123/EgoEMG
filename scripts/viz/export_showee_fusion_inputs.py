@@ -18,8 +18,8 @@ import cv2
 import numpy as np
 import trimesh
 
-from emg2pose.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
-from emg2pose.realtime_local.mesh_visualizer import UmeTrackMeshForwarder
+from egoemg.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
+from egoemg.realtime_local.mesh_visualizer import UmeTrackMeshForwarder
 
 
 IMAGENET_MEAN = 255.0 * np.array([0.485, 0.456, 0.406], dtype=np.float32)

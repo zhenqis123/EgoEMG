@@ -36,7 +36,7 @@ echo ""
 mkdir -p "${BASE_LOG}"
 
 CMD=(
-python -m emg2pose.train
+python -m egoemg.train
   experiment=${BASE_CONFIG} \
   egoemg_memmap_dir=${EGOEMG_DATA} \
   trainer.devices=[${GPUS}] \

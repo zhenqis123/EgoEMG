@@ -10,8 +10,8 @@ Set-Location $RepoRoot
 $code = @"
 import sys, time, torch
 sys.path.insert(0, "data_collect")
-from emg2pose.realtime_local.serial import SerialProtocol
-from emg2pose.realtime_local.small_model import load_small_emgformer
+from egoemg.realtime_local.serial import SerialProtocol
+from egoemg.realtime_local.small_model import load_small_emgformer
 
 print("python", sys.executable)
 print("torch", torch.__version__, "cuda", torch.cuda.is_available())

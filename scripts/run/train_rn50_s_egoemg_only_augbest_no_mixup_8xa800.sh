@@ -41,7 +41,7 @@ mkdir -p "$OUTPUT_ROOT"
 cd "$REPO"
 echo "RN50-S fusion: EgoEMG only, WL12000/stride400/repeat2, no MixUp"
 
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 "$PYTHON_BIN" -m emg2pose.train \
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 "$PYTHON_BIN" -m egoemg.train \
   experiment=fusion/fusion_rn50_s_egoemg_only_augbest_no_mixup \
   "egoemg_memmap_dir=${EGOEMG_MEMMAP_DIR}" \
   "per_episode_crops_dir=${EGOEMG_CROPS_DIR}" \

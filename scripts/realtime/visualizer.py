@@ -14,7 +14,7 @@ from queue import Empty
 
 import numpy as np
 
-# UmeTrack 21-landmark ordering (from emg2pose/UmeTrack/lib/common/hand.py):
+# UmeTrack 21-landmark ordering (from egoemg/UmeTrack/lib/common/hand.py):
 #   0: Thumb TIP
 #   1: Index TIP
 #   2: Middle TIP

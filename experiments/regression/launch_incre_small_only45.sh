@@ -17,7 +17,7 @@ echo "=== Launching EMG2Pose Incre Small Training (ONLY Ep 4,5) ==="
 echo "Date: $(date)"
 echo "Project: $PROJECT_DIR"
 
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emgformer/regression_egoemg_incre_small_only45 \
   'trainer.devices=[0,1,2,3,4,5]' \
   +trainer.strategy=ddp \

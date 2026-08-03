@@ -3,7 +3,7 @@
 This script is intentionally dataset-centric. Unlike
 `scripts/viz/visualize_egoemg_mesh.py`, which validates the world-space MANO mesh
 overlay pipeline, this tool inspects the actual WiLoR training samples emitted
-by `emg2pose.datasets.egoemg_vision_dataset.EgoEmgVisionDataset`.
+by `egoemg.datasets.egoemg_vision_dataset.EgoEmgVisionDataset`.
 
 For each selected dataset sample it renders a side-by-side debug canvas:
 
@@ -46,7 +46,7 @@ os.environ.setdefault("XDG_CACHE_HOME", str(_runtime_cache_root / "xdg-cache"))
 Path(os.environ["MPLCONFIGDIR"]).mkdir(parents=True, exist_ok=True)
 Path(os.environ["XDG_CACHE_HOME"]).mkdir(parents=True, exist_ok=True)
 
-from emg2pose.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
+from egoemg.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
 
 
 JOINT_COLOR_BGR = (0, 220, 0)

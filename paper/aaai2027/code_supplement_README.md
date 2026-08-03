@@ -7,7 +7,7 @@ material.
 
 ## Contents
 
-- `emg2pose/`: dataset loaders and the EMGFormer, vision, and fusion models.
+- `egoemg/`: dataset loaders and the EMGFormer, vision, and fusion models.
 - `config/`: the layered Hydra configuration tree used by the experiments.
 - `config/experiment/fusion/`: vision-only baselines and the frozen/fine-tuned
   fusion configurations for all seven visual backbones in the paper.
@@ -42,7 +42,7 @@ pip install -e .
 ```bash
 python - <<'PY'
 from pathlib import Path
-from emg2pose.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
+from egoemg.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
 
 for hand in ("left", "right"):
     dataset = EgoEmgMemmapDataset(
@@ -70,7 +70,7 @@ angles.
 Hydra configurations can be composed without accessing the full dataset:
 
 ```bash
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=fusion/fusion_rn18_s_simple_frozen_augbest_30e \
   --cfg job
 ```

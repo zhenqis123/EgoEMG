@@ -22,7 +22,7 @@ for SIZE in small middle large; do
 
     echo "[$(date)] Size=${SIZE}, BS=${BS}"
 
-    python -m emg2pose.train \
+    python -m egoemg.train \
       experiment=${EXPERIMENT} \
       egoemg_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap \
       trainer.devices=[${GPUS}] \

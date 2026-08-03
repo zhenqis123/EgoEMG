@@ -92,7 +92,7 @@ fi
 # ── Run ──
 conda activate emg2pose_env
 
-python -u -m emg2pose.train \
+python -u -m egoemg.train \
     train=False eval=True \
     experiment=emgformer/eval_on_dataset \
     "checkpoint=$CKPT" \

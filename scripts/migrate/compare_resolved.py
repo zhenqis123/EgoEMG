@@ -11,7 +11,7 @@ Usage:
   # Or snapshot a single experiment for debugging
   python scripts/migrate/compare_resolved.py snapshot-one experiment=emgformer/regression_egoemg
 
-This composes each experiment the same way `python -m emg2pose.train` does
+This composes each experiment the same way `python -m egoemg.train` does
 (config_name=base, with the experiment override), resolves all interpolations,
 then flattens to {key: value} for stable diffing.
 

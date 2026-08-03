@@ -97,7 +97,7 @@ for model in "${MODEL_LIST[@]}"; do
     echo "  output:     $out/results.csv"
     echo ""
 
-    python -m emg2pose.test_analysis_fusion \
+    python -m egoemg.test_analysis_fusion \
         --config-name "$cfg" \
         --checkpoint "$ckpt" \
         --device "$DEVICE" \

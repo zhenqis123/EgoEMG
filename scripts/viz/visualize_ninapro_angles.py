@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import plotly.io as pio
 import scipy.io as sio
 
-import emg2pose.visualization as visualization
+import egoemg.visualization as visualization
 
 
 NINAPRO_TO_EMG2POSE = [
@@ -164,7 +164,7 @@ def _extract_emg2pose_angles(angles: np.ndarray, order_labels: list[str]) -> np.
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Visualize Ninapro angles using emg2pose/UmeTrack hand model."
+        description="Visualize Ninapro angles using egoemg/UmeTrack hand model."
     )
     parser.add_argument(
         "--mat",

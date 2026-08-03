@@ -1,12 +1,12 @@
 # @package _global_
 dataset:
   train:
-    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+    - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: pimforce
       gesture_spaces: ${gesture_spaces}
       angle_dim: 22
       base:
-        _target_: emg2pose.datasets.pimforce_memmap_dataset.PimforceMemmapDataset
+        _target_: egoemg.datasets.pimforce_memmap_dataset.PimforceMemmapDataset
         root_dir: ${data_root}/pimforce_v3_memmap
         window_length: ${datamodule.window_length}
         stride: ${datamodule.stride}

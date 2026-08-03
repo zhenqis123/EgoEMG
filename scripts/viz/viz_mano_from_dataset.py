@@ -42,7 +42,7 @@ MIRROR_X_3 = np.array([-1.0, 1.0, 1.0], dtype=np.float32)
 
 
 def make_dataset(hand: str, window_length: int = 1000):
-    from emg2pose.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
+    from egoemg.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
     return EgoEmgMemmapDataset(
         memmap_dir=MEMMAP_DIR,
         window_length=window_length,

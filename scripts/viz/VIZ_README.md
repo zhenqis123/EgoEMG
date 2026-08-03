@@ -11,7 +11,7 @@ This document covers all visualization capabilities in the EMG2Pose codebase, or
 | MANO inference results viz | `scripts/viz/viz_mano_results.py` | `.glb` |
 | MANO mesh overlay on webcam video | `scripts/viz/visualize_egoemg_mesh.py` | `.mp4` / `.png` |
 | EgoEMG vision dataset sample debug | `scripts/viz/visualize_egoemg_vision_dataset.py` | `.png` |
-| Plotly 3D hand mesh animation | `emg2pose/visualization.py` | `.html` |
+| Plotly 3D hand mesh animation | `egoemg/visualization.py` | `.html` |
 | EMG2Pose / PiMforce interactive viz | `scripts/visualization/visualize_emg2pose_dataset.py` | `.html` |
 | Ninapro angle animation | `scripts/visualization/visualize_ninapro_angles.py` | `.html` |
 | PiMforce per-joint plots | `scripts/visualization/visualize_pimforce_joints.py` | `.png` |
@@ -32,7 +32,7 @@ There are three distinct pipelines that convert model predictions or ground trut
 joint_angles (B,C,T) → skin_vertices() (UmeTrack LBS) → plotly.Mesh3d → animate_frames()
 ```
 
-**Key module:** `emg2pose/visualization.py`
+**Key module:** `egoemg/visualization.py`
 
 **Core functions:**
 - `get_plotly_animation_for_joint_angles(joint_angles, ...)` — end-to-end: angles → animated Plotly figure
@@ -44,9 +44,9 @@ joint_angles (B,C,T) → skin_vertices() (UmeTrack LBS) → plotly.Mesh3d → an
 **Used by:**
 - `scripts/visualization/visualize_emg2pose_dataset.py` — interactive dataset viz with optional model inference
 - `scripts/visualization/visualize_ninapro_angles.py` — Ninapro glove angle animation
-- `emg2pose/lightning.py` — `LandmarkDistances` metric uses forward kinematics for fingertip distance
+- `egoemg/lightning.py` — `LandmarkDistances` metric uses forward kinematics for fingertip distance
 
-**Dependencies:** `plotly`, `emg2pose.UmeTrack` (hand_skinning, HandModel)
+**Dependencies:** `plotly`, `egoemg.UmeTrack` (hand_skinning, HandModel)
 
 ---
 
@@ -222,7 +222,7 @@ Do not wrist-center `verts_local` before applying `world_R/world_t`.
 ### `scripts/viz/visualize_egoemg_vision_dataset.py` — EgoEMG Vision Dataset Debug
 
 Visualizes the actual samples produced by
-`emg2pose.datasets.egoemg_vision_dataset.EgoEmgVisionDataset`.
+`egoemg.datasets.egoemg_vision_dataset.EgoEmgVisionDataset`.
 
 This is different from `visualize_egoemg_mesh.py`:
 
@@ -312,13 +312,13 @@ Generates per-joint matplotlib time-series plots. Each of the 20 joints gets a s
 
 ## Module API Reference
 
-### `emg2pose/visualization.py`
+### `egoemg/visualization.py`
 
 Meta-origin module providing UmeTrack-based hand mesh visualization via Plotly.
 
 ```python
 # End-to-end animation
-from emg2pose.visualization import get_plotly_animation_for_joint_angles
+from egoemg.visualization import get_plotly_animation_for_joint_angles
 
 fig = get_plotly_animation_for_joint_angles(
     joint_angles,       # (T, 22) or (B, C, T) tensor/array
@@ -332,7 +332,7 @@ fig.write_html("output.html")
 
 ```python
 # Batched conversion to numpy frames (for video)
-from emg2pose.visualization import joint_angles_to_frames
+from egoemg.visualization import joint_angles_to_frames
 
 frames = joint_angles_to_frames(joint_angles, color="blue", flip=False)
 # frames: (T, H, W, 4) RGBA
@@ -340,7 +340,7 @@ frames = joint_angles_to_frames(joint_angles, color="blue", flip=False)
 
 ```python
 # Forward kinematics (joint angles → 3D landmarks)
-from emg2pose.kinematics import forward_kinematics
+from egoemg.kinematics import forward_kinematics
 
 landmarks = forward_kinematics(joint_angles)  # (..., 21, 3)
 ```
@@ -350,7 +350,7 @@ landmarks = forward_kinematics(joint_angles)  # (..., 21, 3)
 For EgoEMG MANO overlay, the repository-standard path is:
 
 ```python
-from emg2pose.visualization import EgoEmgVisualizer
+from egoemg.visualization import EgoEmgVisualizer
 
 vis = EgoEmgVisualizer(data_root, mano_model_path)
 overlay = vis.render_frame(
@@ -373,21 +373,21 @@ For left hand, they are fit on x-mirrored raw MANO marker vertices, so any extra
 
 ## Vision-to-Pose Visualization
 
-The vision-to-pose baseline (`Vision2PoseModule` in `emg2pose/models/vision2pose.py`) outputs **joint angles** (B, T, num_joints), the same format as EMG baselines. This means it can be visualized through **Pipeline A** (Plotly animation) directly.
+The vision-to-pose baseline (`Vision2PoseModule` in `egoemg/models/vision2pose.py`) outputs **joint angles** (B, T, num_joints), the same format as EMG baselines. This means it can be visualized through **Pipeline A** (Plotly animation) directly.
 
 ### How to visualize vision-to-pose predictions
 
 1. **Run inference and save predictions:**
    ```python
    # After training, load checkpoint and run test
-   from emg2pose.models.vision2pose import Vision2PoseModule
+   from egoemg.models.vision2pose import Vision2PoseModule
    model = Vision2PoseModule.load_from_checkpoint(ckpt_path)
    pred_angles = model(images)  # (B, T, num_joints)
    ```
 
 2. **Generate Plotly animation** (same as EMG baseline):
    ```python
-   from emg2pose.visualization import get_plotly_animation_for_joint_angles
+   from egoemg.visualization import get_plotly_animation_for_joint_angles
 
    fig = get_plotly_animation_for_joint_angles(pred_angles[0], flip=False)
    fig.write_html("vision2pose_pred.html")
@@ -461,10 +461,10 @@ MANO-to-UmeTrack angle conversion is done via optimization-based IK. See:
 | `visualization/visualize_emg2pose_dataset.py` | `plotly`, Hydra, Lightning |
 | `visualization/visualize_ninapro_angles.py` | `plotly`, `scipy.io` |
 | `visualization/visualize_pimforce_joints.py` | `matplotlib` |
-| `emg2pose/visualization.py` | `plotly`, UmeTrack, `joblib`, `PIL` |
-| `emg2pose/visualization/egoemg_vis.py` | `smplx`, `cv2`, `numpy` |
-| `emg2pose/visualization/mesh_renderer.py` | `cv2` only |
-| `emg2pose/kinematics.py` | `torch`, UmeTrack |
+| `egoemg/visualization.py` | `plotly`, UmeTrack, `joblib`, `PIL` |
+| `egoemg/visualization/egoemg_vis.py` | `smplx`, `cv2`, `numpy` |
+| `egoemg/visualization/mesh_renderer.py` | `cv2` only |
+| `egoemg/kinematics.py` | `torch`, UmeTrack |
 
 ---
 
@@ -494,5 +494,5 @@ Vertex indices: `[191, 88, 253, 708, 729, 144, 87, 295, 319, 220, 365, 407, 445,
 
 ### Joint ordering (22-dim)
 
-- Joints 0-19: finger joint angles (emg2pose ordering, see `emg2pose/constants.JOINTS`)
+- Joints 0-19: finger joint angles (emg2pose ordering, see `egoemg/constants.JOINTS`)
 - Joints 20-21: wrist angles (2-DoF: flexion/extension + radial/ulnar deviation)

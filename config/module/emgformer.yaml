@@ -4,7 +4,7 @@ defaults:
   - head: mlp
   - _self_
 
-_target_: emg2pose.models.modules.emgformer.Emg2PoseFormer
+_target_: egoemg.models.modules.emgformer.Emg2PoseFormer
 
 # Common settings
 out_channels: 22

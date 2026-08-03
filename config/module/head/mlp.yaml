@@ -1,4 +1,4 @@
-_target_: emg2pose.models.heads.mlp.MLPHead
+_target_: egoemg.models.heads.mlp.MLPHead
 
 in_channels: ${module.decoder.model_dim}
 out_channels: 22

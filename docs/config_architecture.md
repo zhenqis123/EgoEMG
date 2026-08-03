@@ -109,7 +109,7 @@ resolved identically to its pre-migration state, apart from the harmless
 ## Migration tooling
 
 - `scripts/migrate/compare_resolved.py` — composes each experiment via the same
-  path as `emg2pose.train`, flattens the resolved config to `{key: value}`, and
+  path as `egoemg.train`, flattens the resolved config to `{key: value}`, and
   diffs against a baseline snapshot. Subcommands: `snapshot`, `verify-one`,
   `diff`, `snapshot-one`.
 - `scripts/migrate/migrate_experiments.py` — batch-migrates a main line's

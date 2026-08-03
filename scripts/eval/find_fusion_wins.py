@@ -46,13 +46,13 @@ _PROJECT_DIR = _SCRIPT_DIR.parent
 if str(_PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(_PROJECT_DIR))
 
-from emg2pose.lightning import EmgPredictionModule
-from emg2pose.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
-from emg2pose.kinematics import forward_kinematics, load_default_hand_model
-from emg2pose.models.heads.mlp import MLPHead
-from emg2pose.models.modules.emgformer import Emg2PoseFormer
-from emg2pose.models.modules.vit_vision import VisionViTPose
-from emg2pose.models.modules.resnet_vision import ResNetVisionPose
+from egoemg.lightning import EmgPredictionModule
+from egoemg.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
+from egoemg.kinematics import forward_kinematics, load_default_hand_model
+from egoemg.models.heads.mlp import MLPHead
+from egoemg.models.modules.emgformer import Emg2PoseFormer
+from egoemg.models.modules.vit_vision import VisionViTPose
+from egoemg.models.modules.resnet_vision import ResNetVisionPose
 
 # ── UmeTrack / reprojection imports (matching verify_training_with_emg.py) ─────
 _DATA_ROOT = Path("./data/EgoEMG")
@@ -65,9 +65,9 @@ from reproject_hand_keypoints import (
 )
 
 # ── UmeTrack hand model for skinning ─────────────────────────────────────────
-from emg2pose.UmeTrack.lib.common.hand import HandModel
-from emg2pose.UmeTrack.lib.common.hand_skinning import _skin_points
-from emg2pose.UmeTrack.lib.tracker.video_pose_data import load_hand_model_from_dict
+from egoemg.UmeTrack.lib.common.hand import HandModel
+from egoemg.UmeTrack.lib.common.hand_skinning import _skin_points
+from egoemg.UmeTrack.lib.tracker.video_pose_data import load_hand_model_from_dict
 
 import smplx
 import trimesh
@@ -617,7 +617,7 @@ def render_mesh_shaded_overlay(frame_bgr, verts_world, faces, T_W_C, K_use,
 
 def fk_keypoints_world(joint_angles_20: np.ndarray, flip: bool = False):
     """Compute 21 FK keypoints in local FK space, with optional X-flip."""
-    from emg2pose.kinematics import forward_kinematics
+    from egoemg.kinematics import forward_kinematics
     hand_model = _get_fk_hand_model()
     # forward_kinematics expects (B, J, T) — add time dim
     ja_t = torch.from_numpy(np.asarray(joint_angles_20, dtype=np.float32))

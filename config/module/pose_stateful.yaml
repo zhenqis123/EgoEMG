@@ -1,4 +1,4 @@
-_target_: emg2pose.models.modules.pose.StatePoseModule
+_target_: egoemg.models.modules.pose.StatePoseModule
 predict_vel: False
 state_condition: True
 

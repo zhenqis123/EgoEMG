@@ -41,7 +41,7 @@ run_job() {
   mkdir -p "$output_root"
   echo "[$(date '+%F %T')] START ${name}: batch=${per_gpu_batch}, epochs=${MAX_EPOCHS}, lr=${BASE_LR}->${ETA_MIN}"
 
-  CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 "$PYTHON_BIN" -m emg2pose.train \
+  CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 "$PYTHON_BIN" -m egoemg.train \
     "experiment=${experiment}" \
     "egoemg_memmap_dir=${EGOEMG_MEMMAP_DIR}" \
     "per_episode_crops_dir=${EGOEMG_CROPS_DIR}" \

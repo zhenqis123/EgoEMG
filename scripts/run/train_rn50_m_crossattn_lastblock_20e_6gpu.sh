@@ -11,7 +11,7 @@ DEVICES='[0,1,2,3,4,5]'
 
 mkdir -p "$RUN_DIR"
 cd "$REPO"
-CUDA_VISIBLE_DEVICES="$GPUS" python -m emg2pose.train \
+CUDA_VISIBLE_DEVICES="$GPUS" python -m egoemg.train \
   experiment=fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_20e \
   batch_size=300 val_batch_size=300 \
   train=true eval=false "trainer.devices=${DEVICES}" trainer.max_epochs=20 \

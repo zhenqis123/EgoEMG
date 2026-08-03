@@ -12,7 +12,7 @@ run_job() {
   local run_dir="${LOG_ROOT}/${run_name}/train"
   mkdir -p "$run_dir"
   echo "[$(date '+%F %T')] START ${experiment}" | tee "$run_dir/console.log"
-  CUDA_VISIBLE_DEVICES="$GPUS" python -m emg2pose.train \
+  CUDA_VISIBLE_DEVICES="$GPUS" python -m egoemg.train \
     "experiment=${experiment}" \
     batch_size=200 val_batch_size=200 \
     train=true eval=false "trainer.devices=${DEVICES}" trainer.max_epochs=50 \

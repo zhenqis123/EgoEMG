@@ -22,8 +22,8 @@ _DATA_COLLECT_ROOT = _PROJECT_ROOT / "data_collect"
 if _DATA_COLLECT_ROOT.exists() and str(_DATA_COLLECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_DATA_COLLECT_ROOT))
 
-from emg2pose.realtime_local.mano_mapper import RuntimeManoToUmeTrackMapper
-from emg2pose.realtime_local.mesh_visualizer import RealtimeMeshVisualizer
+from egoemg.realtime_local.mano_mapper import RuntimeManoToUmeTrackMapper
+from egoemg.realtime_local.mesh_visualizer import RealtimeMeshVisualizer
 from wilor_mini.pipelines.wilor_hand_pose3d_estimation_pipeline import (
     WiLorHandPose3dEstimationPipeline,
 )
@@ -101,7 +101,7 @@ class UmeTrackLbfgsFitter:
         lr: float,
         history_size: int,
     ) -> None:
-        from emg2pose.kinematics import apply_to_hand_model, load_default_hand_model
+        from egoemg.kinematics import apply_to_hand_model, load_default_hand_model
 
         self.mano_layer = mano_layer
         self.device = device
@@ -197,7 +197,7 @@ class UmeTrackLbfgsFitter:
         return self.angle_min + torch.sigmoid(raw) * (self.angle_max - self.angle_min)
 
     def _umetrack_landmarks(self, angles20: torch.Tensor) -> torch.Tensor:
-        from emg2pose.UmeTrack.lib.common.hand_skinning import skin_landmarks
+        from egoemg.UmeTrack.lib.common.hand_skinning import skin_landmarks
 
         wrist_tf = torch.eye(4, dtype=torch.float32, device=self.device).unsqueeze(0)
         return skin_landmarks(self.hand_model, angles20.float(), wrist_transforms=wrist_tf)
@@ -247,7 +247,7 @@ class RealtimeDualMeshVisualizer:
         except Exception as exc:  # pragma: no cover
             raise RuntimeError(f"Open3D import failed: {exc}") from exc
 
-        from emg2pose.realtime_local.mesh_visualizer import UmeTrackMeshForwarder
+        from egoemg.realtime_local.mesh_visualizer import UmeTrackMeshForwarder
 
         self._o3d = o3d
         self._queue: queue.Queue[WilorMapperResult] = queue.Queue(maxsize=max_queue)

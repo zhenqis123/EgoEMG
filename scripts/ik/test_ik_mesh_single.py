@@ -89,8 +89,8 @@ def mano_fk(mano_layer, pose, beta, device, no_grad=True):
 
 def umetrack_fk(hand_model, angles_22, device):
     """UmeTrack FK. Returns landmarks (21,3), mesh verts (788,3)."""
-    from emg2pose.kinematics import apply_to_hand_model, broadcast_hand_model_to
-    from emg2pose.UmeTrack.lib.common.hand_skinning import (
+    from egoemg.kinematics import apply_to_hand_model, broadcast_hand_model_to
+    from egoemg.UmeTrack.lib.common.hand_skinning import (
         _get_skinned_vertices, _hand_skinning_transform, _lbs, skin_landmarks,
     )
     hm = broadcast_hand_model_to(hand_model, (1,))
@@ -227,7 +227,7 @@ def main() -> None:
 
     # ── UmeTrack setup ────────────────────────────────────────────────────
 
-    from emg2pose.kinematics import apply_to_hand_model, load_default_hand_model
+    from egoemg.kinematics import apply_to_hand_model, load_default_hand_model
     hand_model = load_default_hand_model()
     hand_model = apply_to_hand_model(hand_model, lambda t: t.float().to(device))
     faces_u = hand_model.mesh_triangles.cpu().numpy()

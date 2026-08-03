@@ -39,7 +39,7 @@ run_size() {
   echo "  Pretrained: ${pretrained_ckpt}"
   echo "============================================"
 
-  python -m emg2pose.train \
+  python -m egoemg.train \
     experiment="emgformer/regression_emgformer_${size}_aggressive_egoemg" \
     "${COMMON_OPTS[@]}" \
     trainer.devices="${devices}" \
@@ -72,7 +72,7 @@ bash experiments/fusion/train_vit_small_emgfusion_center.sh
 echo "============================================"
 echo "  Running: vision_wilor_vit_scratch"
 echo "============================================"
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=fusion/vision_wilor_vit_scratch \
   egoemg_memmap_dir="${EGOEMG_MEMMAP}" \
   per_episode_crops_dir="data/EgoEMG_v2_crops" \

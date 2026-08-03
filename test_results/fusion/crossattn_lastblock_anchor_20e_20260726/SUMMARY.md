@@ -58,9 +58,9 @@ Anchor (crossattn lastblock + zero-EMG anchor loss):
 - diagnostic: `test_results/fusion/crossattn_lastblock_anchor_20e_20260726/diagnostics_ep18.json`
 
 ## Code changes (zero-EMG anchor loss)
-- `emg2pose/models/modules/mid_fusion.py`: `MidFusionPoseFormer.compute_zero_emg_delta()`
-- `emg2pose/lightning.py`: `anchor_loss_weight` hparam + anchor L2 term in `_step`
-- `emg2pose/train.py`: pass `anchor_loss_weight` from config
+- `egoemg/models/modules/mid_fusion.py`: `MidFusionPoseFormer.compute_zero_emg_delta()`
+- `egoemg/lightning.py`: `anchor_loss_weight` hparam + anchor L2 term in `_step`
+- `egoemg/train.py`: pass `anchor_loss_weight` from config
 
 ## Conclusion
 Goal achieved: fusion clearly beats vision-only on the unified center-frame

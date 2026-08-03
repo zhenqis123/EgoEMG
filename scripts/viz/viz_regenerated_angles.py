@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from emg2pose.UmeTrack.lib.common.hand_skinning import skin_landmarks
-from emg2pose.kinematics import broadcast_hand_model_to, load_default_hand_model
+from egoemg.UmeTrack.lib.common.hand_skinning import skin_landmarks
+from egoemg.kinematics import broadcast_hand_model_to, load_default_hand_model
 
 ANGLE_NAMES = [
     "Thumb\nCMC_FE", "Thumb\nCMC_AA", "Thumb\nMCP_FE", "Thumb\nIP_FE",

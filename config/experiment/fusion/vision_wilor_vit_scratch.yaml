@@ -79,7 +79,7 @@ loss_weights:
 
 # ── Module ──────────────────────────────────────────────────────────────────
 module:
-  _target_: emg2pose.models.modules.wilor_vit.WiLoRViTPose
+  _target_: egoemg.models.modules.wilor_vit.WiLoRViTPose
   out_channels: 22
   pretrained_path: null
   head_hidden: 512

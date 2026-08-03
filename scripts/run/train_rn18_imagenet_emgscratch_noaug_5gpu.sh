@@ -18,7 +18,7 @@ mkdir -p "$OUTPUT_ROOT"
 cd "$REPO"
 
 CUDA_VISIBLE_DEVICES=${VISIBLE_GPUS} \
-    python -m emg2pose.train \
+    python -m egoemg.train \
     experiment=fusion/fusion_rn18_s_imagenet_emgscratch_noaug \
     "batch_size=${BATCH_SIZE}" "val_batch_size=${BATCH_SIZE}" \
     "optimizer.lr=${BASE_LR}" \

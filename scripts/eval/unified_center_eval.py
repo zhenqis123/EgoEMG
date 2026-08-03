@@ -183,7 +183,7 @@ def eval_model_on_centers(
         if legacy_indices is not None:
             channel_indices = [int(index) - 1 for index in legacy_indices]
 
-    from emg2pose.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
+    from egoemg.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
 
     # Create a dataset instance for data access (we'll call _getitem_center_supervised manually)
     ds = EgoEmgMemmapDataset(
@@ -230,7 +230,7 @@ def eval_model_on_centers(
     )
 
     # Load model
-    from emg2pose.train import make_lightning_module
+    from egoemg.train import make_lightning_module
 
     module = make_lightning_module(cfg)
     kwargs = {

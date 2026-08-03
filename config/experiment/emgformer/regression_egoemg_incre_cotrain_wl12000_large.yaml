@@ -2,7 +2,7 @@
 # EMGFormer-S + EgoEMG_incre cotrain at WL=12000 with V2 best augmentation.
 # Same as middle cotrain but with large decoder preset.
 # Usage:
-#   python -m emg2pose.train experiment=emgformer/regression_egoemg_incre_cotrain_wl12000_large \
+#   python -m egoemg.train experiment=emgformer/regression_egoemg_incre_cotrain_wl12000_large \
 #     augmentation=batch_aug_best_v2 trainer.devices=[2,3,4,5] trainer.max_epochs=150
 
 defaults:
@@ -26,12 +26,12 @@ module:
   provide_initial_pos: false
   featurizer:
     conv_blocks:
-      - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+      - _target_: egoemg.models.featurizers.tds.Conv1dBlock
         in_channels: 8
         out_channels: 256
         kernel_size: 11
         stride: 5
-      - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+      - _target_: egoemg.models.featurizers.tds.Conv1dBlock
         in_channels: 256
         out_channels: 256
         kernel_size: 5
@@ -47,7 +47,7 @@ num_workers: 12
 
 dataset:
   train:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -62,7 +62,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
       jitter: true
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -77,7 +77,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
       jitter: true
-    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+    - _target_: egoemg.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
       memmap_dir: ${egoemg_incre_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -92,7 +92,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       jitter: true
   val:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
@@ -106,7 +106,7 @@ dataset:
       norm_mode: ${datamodule.norm_mode}
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}

@@ -110,7 +110,7 @@ DONE_COUNT=$(find "${OUTPUT_DIR}" -maxdepth 1 -name '*.done' | wc -l)
 echo "Episodes with features: ${DONE_COUNT} / ${N_EPISODES}"
 echo ""
 echo "Train with:"
-echo "  python -m emg2pose.train_vision \\"
+echo "  python -m egoemg.train_vision \\"
 echo "    data_location=<memmap_dir> \\"
 echo "    cached_vit_features_dir=${OUTPUT_DIR} \\"
 echo "    supervision_target=vision_only_angle \\"

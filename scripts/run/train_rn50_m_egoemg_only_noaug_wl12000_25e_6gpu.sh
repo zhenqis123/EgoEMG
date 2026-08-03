@@ -11,7 +11,7 @@ RUN_DIR="${LOG_ROOT}/${RUN_NAME}/train"
 
 mkdir -p "$RUN_DIR"
 cd "$REPO"
-CUDA_VISIBLE_DEVICES="$GPUS" python -m emg2pose.train \
+CUDA_VISIBLE_DEVICES="$GPUS" python -m egoemg.train \
   experiment=fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_25e \
   batch_size=220 val_batch_size=220 \
   train=true eval=false "trainer.devices=${DEVICES}" trainer.max_epochs=25 \

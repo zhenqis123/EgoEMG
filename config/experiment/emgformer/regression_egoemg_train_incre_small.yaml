@@ -22,7 +22,7 @@ datamodule:
 
 dataset:
   train:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -37,7 +37,7 @@ dataset:
       dataset_name: egoemg
       jitter: true
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -54,7 +54,7 @@ dataset:
       jitter: true
 
   val:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
@@ -68,7 +68,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
@@ -87,7 +87,7 @@ dataset:
 
 callbacks:
   - _target_: pytorch_lightning.callbacks.LearningRateMonitor
-  - _target_: emg2pose.callbacks.LocalFileModelCheckpoint
+  - _target_: egoemg.callbacks.LocalFileModelCheckpoint
     monitor: ${monitor_metric}
     mode: ${monitor_mode}
     save_top_k: 3

@@ -105,7 +105,7 @@ run_job() {
 
     log "START ${name}: epoch ${epoch} -> ${TARGET_LAST_EPOCH}; resume=${resume_ckpt}"
     CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 \
-        python -m emg2pose.train \
+        python -m egoemg.train \
         experiment=fusion/fusion_allvision_s_egoemg_showee \
         +augmentation=batch_aug_best_v2 \
         "module.vision_backbone_type=${backbone}" \

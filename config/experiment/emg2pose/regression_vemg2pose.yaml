@@ -35,7 +35,7 @@ datamodule:
 
 dataset:
   train:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790
@@ -45,7 +45,7 @@ dataset:
       skip_ik_failures: True
       allowed_splits: [train]
   val:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790
@@ -55,7 +55,7 @@ dataset:
       skip_ik_failures: True
       allowed_splits: [val]
   test:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790
@@ -76,24 +76,24 @@ matmul_precision: high
 
 transforms:
   train:
-    - _target_: emg2pose.transforms.ExtractField
+    - _target_: egoemg.transforms.ExtractField
       field: "emg"
-    - _target_: emg2pose.transforms.RotationAugmentation
+    - _target_: egoemg.transforms.RotationAugmentation
       channel_dim: -1
-    - _target_: emg2pose.transforms.ToFloatTensor
-    - _target_: emg2pose.transforms.RandomChannelMask
+    - _target_: egoemg.transforms.ToFloatTensor
+    - _target_: egoemg.transforms.RandomChannelMask
       mask_prob: 0.5
       min_masked: 0
       max_masked: null
       channel_dim: -1
       mask_value: 0.0
-    - _target_: emg2pose.transforms.RandomTimeMask
+    - _target_: egoemg.transforms.RandomTimeMask
       max_mask_size: 1000
       num_masks: 2
       min_mask_size: 0
       time_dim: 0
       mask_value: 0.0
-    - _target_: emg2pose.transforms.RandomFrequencyMask
+    - _target_: egoemg.transforms.RandomFrequencyMask
       max_mask_size: 128
       num_masks: 2
       min_mask_size: 16

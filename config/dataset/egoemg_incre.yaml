@@ -3,7 +3,7 @@
 # Merge into egoemg_angle_regression by creating a combined experiment config.
 dataset:
   train:
-    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+    - _target_: egoemg.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
       memmap_dir: ${egoemg_incre_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}

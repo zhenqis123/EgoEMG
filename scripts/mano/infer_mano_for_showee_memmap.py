@@ -11,7 +11,7 @@ from typing import Any
 import h5py
 import numpy as np
 
-from emg2pose.realtime_local.mano_mapper import RuntimeManoToUmeTrackMapper
+from egoemg.realtime_local.mano_mapper import RuntimeManoToUmeTrackMapper
 from scripts.mano.infer_mano_for_egoemg import (
     _save_glb,
     build_viz_records,

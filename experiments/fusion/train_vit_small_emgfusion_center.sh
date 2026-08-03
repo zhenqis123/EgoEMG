@@ -14,7 +14,7 @@ CROPS_LMDB="data/EgoEMG_v2_crops"
 BEST_VISION_VIT="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/vision_vit_small/version_0/checkpoints/vit-small-epoch=179-val_mae=0.1053.ckpt"
 BEST_FUSION_VIT="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/vit_small_emgfusion_center/version_7/checkpoints/vit-small-centerfusion-epoch=088-val_mae=0.0968.ckpt"
 
-python -m emg2pose.train \
+python -m egoemg.train \
   ${CONFIG} \
   egoemg_memmap_dir="${EGOEMG_MEMMAP}" \
   per_episode_crops_dir="${CROPS_LMDB}" \

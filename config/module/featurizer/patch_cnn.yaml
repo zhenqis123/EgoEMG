@@ -1,9 +1,9 @@
-_target_: emg2pose.models.featurizers.patch_cnn.PatchCNNFeaturizer
+_target_: egoemg.models.featurizers.patch_cnn.PatchCNNFeaturizer
 patch_size: 100
 pad_mode: drop
 pool_type: mean
 conv_blocks:
-  - _target_: emg2pose.models.featurizers.patch_cnn.PatchCNNBlock
+  - _target_: egoemg.models.featurizers.patch_cnn.PatchCNNBlock
     in_channels: 1
     out_channels: 32
     kernel_size: 7
@@ -11,7 +11,7 @@ conv_blocks:
     padding: 0
     activation: gelu
     pool_kernel_size: 3
-  - _target_: emg2pose.models.featurizers.patch_cnn.PatchCNNBlock
+  - _target_: egoemg.models.featurizers.patch_cnn.PatchCNNBlock
     in_channels: 32
     out_channels: 96
     kernel_size: 5
@@ -19,7 +19,7 @@ conv_blocks:
     padding: 0
     activation: gelu
     pool_kernel_size: 3
-  - _target_: emg2pose.models.featurizers.patch_cnn.PatchCNNBlock
+  - _target_: egoemg.models.featurizers.patch_cnn.PatchCNNBlock
     in_channels: 96
     out_channels: 256
     kernel_size: 3

@@ -19,8 +19,8 @@ import torch
 
 _SCRIPT_DIR = Path(__file__).resolve().parent
 
-from emg2pose.kinematics import apply_to_hand_model, load_default_hand_model
-from emg2pose.UmeTrack.lib.common.hand_skinning import (
+from egoemg.kinematics import apply_to_hand_model, load_default_hand_model
+from egoemg.UmeTrack.lib.common.hand_skinning import (
     _get_skinned_vertices,
     _hand_skinning_transform,
     _lbs,
@@ -30,7 +30,7 @@ from emg2pose.UmeTrack.lib.common.hand_skinning import (
 
 def umetrack_fk(hand_model, angles_22, device):
     """UmeTrack FK: 22D angles → landmarks (21,3) + mesh verts."""
-    from emg2pose.kinematics import broadcast_hand_model_to
+    from egoemg.kinematics import broadcast_hand_model_to
 
     hm = broadcast_hand_model_to(hand_model, (1,))
     hm = apply_to_hand_model(hm, lambda t: t.float())

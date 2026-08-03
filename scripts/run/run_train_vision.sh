@@ -40,7 +40,7 @@ echo "Memmap dir:    ${MEMMAP_DIR}"
 echo "Crops dir:     ${CROPS_DIR}"
 echo "=============================================="
 
-python -m emg2pose.train_vision \
+python -m egoemg.train_vision \
     +experiment="${EXPERIMENT}" \
     train=True \
     eval=True \

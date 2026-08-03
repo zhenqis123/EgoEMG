@@ -12,7 +12,7 @@ defaults:
 module:
   recon_head: null
   angle_head:
-    _target_: emg2pose.models.heads.mlp.MLPHead
+    _target_: egoemg.models.heads.mlp.MLPHead
     in_channels: 256
     out_channels: 22
     hidden_sizes: [512]

@@ -15,8 +15,8 @@ import torch
 from omegaconf import DictConfig, OmegaConf
 from torch.utils.data import DataLoader
 
-from emg2pose.datamodule import make_data_module
-from emg2pose.lightning import EmgPredictionModule
+from egoemg.datamodule import make_data_module
+from egoemg.lightning import EmgPredictionModule
 
 log = logging.getLogger(__name__)
 

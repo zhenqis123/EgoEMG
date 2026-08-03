@@ -25,7 +25,7 @@ jobs:
     - name: Install packages
       run: |
         pip install -e .
-        pip install -e emg2pose/UmeTrack
+        pip install -e egoemg/UmeTrack
         pip install flake8 pytest
 
     - name: Lint with flake8
@@ -37,4 +37,4 @@ jobs:
 
     - name: Run unit tests
       run: |
-        pytest emg2pose/tests -q
+        pytest egoemg/tests -q

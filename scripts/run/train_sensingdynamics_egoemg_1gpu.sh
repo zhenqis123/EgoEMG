@@ -14,7 +14,7 @@ cd "${REPO_ROOT}"
 export EMG2POSE_ROOT="${REPO_ROOT}"
 export CUDA_VISIBLE_DEVICES="${GPU}"
 
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emg2pose/regression_sensingdynamics_egoemg \
   train=true eval=true \
   trainer.devices='[0]' \

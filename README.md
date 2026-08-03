@@ -10,7 +10,7 @@ A dataset of Surface electromyography (sEMG) recordings paired with ground-truth
 
 
 ## Data
-The entire dataset has $25,253$ HDF5 files, each consisting of time-aligned, 2kHz sEMG and joint angles for a single hand in a single stage. Each stage is ~1 minute. There are $193$ participants, spanning $370$ hours and $29$ stages. `emg2pose.datasets.emg2pose_dataset.Emg2PoseSessionData` offers a programmatic read-only interface into the HDF5 session files.
+The entire dataset has $25,253$ HDF5 files, each consisting of time-aligned, 2kHz sEMG and joint angles for a single hand in a single stage. Each stage is ~1 minute. There are $193$ participants, spanning $370$ hours and $29$ stages. `egoemg.datasets.emg2pose_dataset.Emg2PoseSessionData` offers a programmatic read-only interface into the HDF5 session files.
 
 The full dataset statistics are as follows:
 
@@ -49,7 +49,7 @@ conda activate emg2pose
 pip install -e .
 
 # Install the UmeTrack package (for forward kinematics and mesh skinning)
-pip install -e emg2pose/UmeTrack
+pip install -e egoemg/UmeTrack
 ```
 
 ### Data and External Dependency Paths
@@ -139,7 +139,7 @@ This runs training for the `tracking_vemg2pose` experiment for $5$ epochs as a s
 It also runs evaluation on the validation and test splits -- again as a sanity check.
 
 ```shell
-python -m emg2pose.train \
+python -m egoemg.train \
 train=True \
 eval=True \
 experiment=tracking_vemg2pose \
@@ -169,7 +169,7 @@ tar -xvf emg2pose_dataset.tar
 To launch an example, full training run for the `vemg2pose (tracking)` setting, use the following:
 
 ```shell
-python -m emg2pose.train \
+python -m egoemg.train \
 train=True \
 eval=True \
 experiment=tracking_vemg2pose \
@@ -206,7 +206,7 @@ Note that the `experiment` option to this script should match the checkpoint's e
 
 ```shell
 # Run train.py with train=False to isolate basic evaluation logic
-python -m emg2pose.train \
+python -m egoemg.train \
 train=False \
 eval=True \
 data_location="${HOME}/emg2pose_dataset" \
@@ -220,7 +220,7 @@ the following script.
 Note that the `experiment` option to this script should match the checkpoint's experiment.
 
 ```shell
-python -m emg2pose.test_analysis \
+python -m egoemg.test_analysis \
 data_location="${HOME}/emg2pose_dataset" \
 experiment=tracking_vemg2pose \
 checkpoint="${HOME}/emg2pose_model_checkpoints/tracking_vemg2pose.ckpt"
@@ -234,7 +234,7 @@ available via the training/eval entrypoints documented in the sections above.
 For EgoEMG vision supervision and WiLoR fine-tuning, see
 `docs/egoemg_wilor_training.md`. This covers the memmap dataset, all-intra
 video decoding, sidecar vision index generation, dataset visualization, and the
-vision/fusion training/evaluation flow (run via `python -m emg2pose.train`
+vision/fusion training/evaluation flow (run via `python -m egoemg.train`
 with a fusion or vision-only experiment config).
 
 ## Workspace Organization
@@ -249,7 +249,7 @@ emg2pose is CC-BY-NC-SA-4.0 licensed, as found in the LICENSE file.
 
 emg2pose is also licensed subject to the licenses of its code dependencies.
 
-UmeTrack is licensed under Attribution-NonCommercial 4.0 International, as found in the emg2pose/UmeTrack/LICENSE and [GitHub](https://github.com/facebookresearch/UmeTrack/blob/main/LICENSE).
+UmeTrack is licensed under Attribution-NonCommercial 4.0 International, as found in the egoemg/UmeTrack/LICENSE and [GitHub](https://github.com/facebookresearch/UmeTrack/blob/main/LICENSE).
 
 ## Citing emg2pose
 

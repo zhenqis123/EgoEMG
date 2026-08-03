@@ -150,7 +150,7 @@ def build_command(
     ]
     if extra_overrides:
         overrides.extend(extra_overrides)
-    return [sys.executable, "-m", "emg2pose.train", *overrides]
+    return [sys.executable, "-m", "egoemg.train", *overrides]
 
 
 def parse_user_mae(stdout: str) -> float | None:

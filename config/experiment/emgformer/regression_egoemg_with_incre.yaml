@@ -13,7 +13,7 @@ datamodule:
 
 dataset:
   train:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -28,7 +28,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
       jitter: true
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -46,7 +46,7 @@ dataset:
       jitter: true
 
   val:
-    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+    - _target_: egoemg.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
       memmap_dir: ${egoemg_incre_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}

@@ -32,12 +32,12 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_PROJECT_ROOT))
 sys.path.insert(0, str(_PROJECT_ROOT / "scripts"))
 
-from emg2pose.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
-from emg2pose.datasets.layout_utils import (
+from egoemg.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
+from egoemg.datasets.layout_utils import (
     get_sparse_ring_interp_matrix,
     place_sparse_channels,
 )
-from emg2pose.lightning import EmgPredictionModule
+from egoemg.lightning import EmgPredictionModule
 
 from realtime.inference import (
     InferenceEngine,

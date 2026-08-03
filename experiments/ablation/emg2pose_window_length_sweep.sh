@@ -43,7 +43,7 @@ for WL in 1000 3000 5000 7000 9000 11000 13000 15000 17000 19000 21000 23000 250
     echo "[$(date)] WL=${WL}, BS=${BS}, stride=${STRIDE}"
     echo "[$(date)] Output: ${TRIAL_DIR}"
 
-    python -m emg2pose.train \
+    python -m egoemg.train \
       experiment=${EXPERIMENT} \
       'trainer.devices=['"${GPUS}"']' \
       +trainer.strategy=ddp \

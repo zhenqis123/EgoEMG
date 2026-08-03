@@ -200,7 +200,7 @@ def build_command(
     noise_apply_prob: float,
     extra_overrides: list[str] | None = None,
 ) -> list[str]:
-    """Build the ``python -m emg2pose.train`` command for a single trial."""
+    """Build the ``python -m egoemg.train`` command for a single trial."""
     overrides = [
         f"experiment={EXPERIMENT}",
         f"egoemg_memmap_dir={egoemg_memmap_dir}",
@@ -242,7 +242,7 @@ def build_command(
     if extra_overrides:
         overrides.extend(extra_overrides)
 
-    return [sys.executable, "-m", "emg2pose.train", *overrides]
+    return [sys.executable, "-m", "egoemg.train", *overrides]
 
 
 def parse_val_mae(stdout: str) -> float | None:

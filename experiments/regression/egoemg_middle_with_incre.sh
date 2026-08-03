@@ -12,7 +12,7 @@ EPOCHS=150
 SEED=42
 LOG_DIR="logs/regression/egoemg_middle_with_incre"
 
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=${EXPERIMENT} \
   egoemg_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap \
   trainer.devices=[${GPUS}] \

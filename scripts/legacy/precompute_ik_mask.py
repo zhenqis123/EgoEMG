@@ -15,8 +15,8 @@ import h5py
 import numpy as np
 from tqdm import tqdm
 
-from emg2pose.datasets.emg2pose_dataset_legacy import Emg2PoseSessionData
-from emg2pose.utils import get_contiguous_ones, get_ik_failures_mask
+from egoemg.datasets.emg2pose_dataset_legacy import Emg2PoseSessionData
+from egoemg.utils import get_contiguous_ones, get_ik_failures_mask
 
 
 def parse_args() -> argparse.Namespace:

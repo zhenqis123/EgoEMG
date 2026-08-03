@@ -6,7 +6,7 @@
 dataset:
   train:
     - &egoemg_train
-      _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+      _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -32,7 +32,7 @@ dataset:
       center_target_only: ${oc.select:center_target_only,false}
     - <<: *egoemg_train
       target_hand: right
-    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+    - _target_: egoemg.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
       memmap_dir: ${egoemg_incre_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}

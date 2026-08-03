@@ -1,4 +1,4 @@
-_target_: emg2pose.models.decoders.channel_time_rope_transformer.CyRoPETransformerEncoder
+_target_: egoemg.models.decoders.channel_time_rope_transformer.CyRoPETransformerEncoder
 model_dim: 256
 num_heads: 4
 num_layers: 3

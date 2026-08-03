@@ -1,4 +1,4 @@
-_target_: emg2pose.models.featurizers.tds.TdsNetwork
+_target_: egoemg.models.featurizers.tds.TdsNetwork
 
 se:
   enable: true
@@ -7,19 +7,19 @@ se:
   mode: global
 
 conv_blocks:
-  - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+  - _target_: egoemg.models.featurizers.tds.Conv1dBlock
     in_channels: 16
     out_channels: 256
     kernel_size: 11
     stride: 5
-  - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+  - _target_: egoemg.models.featurizers.tds.Conv1dBlock
     in_channels: 256
     out_channels: 256
     kernel_size: 5
     stride: 2
 
 tds_stages:
-  - _target_: emg2pose.models.featurizers.tds.TdsStage
+  - _target_: egoemg.models.featurizers.tds.TdsStage
     in_channels: 256
     in_conv_kernel_width: 9
     in_conv_stride: 5
@@ -28,7 +28,7 @@ tds_stages:
     channels: 8
     feature_width: 32
     kernel_width: 5
-  - _target_: emg2pose.models.featurizers.tds.TdsStage
+  - _target_: egoemg.models.featurizers.tds.TdsStage
     in_channels: 256
     in_conv_kernel_width: 3
     in_conv_stride: 1

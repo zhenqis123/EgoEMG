@@ -3,7 +3,7 @@
 # Double normalization bug on egoemg also fixed in dataset config.
 #
 # Usage:
-#   python -m emg2pose.pretrain \
+#   python -m egoemg.pretrain \
 #     experiment=emgformer/resume_no_mask \
 #     datamodule.window_length=7_790
 
@@ -36,7 +36,7 @@ module:
     in_channels: 256
   recon_head: null
   angle_head:
-    _target_: emg2pose.models.heads.mlp.MLPHead
+    _target_: egoemg.models.heads.mlp.MLPHead
     in_channels: 256
     out_channels: 22
     hidden_sizes: [512]

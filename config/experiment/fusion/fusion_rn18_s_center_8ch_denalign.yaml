@@ -8,7 +8,7 @@
 # fusion_rn18_s_center_8ch.yaml — isolates the temporal-sampling variable.
 #
 # Usage:
-#   python -m emg2pose.train experiment=fusion/fusion_rn18_s_center_8ch_denalign \
+#   python -m egoemg.train experiment=fusion/fusion_rn18_s_center_8ch_denalign \
 #     trainer.devices=[2,3,4,5] trainer.max_epochs=150
 defaults:
   - /lineage/fusion

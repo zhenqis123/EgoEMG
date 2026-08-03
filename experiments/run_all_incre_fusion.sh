@@ -62,7 +62,7 @@ if should_run 1; then
   echo "================================================================"
   LOG_DIR="logs/regression/egoemg_small_incre_cotrain_${TS}"
   mkdir -p test_results/egoemg_emgformer_small_incre_cotrain/checkpoints
-  python -m emg2pose.train \
+  python -m egoemg.train \
     experiment=emgformer/regression_egoemg_incre_cotrain_wl12000_small \
     augmentation=batch_aug_best_v2 \
     "trainer.devices=[${GPUS}]" \
@@ -89,7 +89,7 @@ if should_run 2; then
   echo "[Step 2/6] EMGFormer-L + incre cotrain (150 epochs)"
   echo "================================================================"
   LOG_DIR="logs/regression/egoemg_large_incre_cotrain_${TS}"
-  python -m emg2pose.train \
+  python -m egoemg.train \
     experiment=emgformer/regression_egoemg_incre_cotrain_wl12000_large \
     augmentation=batch_aug_best_v2 \
     "trainer.devices=[${GPUS}]" \
@@ -111,7 +111,7 @@ if should_run 3; then
   if [ ! -f "test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt" ]; then
     echo "[Step 3] ERROR: S checkpoint not found! Run Step 1 first."; exit 1
   fi
-  python -m emg2pose.train \
+  python -m egoemg.train \
     experiment=fusion/fusion_rn18_s_center_8ch \
     +augmentation=batch_aug_best_v2 \
     "trainer.devices=[${GPUS}]" \
@@ -131,7 +131,7 @@ if should_run 4; then
   if [ ! -f "test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt" ]; then
     echo "[Step 4] ERROR: S checkpoint not found!"; exit 1
   fi
-  python -m emg2pose.train \
+  python -m egoemg.train \
     experiment=fusion/fusion_vits_s_center_8ch \
     +augmentation=batch_aug_best_v2 \
     "trainer.devices=[${GPUS}]" \
@@ -151,7 +151,7 @@ if should_run 5; then
   if [ ! -f "test_results/egoemg_emgformer_middle_incre_cotrain/checkpoints/best.ckpt" ]; then
     echo "[Step 5] ERROR: M checkpoint not found!"; exit 1
   fi
-  python -m emg2pose.train \
+  python -m egoemg.train \
     experiment=fusion/fusion_rn18_m_center_8ch \
     +augmentation=batch_aug_best_v2 \
     "trainer.devices=[${GPUS}]" \
@@ -171,7 +171,7 @@ if should_run 6; then
   if [ ! -f "test_results/egoemg_emgformer_middle_incre_cotrain/checkpoints/best.ckpt" ]; then
     echo "[Step 6] ERROR: M checkpoint not found!"; exit 1
   fi
-  python -m emg2pose.train \
+  python -m egoemg.train \
     experiment=fusion/fusion_vits_m_center_8ch \
     +augmentation=batch_aug_best_v2 \
     "trainer.devices=[${GPUS}]" \

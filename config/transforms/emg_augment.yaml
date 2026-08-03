@@ -1,6 +1,6 @@
 # @package _global_
 baseline_drift:
-  _target_: emg2pose.transforms.BaselineDrift
+  _target_: egoemg.transforms.BaselineDrift
   sample_rate: 2000.0
   min_freq: 0.05
   max_freq: 0.5
@@ -13,7 +13,7 @@ baseline_drift:
   channel_independent: true
 
 powerline_noise:
-  _target_: emg2pose.transforms.PowerlineNoise
+  _target_: egoemg.transforms.PowerlineNoise
   sample_rate: 2000.0
   base_freqs: [50.0, 60.0]
   max_harmonic: 3
@@ -24,7 +24,7 @@ powerline_noise:
   channel_independent: true
 
 local_time_warp:
-  _target_: emg2pose.transforms.LocalTimeWarp
+  _target_: egoemg.transforms.LocalTimeWarp
   min_num_knots: 5
   max_num_knots: 8
   max_jitter_ratio: 0.2
@@ -32,7 +32,7 @@ local_time_warp:
   time_dim: 0
 
 magnitude_warping:
-  _target_: emg2pose.transforms.RandomMagnitudeWarping
+  _target_: egoemg.transforms.RandomMagnitudeWarping
   sigma: 0.15
   num_knots: 12
   mask_prob: 0.5

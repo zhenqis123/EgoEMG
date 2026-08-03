@@ -10,7 +10,7 @@ mkdir -p "${RUN_DIR}"
 cd "${REPO}"
 
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 \
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=fusion/fusion_rn18_s_egoemg_only_augbest_pretrained \
   batch_size=200 \
   val_batch_size=200 \

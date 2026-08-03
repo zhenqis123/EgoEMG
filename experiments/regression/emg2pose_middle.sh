@@ -11,7 +11,7 @@ EPOCHS=250
 SEED=42
 LOG_DIR="logs/regression/emg2pose_middle"
 
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=${EXPERIMENT} \
   trainer.devices=[${GPUS}] \
   +trainer.strategy=ddp \

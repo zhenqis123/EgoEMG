@@ -6,9 +6,9 @@ Provides FK computation, joint limits, and Manus→UmeTrack landmark mapping.
 import torch
 import numpy as np
 from pathlib import Path
-from emg2pose.kinematics import load_default_hand_model
-from emg2pose.UmeTrack.lib.common.hand_skinning import skin_landmarks
-from emg2pose.UmeTrack.lib.common.hand import HandModel
+from egoemg.kinematics import load_default_hand_model
+from egoemg.UmeTrack.lib.common.hand_skinning import skin_landmarks
+from egoemg.UmeTrack.lib.common.hand import HandModel
 
 # ── UmeTrack landmark → Manus keypoint (25 nodes) mapping ──
 # Manus 25 nodes: nodes 5,10,15,20 are Manus-specific extra nodes

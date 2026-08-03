@@ -1,6 +1,6 @@
 # @package _global_
 to_tensor:
-  _target_: emg2pose.transforms.ExtractToTensor
+  _target_: egoemg.transforms.ExtractToTensor
   field: emg
   
 selected_channels:
@@ -16,11 +16,11 @@ selected_channels:
 transforms:
   train:
     - ${to_tensor}
-    - _target_: emg2pose.transforms.RotationAugmentation
-    - _target_: emg2pose.transforms.ChannelSelect
+    - _target_: egoemg.transforms.RotationAugmentation
+    - _target_: egoemg.transforms.ChannelSelect
       indices: ${selected_channels}
   val:
     - ${to_tensor}
-    - _target_: emg2pose.transforms.ChannelSelect
+    - _target_: egoemg.transforms.ChannelSelect
       indices: ${selected_channels}
   test: ${transforms.val}

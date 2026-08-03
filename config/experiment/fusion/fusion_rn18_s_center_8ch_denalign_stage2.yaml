@@ -8,7 +8,7 @@
 # so cosine T_max=100 restarts from peak lr. Epoch counts 0->99 (=epochs 101->200).
 #
 # Usage:
-#   python -m emg2pose.train experiment=fusion/fusion_rn18_s_center_8ch_denalign_stage2 \
+#   python -m egoemg.train experiment=fusion/fusion_rn18_s_center_8ch_denalign_stage2 \
 #     trainer.devices=[1,2,3,4,5] trainer.max_epochs=100
 defaults:
   - /lineage/fusion

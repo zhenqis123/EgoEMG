@@ -8,7 +8,7 @@ OUTPUT_ROOT=${REPO}/logs/20260727/${RUN_NAME}/train
 cd "${REPO}"
 mkdir -p "${OUTPUT_ROOT}"
 
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 python -m emg2pose.train \
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 python -m egoemg.train \
   experiment=fusion/fusion_rn50_s_egoemg_only_noaug_wl12000_lr1e-4_50e \
   batch_size=200 val_batch_size=200 \
   train=true eval=false \

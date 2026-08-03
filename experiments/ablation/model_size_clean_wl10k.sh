@@ -30,7 +30,7 @@ for MODEL_SPEC in "${MODELS[@]}"; do
 
     echo "[$(date)] Model=${NAME}, dim=${DIM}, heads=${HEADS}, layers=${LAYERS}, ffn=${FFN}"
 
-    python -m emg2pose.train \
+    python -m egoemg.train \
       experiment=${EXPERIMENT} \
       transforms=emgformer_regression_no_aug \
       trainer.devices=[${GPUS}] \

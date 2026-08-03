@@ -34,15 +34,15 @@ import torch
 PROJ_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJ_ROOT))
 
-from emg2pose.UmeTrack.lib.common.hand import HandModel
-from emg2pose.UmeTrack.lib.common.hand_skinning import _skin_points
-from emg2pose.UmeTrack.lib.tracker.video_pose_data import load_hand_model_from_dict
+from egoemg.UmeTrack.lib.common.hand import HandModel
+from egoemg.UmeTrack.lib.common.hand_skinning import _skin_points
+from egoemg.UmeTrack.lib.tracker.video_pose_data import load_hand_model_from_dict
 import json
 
 MANO_ASSETS_ROOT = Path("../HandVQVAE/assets/mano")
 
 
-# ── FK mesh skinning (same logic as emg2pose.visualization.skin_mesh_from_angles) ─
+# ── FK mesh skinning (same logic as egoemg.visualization.skin_mesh_from_angles) ─
 
 def _load_default_hand_model() -> HandModel:
     umetrack_dir = Path(__file__).resolve().parent.parent / "emg2pose" / "UmeTrack"
@@ -222,7 +222,7 @@ def main():
     crop_dir.mkdir(parents=True, exist_ok=True)
 
     # ── Load dataset ──────────────────────────────────────────────────────
-    from emg2pose.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
+    from egoemg.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
 
     modalities = ["emg", "joint_angles", "mano", "labels"]
     if args.add_video_fields:
@@ -281,7 +281,7 @@ def main():
         mano_beta = np.array(sample["mano_beta"], copy=True)
         ja_mid = np.array(sample["joint_angles"][:, center], copy=True)
 
-        # FK mesh (same angle semantics as emg2pose.visualization)
+        # FK mesh (same angle semantics as egoemg.visualization)
         fk_verts, fk_faces = skin_mesh_from_angles(
             joint_angles=ja_mid[:20],
             flip=(args.hand == "left"),

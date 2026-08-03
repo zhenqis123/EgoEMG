@@ -1,4 +1,4 @@
-_target_: emg2pose.models.modules.wilor_vit.WiLoRViTPose
+_target_: egoemg.models.modules.wilor_vit.WiLoRViTPose
 
 out_channels: 22
 head_hidden: 512

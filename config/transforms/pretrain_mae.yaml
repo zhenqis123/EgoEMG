@@ -1,7 +1,7 @@
 # @package _global_
 transforms:
   train:
-    - _target_: emg2pose.transforms.RotationAugmentation
+    - _target_: egoemg.transforms.RotationAugmentation
       channel_dim: -1
   val: []
   test: ${transforms.val}

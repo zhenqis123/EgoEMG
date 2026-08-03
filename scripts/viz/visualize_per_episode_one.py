@@ -14,7 +14,7 @@ os.environ.setdefault("MPLCONFIGDIR", str(_runtime_cache_root / "mpl"))
 os.environ.setdefault("XDG_CACHE_HOME", str(_runtime_cache_root / "xdg-cache"))
 
 import cv2
-from emg2pose.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
+from egoemg.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
 
 MEMMAP_DIR = Path("data/EgoEMG_v2_memmap")
 VIDEO_ROOT = Path("./data/EgoEMG")

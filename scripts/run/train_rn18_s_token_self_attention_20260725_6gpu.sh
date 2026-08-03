@@ -12,7 +12,7 @@ CONTINUE_CKPT=${REPO}/logs/20260725/fusion_rn18_s_token_self_attention_direct_po
 
 mkdir -p "$RUN_DIR"
 cd "$REPO"
-CUDA_VISIBLE_DEVICES="$GPUS" python -m emg2pose.train \
+CUDA_VISIBLE_DEVICES="$GPUS" python -m egoemg.train \
   experiment=fusion/fusion_rn18_s_token_self_attention_egoemg_only \
   batch_size=360 val_batch_size=360 \
   checkpoint="\"${CONTINUE_CKPT}\"" \

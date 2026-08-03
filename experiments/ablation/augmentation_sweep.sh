@@ -39,7 +39,7 @@ run_exp() {
   local logdir="${BASE_LOG}/$(printf 'exp_%02d' $id)_${name}"
   mkdir -p "${logdir}"
   echo "=== Exp ${id}: ${name} ==="
-  python -m emg2pose.train \
+  python -m egoemg.train \
     $(common_args $id $name) \
     ${aug_overrides} \
     2>&1 | tee ${logdir}/console.log

@@ -3,7 +3,7 @@
 # Loads pretrain checkpoint, initializes 22-dim angle head, ignores last 2 dims for supervision.
 #
 # Usage:
-#   python -m emg2pose.train \
+#   python -m egoemg.train \
 #     experiment=emgformer/finetune_emg2pose_middle_standard
 #     datamodule.window_length=7_790
 
@@ -45,7 +45,7 @@ ignore_head_tail_dims: 2
 
 dataset:
   train:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${data_location}
       window_length: 7_790
@@ -55,7 +55,7 @@ dataset:
       skip_ik_failures: false
       allowed_splits: [train]
   val:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${data_location}
       window_length: 7_790
@@ -65,7 +65,7 @@ dataset:
       skip_ik_failures: false
       allowed_splits: [val]
   test:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${data_location}
       window_length: 7_790

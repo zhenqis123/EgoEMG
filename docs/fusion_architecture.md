@@ -6,11 +6,11 @@ Post-decoder EMG+Vision fusion model (`MidFusionPoseFormer`) takes an EMG window
 vision frame, extracts features from each modality independently, processes EMG through a
 TransformerDecoder, then fuses decoder output with vision features before the prediction head.
 
-**Training entrypoint:** `python -m emg2pose.train`
+**Training entrypoint:** `python -m egoemg.train`
 
 **Config:** `experiment=fusion/vision_resnet_small_emgfusion_center` (see `config/experiment/fusion/`)
 
-**Source:** `emg2pose/models/modules/mid_fusion.py`
+**Source:** `egoemg/models/modules/mid_fusion.py`
 
 ---
 
@@ -249,13 +249,13 @@ Additional metrics logged: per-finger MAE, velocity, accuracy, fingertip distanc
 
 ```bash
 # Full training
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=fusion/vision_resnet_small_emgfusion_center \
   trainer.devices=[1] \
   num_workers=8
 
 # Quick dry-run (1 epoch, no workers)
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=fusion/vision_resnet_small_emgfusion_center \
   max_epochs=1 trainer.max_epochs=1 \
   trainer.devices=[1] \

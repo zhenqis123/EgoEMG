@@ -36,7 +36,7 @@ if str(WILOR_PATH) not in sys.path:
 
 from decord import VideoReader, gpu
 
-from emg2pose.datasets.egoemg_vision_dataset import (
+from egoemg.datasets.egoemg_vision_dataset import (
     _build_intrinsics_and_frame_mapper,
     _expand_to_aspect_ratio,
     _generate_image_patch_cv2,
@@ -45,7 +45,7 @@ from emg2pose.datasets.egoemg_vision_dataset import (
     _map_processed_points_to_raw,
     _project_world_points,
 )
-from emg2pose.video_io import resolve_allintra_video_path
+from egoemg.video_io import resolve_allintra_video_path
 
 def _decode_bytes(arr: np.ndarray) -> list[str]:
     return [x.decode("utf-8") if isinstance(x, bytes) else str(x) for x in arr]

@@ -24,7 +24,7 @@ datamodule:
 dataset:
   train:
     # ── EgoEMG left hand (all splits) ──
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -40,7 +40,7 @@ dataset:
       dataset_name: egoemg
       jitter: true
     # ── EgoEMG right hand (all splits) ──
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -57,7 +57,7 @@ dataset:
       dataset_name: egoemg
       jitter: true
     # ── Incre train (Ep 3-5 前80%, EXCLUDING Ep 0-2) ──
-    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+    - _target_: egoemg.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
       memmap_dir: ${egoemg_incre_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -78,7 +78,7 @@ dataset:
 
   val:
     # ── Incre val (Ep 3-5 后20%) ──
-    - _target_: emg2pose.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
+    - _target_: egoemg.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
       memmap_dir: ${egoemg_incre_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}

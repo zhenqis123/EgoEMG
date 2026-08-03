@@ -8,7 +8,7 @@ defaults:
   - _self_
 
 # checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/pretrain/2026-01-31/00-59-16/tensorboard/version_0/checkpoints/epoch=499-step=110500.ckpt
-# checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-24/16-06-41_emg2pose/emg2pose/version_0/checkpoints/best-val_mae=val_mae=0.2264.ckpt
+# checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-24/16-06-41_emg2pose/egoemg/version_0/checkpoints/best-val_mae=val_mae=0.2264.ckpt
 pretrained_strict: true
 module:
   provide_initial_pos: False
@@ -43,7 +43,7 @@ optimizer:
 
 dataset:
   train:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790
@@ -53,7 +53,7 @@ dataset:
       skip_ik_failures: False
       allowed_splits: [train]
   val:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790
@@ -63,7 +63,7 @@ dataset:
       skip_ik_failures: False
       allowed_splits: [val]
   test:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790

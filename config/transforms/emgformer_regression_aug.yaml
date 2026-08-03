@@ -1,29 +1,29 @@
 # @package _global_
 transforms:
   train:
-    - _target_: emg2pose.transforms.ExtractStructuredFields
-    - _target_: emg2pose.transforms.LocalTimeWarp
+    - _target_: egoemg.transforms.ExtractStructuredFields
+    - _target_: egoemg.transforms.LocalTimeWarp
       min_num_knots: 5
       max_num_knots: 8
       max_jitter_ratio: 0.2
       mask_prob: 0.5
       time_dim: 0
-    - _target_: emg2pose.transforms.RotationAugmentation
+    - _target_: egoemg.transforms.RotationAugmentation
       channel_dim: -1
-    - _target_: emg2pose.transforms.RandomGain
+    - _target_: egoemg.transforms.RandomGain
       min_gain: 0.7
       max_gain: 1.4
       mask_prob: 0.5
       per_channel: true
       channel_dim: -1
-    - _target_: emg2pose.transforms.ToFloatTensor
-    - _target_: emg2pose.transforms.RandomChannelMask
+    - _target_: egoemg.transforms.ToFloatTensor
+    - _target_: egoemg.transforms.RandomChannelMask
       mask_prob: 0.5
       min_masked: 0
       max_masked: null
       channel_dim: -1
       mask_value: 0.0
-    - _target_: emg2pose.transforms.ToSpectrogram
+    - _target_: egoemg.transforms.ToSpectrogram
       n_fft: 256
       hop_length: 64
       win_length: null
@@ -32,7 +32,7 @@ transforms:
       onesided: true
       time_dim: 0
       channel_dim: -1
-    - _target_: emg2pose.transforms.RandomSpectrogramBandTimeMask
+    - _target_: egoemg.transforms.RandomSpectrogramBandTimeMask
       sample_rate: 2000.0
       n_fft: 256
       bands_hz:
@@ -49,7 +49,7 @@ transforms:
       min_time_mask_size: 0
       per_channel: true
       mask_value: 0.0
-    - _target_: emg2pose.transforms.FromSpectrogram
+    - _target_: egoemg.transforms.FromSpectrogram
       n_fft: 256
       hop_length: 64
       win_length: null
@@ -59,7 +59,7 @@ transforms:
       time_dim: 0
       channel_dim: -1
   val:
-    - _target_: emg2pose.transforms.ExtractField
+    - _target_: egoemg.transforms.ExtractField
       field: "emg"
-    - _target_: emg2pose.transforms.ToFloatTensor
+    - _target_: egoemg.transforms.ToFloatTensor
   test: ${transforms.val}

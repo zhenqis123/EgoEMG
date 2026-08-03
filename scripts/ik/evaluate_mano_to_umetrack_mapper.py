@@ -15,9 +15,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from emg2pose.kinematics import apply_to_hand_model, broadcast_hand_model_to
-from emg2pose.realtime_local.mano_mapper import RuntimeManoToUmeTrackMapper
-from emg2pose.UmeTrack.lib.common.hand_skinning import (
+from egoemg.kinematics import apply_to_hand_model, broadcast_hand_model_to
+from egoemg.realtime_local.mano_mapper import RuntimeManoToUmeTrackMapper
+from egoemg.UmeTrack.lib.common.hand_skinning import (
     _get_skinned_vertices,
     _hand_skinning_transform,
     _lbs,
@@ -60,7 +60,7 @@ def _umetrack_fk(
 
 
 def _load_hand_model(device: torch.device):
-    from emg2pose.kinematics import load_default_hand_model
+    from egoemg.kinematics import load_default_hand_model
 
     hand_model = load_default_hand_model()
     return apply_to_hand_model(hand_model, lambda t: t.float().to(device))

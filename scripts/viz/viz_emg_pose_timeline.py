@@ -36,7 +36,7 @@ MANO_JOINT_NAMES = [
 
 
 def make_dataset(hand: str, window_length: int):
-    from emg2pose.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
+    from egoemg.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
     return EgoEmgMemmapDataset(
         memmap_dir=MEMMAP_DIR,
         window_length=window_length,

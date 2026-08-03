@@ -21,7 +21,7 @@ if str(WILOR_PATH) not in sys.path:
 
 from wilor.configs import get_config
 
-from emg2pose.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
+from egoemg.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
 
 
 TENSOR_FIELDS = ["global_orient", "hand_pose", "betas", "joint_angles"]

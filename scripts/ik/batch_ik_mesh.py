@@ -133,8 +133,8 @@ def mano_fk_batch(mano_layer, pose, beta):
 def umetrack_fk_batch(hand_model, angles_22, device, *,
                       return_mesh=True, return_landmarks=False):
     """Batched UmeTrack FK. Returns mesh (B,788,3) and/or landmarks (B,21,3)."""
-    from emg2pose.kinematics import apply_to_hand_model, broadcast_hand_model_to
-    from emg2pose.UmeTrack.lib.common.hand_skinning import (
+    from egoemg.kinematics import apply_to_hand_model, broadcast_hand_model_to
+    from egoemg.UmeTrack.lib.common.hand_skinning import (
         _get_skinned_vertices, _hand_skinning_transform, _lbs, skin_landmarks,
     )
     B = angles_22.shape[0]
@@ -334,7 +334,7 @@ def _worker(gpu_id, memmap_root, hand, start_frame, end_frame,
                        shape=(manifest["total_rows"], 20))
 
     # MANO setup.
-    from emg2pose.kinematics import apply_to_hand_model, load_default_hand_model
+    from egoemg.kinematics import apply_to_hand_model, load_default_hand_model
 
     mano_layer = ManoLayer(
         rot_mode="axisang", side="right",

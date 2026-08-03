@@ -18,7 +18,7 @@ echo "Augmentation: batch_aug_best_v2 (val_mae=0.2446, -1.4% vs baseline)"
 echo "GPU: ${GPUS} | Epochs: ${EPOCHS} | Seed: ${SEED}"
 echo ""
 
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emgformer/regression_egoemg_window_ablation_wl12000 \
   egoemg_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap \
   "trainer.devices=[${GPUS}]" \

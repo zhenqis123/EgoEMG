@@ -109,7 +109,7 @@ def build_command(
         "batch_augmentation.gaussian_noise.max_snr_db=50.0000",
         "batch_augmentation.gaussian_noise.apply_prob=0.7761",
     ]
-    return [sys.executable, "-m", "emg2pose.train", *overrides]
+    return [sys.executable, "-m", "egoemg.train", *overrides]
 
 
 def parse_val_mae(stdout: str) -> float | None:

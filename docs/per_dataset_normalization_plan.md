@@ -26,7 +26,7 @@ Create a statistics file that stores per-dataset mean and std:
 
 ### 2. Add `norm_mode: per-dataset` Support
 
-**File**: `emg2pose/lightning_pretrain.py`
+**File**: `egoemg/lightning_pretrain.py`
 
 Add `_apply_per_dataset_norm` method:
 
@@ -83,7 +83,7 @@ per_dataset_norm_stats_path: assets/per_dataset_norm_stats.json
 
 ### 4. Create Statistics Generation Script
 
-**File**: `emg2pose/scripts/generate_per_dataset_norm_stats.py`
+**File**: `egoemg/scripts/generate_per_dataset_norm_stats.py`
 
 ```python
 """Generate per-dataset normalization statistics."""
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
 The `PretrainWrapperDataset` already adds `dataset_name` to each sample. Need to ensure the collate function preserves it.
 
-**File**: `emg2pose/datamodule.py` or custom collate
+**File**: `egoemg/datamodule.py` or custom collate
 
 ```python
 def collate_fn(batch):

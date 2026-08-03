@@ -1,6 +1,6 @@
 # @package _global_
 to_tensor:
-  _target_: emg2pose.transforms.ExtractToTensor
+  _target_: egoemg.transforms.ExtractToTensor
   field: emg
 
 transforms:

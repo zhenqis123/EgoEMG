@@ -1,14 +1,14 @@
 # @package _global_
 # No augmentation — just extract EMG and convert to tensor.
 to_tensor:
-  _target_: emg2pose.transforms.ExtractToTensor
+  _target_: egoemg.transforms.ExtractToTensor
   field: emg
 
 transforms:
   train:
-  - _target_: emg2pose.transforms.ExtractField
+  - _target_: egoemg.transforms.ExtractField
     field: emg
-  - _target_: emg2pose.transforms.ToFloatTensor
+  - _target_: egoemg.transforms.ToFloatTensor
   val:
   - ${to_tensor}
   test: ${transforms.val}

@@ -1,9 +1,9 @@
 # @package _global_
 to_tensor:
-  _target_: emg2pose.transforms.ExtractToTensor
+  _target_: egoemg.transforms.ExtractToTensor
   field: emg
 channel_downsampling:
-  _target_: emg2pose.transforms.ChannelDownsampling
+  _target_: egoemg.transforms.ChannelDownsampling
   downsampling: 2
 
 

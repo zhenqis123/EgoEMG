@@ -90,7 +90,7 @@ def make_objective(gpus, max_epochs, log_root, fixed_seed):
         seed = fixed_seed if fixed_seed is not None else trial.number
 
         cmd = [
-            sys.executable, "-m", "emg2pose.train",
+            sys.executable, "-m", "egoemg.train",
             f"experiment={EXPERIMENT}",
             f"egoemg_memmap_dir={DATA_DIR}",
             f"trainer.devices=[{gpus}]",

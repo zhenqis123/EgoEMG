@@ -20,8 +20,8 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from emg2pose.datasets.layout_utils import place_sparse_channels
-from emg2pose.lightning import EmgPredictionModule
+from egoemg.datasets.layout_utils import place_sparse_channels
+from egoemg.lightning import EmgPredictionModule
 
 from .filter import RealtimeFFTFilter
 
@@ -32,7 +32,7 @@ _HW_TO_16CH = np.array([10, 12, 0, 1, 2, 4, 5, 6])
 
 def _build_ring_interp_matrix(target_positions: np.ndarray, target_channels: int) -> np.ndarray:
     """Build sparse ring interpolation weight matrix.
-    Identical to emg2pose.datasets.layout_utils.get_sparse_ring_interp_matrix.
+    Identical to egoemg.datasets.layout_utils.get_sparse_ring_interp_matrix.
     Returns weights of shape (K, target_channels) where K = len(target_positions).
     """
     pos = np.asarray(target_positions, dtype=np.int64)
@@ -277,7 +277,7 @@ class InferenceEngine:
     def _init_fk(self) -> None:
         """Initialize UmeTrack hand model for FK landmark computation."""
         try:
-            from emg2pose.kinematics import (
+            from egoemg.kinematics import (
                 apply_to_hand_model,
                 load_default_hand_model,
             )
@@ -439,8 +439,8 @@ class InferenceEngine:
 
     def _compute_landmarks(self, angles: np.ndarray) -> np.ndarray:
         """Compute 21 hand keypoints from joint angles via UmeTrack FK."""
-        from emg2pose.UmeTrack.lib.common.hand_skinning import skin_landmarks
-        from emg2pose.kinematics import apply_to_hand_model, broadcast_hand_model_to
+        from egoemg.UmeTrack.lib.common.hand_skinning import skin_landmarks
+        from egoemg.kinematics import apply_to_hand_model, broadcast_hand_model_to
 
         hm = broadcast_hand_model_to(self._hand_model, (1,))
         hm = apply_to_hand_model(hm, lambda t: t.float())

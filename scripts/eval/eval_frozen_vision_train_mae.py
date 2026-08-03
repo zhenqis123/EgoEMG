@@ -14,8 +14,8 @@ import torch.distributed as dist
 from omegaconf import OmegaConf
 from torch.utils.data import DataLoader, DistributedSampler
 
-from emg2pose.datamodule import make_data_module
-from emg2pose.train import make_lightning_module
+from egoemg.datamodule import make_data_module
+from egoemg.train import make_lightning_module
 
 
 def main() -> None:

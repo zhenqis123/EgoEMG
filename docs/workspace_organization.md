@@ -6,7 +6,7 @@ follow these boundaries.
 
 ## What should stay versioned
 
-- `emg2pose/`: source code, datasets wrappers, training/eval entrypoints.
+- `egoemg/`: source code, datasets wrappers, training/eval entrypoints.
 - `config/`: Hydra configs that define reproducible experiments.
 - `scripts/`: reusable utilities for conversion, evaluation, and visualization.
 - `docs/`: protocols, design notes, and workflow references.
@@ -36,7 +36,7 @@ source-of-truth project content.
 The repo root should stay biased toward stable entrypoints:
 
 - project metadata: `README.md`, `setup.py`, `environment.yml`
-- core directories: `emg2pose/`, `config/`, `scripts/`, `docs/`, `test_results/`
+- core directories: `egoemg/`, `config/`, `scripts/`, `docs/`, `test_results/`
 - limited research materials such as `paper/` when they are actively maintained
 
 Avoid adding new one-off shell scripts, notes, backups, or generated outputs at

@@ -51,12 +51,12 @@ from reproject_hand_keypoints import (
     build_intrinsics_and_frame_mapper,
 )
 
-from emg2pose.kinematics import forward_kinematics, load_default_hand_model
+from egoemg.kinematics import forward_kinematics, load_default_hand_model
 
 # ── FK mesh (UmeTrack skinning) ────────────────────────────────────────────
-from emg2pose.UmeTrack.lib.common.hand import HandModel
-from emg2pose.UmeTrack.lib.common.hand_skinning import _skin_points
-from emg2pose.UmeTrack.lib.tracker.video_pose_data import load_hand_model_from_dict
+from egoemg.UmeTrack.lib.common.hand import HandModel
+from egoemg.UmeTrack.lib.common.hand_skinning import _skin_points
+from egoemg.UmeTrack.lib.tracker.video_pose_data import load_hand_model_from_dict
 import smplx
 
 

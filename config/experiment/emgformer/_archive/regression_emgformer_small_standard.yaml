@@ -7,8 +7,8 @@ defaults:
   - override /transforms: emgformer_regression_aug_best
   - _self_
 
-# checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-03/01-29-08_emg2pose/emg2pose/version_0/checkpoints/best-val_mae=val_mae=0.2303.ckpt
-checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-08/19-58-17_emg2pose/emg2pose/version_0/checkpoints/best-val_mae=val_mae=0.2301.ckpt
+# checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-03/01-29-08_emg2pose/egoemg/version_0/checkpoints/best-val_mae=val_mae=0.2303.ckpt
+checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-08/19-58-17_emg2pose/egoemg/version_0/checkpoints/best-val_mae=val_mae=0.2301.ckpt
 module:
   provide_initial_pos: False
   decoder:
@@ -34,7 +34,7 @@ datamodule:
 
 dataset:
   train:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790
@@ -44,7 +44,7 @@ dataset:
       skip_ik_failures: False
       allowed_splits: [train]
   val:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790
@@ -54,7 +54,7 @@ dataset:
       skip_ik_failures: False
       allowed_splits: [val]
   test:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
       memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
       window_length: 7_790

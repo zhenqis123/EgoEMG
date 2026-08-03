@@ -57,7 +57,7 @@ run_job() {
     fi
     log "CONFIG ${name}: batch_size=${batch_size}, epochs=${EPOCHS}, stride=${TRAIN_STRIDE}, repeat=${DATASET_REPEAT}, lr=1e-5->1e-6"
 
-    CUDA_VISIBLE_DEVICES="${GPUS}" "${PYTHON}" -m emg2pose.train \
+    CUDA_VISIBLE_DEVICES="${GPUS}" "${PYTHON}" -m egoemg.train \
         "experiment=fusion/${experiment}" \
         "batch_size=${batch_size}" "val_batch_size=${batch_size}" \
         "datamodule.stride=${TRAIN_STRIDE}" \

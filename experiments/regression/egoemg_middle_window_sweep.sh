@@ -31,7 +31,7 @@ for WL in 1000 3000 5000 7000 9000 11000 13000 15000 20000 25000 30000 35000; do
 
     echo "[$(date)] WL=${WL}, BS=${BS}, stride=${STRIDE}"
 
-    python -m emg2pose.train \
+    python -m egoemg.train \
       experiment=${EXPERIMENT} \
       egoemg_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap \
       trainer.devices=[${GPUS}] \

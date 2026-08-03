@@ -38,10 +38,10 @@ import torch
 import trimesh
 from tqdm import tqdm
 
-from emg2pose.occlusion import compute_self_occlusion
-from emg2pose.UmeTrack.lib.common.hand import HandModel
-from emg2pose.UmeTrack.lib.common.hand_skinning import _skin_points
-from emg2pose.UmeTrack.lib.tracker.video_pose_data import load_hand_model_from_dict
+from egoemg.occlusion import compute_self_occlusion
+from egoemg.UmeTrack.lib.common.hand import HandModel
+from egoemg.UmeTrack.lib.common.hand_skinning import _skin_points
+from egoemg.UmeTrack.lib.tracker.video_pose_data import load_hand_model_from_dict
 
 HANDS = ["left", "right"]
 HAND_COLORS_BGR = {

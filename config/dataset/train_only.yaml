@@ -1,7 +1,7 @@
 # @package _global_
 dataset:
   train:
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${data_location}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}

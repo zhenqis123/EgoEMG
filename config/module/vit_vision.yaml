@@ -1,4 +1,4 @@
-_target_: emg2pose.models.modules.vit_vision.VisionViTPose
+_target_: egoemg.models.modules.vit_vision.VisionViTPose
 
 out_channels: 22
 pretrained: true

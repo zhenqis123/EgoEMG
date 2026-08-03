@@ -4,7 +4,7 @@ defaults:
   - head: mlp
   - _self_
 
-_target_: emg2pose.models.modules.mid_fusion.MidFusionPoseFormer
+_target_: egoemg.models.modules.mid_fusion.MidFusionPoseFormer
 
 out_channels: 22
 provide_initial_pos: false

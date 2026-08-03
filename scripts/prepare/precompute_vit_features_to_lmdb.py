@@ -108,7 +108,7 @@ def _collate_fn(
 
 
 def _build_backbone(pretrained_path: str, device: torch.device):
-    from emg2pose.models.vision_only_angle import VisionOnlyAngleModule
+    from egoemg.models.vision_only_angle import VisionOnlyAngleModule
 
     module = VisionOnlyAngleModule(
         pretrained_path=pretrained_path,

@@ -11,7 +11,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from emg2pose.realtime_local.small_model import _extract_state_dict, _strip_model_prefix
+from egoemg.realtime_local.small_model import _extract_state_dict, _strip_model_prefix
 
 
 def main() -> None:

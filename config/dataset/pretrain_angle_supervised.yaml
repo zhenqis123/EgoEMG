@@ -2,12 +2,12 @@
 # Pure angle-supervised pretraining using only memmap-backed datasets.
 dataset:
   train:
-    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+    - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: emg2pose
       gesture_spaces: ${gesture_spaces}
       angle_dim: 22
       base:
-        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
         memmap_dir: ${data_root}/emg2pose_v3_memmap
         window_length: ${datamodule.window_length}
         stride: ${datamodule.stride}
@@ -16,12 +16,12 @@ dataset:
         skip_ik_failures: ${datamodule.skip_ik_failures}
         allowed_splits: [train]
 
-    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+    - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: ninapro
       gesture_spaces: ${gesture_spaces}
       angle_dim: 22
       base:
-        _target_: emg2pose.datasets.ninapro_memmap_dataset.NinaproDB1MemmapDataset
+        _target_: egoemg.datasets.ninapro_memmap_dataset.NinaproDB1MemmapDataset
         root_dir: ${data_root}/Ninapro_relabeled_memmap
         window_length: ${datamodule.window_length}
         stride: ${datamodule.stride}
@@ -30,12 +30,12 @@ dataset:
         channel_alignment_mode: interpolate
         return_joint_angles: true
 
-    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+    - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: ninapro
       gesture_spaces: ${gesture_spaces}
       angle_dim: 22
       base:
-        _target_: emg2pose.datasets.ninapro_memmap_dataset.NinaproDB2MemmapDataset
+        _target_: egoemg.datasets.ninapro_memmap_dataset.NinaproDB2MemmapDataset
         root_dir: ${data_root}/Ninapro_relabeled_memmap
         window_length: ${datamodule.window_length}
         stride: ${datamodule.stride}
@@ -44,12 +44,12 @@ dataset:
         channel_alignment_mode: interpolate
         return_joint_angles: true
 
-    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+    - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: ninapro
       gesture_spaces: ${gesture_spaces}
       angle_dim: 22
       base:
-        _target_: emg2pose.datasets.ninapro_memmap_dataset.NinaproDB5MemmapDataset
+        _target_: egoemg.datasets.ninapro_memmap_dataset.NinaproDB5MemmapDataset
         root_dir: ${data_root}/Ninapro_relabeled_memmap
         window_length: ${datamodule.window_length}
         stride: ${datamodule.stride}
@@ -58,12 +58,12 @@ dataset:
         channel_alignment_mode: interpolate
         return_joint_angles: true
 
-    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+    - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: pimforce
       gesture_spaces: ${gesture_spaces}
       angle_dim: 22
       base:
-        _target_: emg2pose.datasets.pimforce_memmap_dataset.PimforceMemmapDataset
+        _target_: egoemg.datasets.pimforce_memmap_dataset.PimforceMemmapDataset
         root_dir: ${data_root}/pimforce_v3_memmap
         window_length: ${datamodule.window_length}
         stride: ${datamodule.stride}
@@ -74,12 +74,12 @@ dataset:
         return_joint_angles: true
 
   val:
-    - _target_: emg2pose.datasets.pretrain_wrapper.PretrainWrapperDataset
+    - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: emg2pose
       gesture_spaces: ${gesture_spaces}
       angle_dim: 22
       base:
-        _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+        _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
         memmap_dir: ${data_root}/emg2pose_v3_memmap
         window_length: ${datamodule.val_test_window_length}
         stride: ${datamodule.val_test_stride}

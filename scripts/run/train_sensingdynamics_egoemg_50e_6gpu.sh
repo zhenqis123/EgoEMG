@@ -12,7 +12,7 @@ export EMG2POSE_ROOT="${REPO_ROOT}"
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emg2pose/regression_sensingdynamics_egoemg \
   train=true eval=false \
   trainer.devices='[0,1,2,3,4,5]' \

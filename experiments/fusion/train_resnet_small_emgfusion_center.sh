@@ -14,7 +14,7 @@ CROPS_LMDB="data/EgoEMG_v2_crops"
 BEST_VISION_RESNET="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/vision_resnet/version_9/checkpoints/resnet-vision-epoch=011-val_mae=0.1022.ckpt"
 BEST_FUSION_RESNET="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/resnet_small_emgfusion_center/version_14/checkpoints/resnet-small-centerfusion-epoch=137-val_mae=0.0945.ckpt"
 
-python -m emg2pose.train \
+python -m egoemg.train \
   ${CONFIG} \
   egoemg_memmap_dir="${EGOEMG_MEMMAP}" \
   per_episode_crops_dir="${CROPS_LMDB}" \

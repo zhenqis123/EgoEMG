@@ -17,7 +17,7 @@ _VIZ_SPEC = importlib.util.spec_from_file_location(
     str(_PROJECT_ROOT / "emg2pose" / "visualization.py"),
 )
 if _VIZ_SPEC is None or _VIZ_SPEC.loader is None:
-    raise RuntimeError("Could not load emg2pose/visualization.py")
+    raise RuntimeError("Could not load egoemg/visualization.py")
 _VIZ_MOD = importlib.util.module_from_spec(_VIZ_SPEC)
 _VIZ_SPEC.loader.exec_module(_VIZ_MOD)
 skin_mesh_from_angles = _VIZ_MOD.skin_mesh_from_angles

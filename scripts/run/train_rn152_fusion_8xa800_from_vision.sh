@@ -67,7 +67,7 @@ echo "Vision init: ${INPUT_ROOT}/vision_checkpoints/rn152.ckpt"
 echo "EMG init: ${INPUT_ROOT}/emgformer_s_full_showee.ckpt"
 echo "Fusion resume checkpoint: none"
 
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 "$PYTHON_BIN" -m emg2pose.train \
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 "$PYTHON_BIN" -m egoemg.train \
     experiment=fusion/fusion_allvision_s_egoemg_showee \
     +augmentation=batch_aug_best_v2 \
     module.vision_backbone_type=resnet152 \

@@ -9,7 +9,7 @@
 #   - decoder in_channels: 84→86 (64 features + 22 state)
 #
 # Usage:
-#   python -m emg2pose.train experiment=emg2pose/regression_vemg2pose_egoemg
+#   python -m egoemg.train experiment=emg2pose/regression_vemg2pose_egoemg
 
 defaults:
   - /lineage/emg2pose
@@ -30,7 +30,7 @@ module:
   head:
     _target_: torch.nn.Identity
   decoder:
-    _target_: emg2pose.models.decoders.lstm.SequentialLSTM
+    _target_: egoemg.models.decoders.lstm.SequentialLSTM
     in_channels: 86  # 64 features + 22 state
     out_channels: 44  # 22 position + 22 velocity
     hidden_size: 512
@@ -47,7 +47,7 @@ optimizer:
 
 dataset:
   train:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -62,7 +62,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -78,7 +78,7 @@ dataset:
       dataset_name: egoemg
 
   val:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
@@ -93,7 +93,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}

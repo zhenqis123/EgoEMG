@@ -59,7 +59,7 @@
 **观察**：
 - 三个模型中 with aug 均略优于 wo aug，但差距很小（0.001-0.002）
 - emg2pose (MLP) > vemg2pose (LSTM) > neuropose，均在 0.27-0.28 区间
-- bs=900 时 OOM，emg2pose/vemg2pose 首次运行崩溃后自动重试成功
+- bs=900 时 OOM，egoemg/vemg2pose 首次运行崩溃后自动重试成功
 
 ### A2. emgformer + pretrained ckpt（#7-#9）
 
@@ -198,46 +198,46 @@ ablation_study/checkpoints/
 
 ```bash
 # A1: 传统模型 aug vs wo aug
-python -m emg2pose.train experiment=emg2pose/regression_vemg2pose_egoemg_with_aug    # #1
-python -m emg2pose.train experiment=emg2pose/regression_vemg2pose_egoemg             # #2
-python -m emg2pose.train experiment=emg2pose/regression_emg2pose_egoemg_with_aug     # #3
-python -m emg2pose.train experiment=emg2pose/regression_emg2pose_egoemg              # #4
-python -m emg2pose.train experiment=emg2pose/regression_neuropose_egoemg_with_aug    # #5
-python -m emg2pose.train experiment=emg2pose/regression_neuropose_egoemg             # #6
+python -m egoemg.train experiment=emg2pose/regression_vemg2pose_egoemg_with_aug    # #1
+python -m egoemg.train experiment=emg2pose/regression_vemg2pose_egoemg             # #2
+python -m egoemg.train experiment=emg2pose/regression_emg2pose_egoemg_with_aug     # #3
+python -m egoemg.train experiment=emg2pose/regression_emg2pose_egoemg              # #4
+python -m egoemg.train experiment=emg2pose/regression_neuropose_egoemg_with_aug    # #5
+python -m egoemg.train experiment=emg2pose/regression_neuropose_egoemg             # #6
 
 # A2: emgformer egoemg wo aug (pretrained ckpt)
-python -m emg2pose.train experiment=emgformer/regression_emgformer_small_aggressive_egoemg_wo_aug   # #7
-python -m emg2pose.train experiment=emgformer/regression_emgformer_middle_aggressive_egoemg_wo_aug  # #8
-python -m emg2pose.train experiment=emgformer/regression_emgformer_large_aggressive_egoemg_wo_aug   # #9
+python -m egoemg.train experiment=emgformer/regression_emgformer_small_aggressive_egoemg_wo_aug   # #7
+python -m egoemg.train experiment=emgformer/regression_emgformer_middle_aggressive_egoemg_wo_aug  # #8
+python -m egoemg.train experiment=emgformer/regression_emgformer_large_aggressive_egoemg_wo_aug   # #9
 
 # B1: no norm with aug
-python -m emg2pose.train experiment=emgformer/regression_emgformer_small_aggressive   # #10
-python -m emg2pose.train experiment=emgformer/regression_emgformer_middle_aggressive  # #11
-python -m emg2pose.train experiment=emgformer/regression_emgformer_large_aggressive   # #12
+python -m egoemg.train experiment=emgformer/regression_emgformer_small_aggressive   # #10
+python -m egoemg.train experiment=emgformer/regression_emgformer_middle_aggressive  # #11
+python -m egoemg.train experiment=emgformer/regression_emgformer_large_aggressive   # #12
 
 # B2: no norm without aug
-python -m emg2pose.train experiment=emgformer/regression_emgformer_small_aggressive transforms=rotation_augmentation   # #13
-python -m emg2pose.train experiment=emgformer/regression_emgformer_middle_aggressive transforms=rotation_augmentation  # #14
-python -m emg2pose.train experiment=emgformer/regression_emgformer_large_aggressive transforms=rotation_augmentation   # #15
+python -m egoemg.train experiment=emgformer/regression_emgformer_small_aggressive transforms=rotation_augmentation   # #13
+python -m egoemg.train experiment=emgformer/regression_emgformer_middle_aggressive transforms=rotation_augmentation  # #14
+python -m egoemg.train experiment=emgformer/regression_emgformer_large_aggressive transforms=rotation_augmentation   # #15
 ```
 
 ### 当前续跑脚本（bash/run_remaining_ablation.sh）
 
 ```bash
 # retry #8: middle aggressive egoemg wo aug (bs=250, pin_memory=false)
-python -m emg2pose.train experiment=emgformer/regression_emgformer_middle_aggressive_egoemg_wo_aug datamodule.pin_memory=false batch_size=250
+python -m egoemg.train experiment=emgformer/regression_emgformer_middle_aggressive_egoemg_wo_aug datamodule.pin_memory=false batch_size=250
 
 # retry #9: large aggressive egoemg wo aug (bs=200, pin_memory=false)
-python -m emg2pose.train experiment=emgformer/regression_emgformer_large_aggressive_egoemg_wo_aug datamodule.pin_memory=false batch_size=200
+python -m egoemg.train experiment=emgformer/regression_emgformer_large_aggressive_egoemg_wo_aug datamodule.pin_memory=false batch_size=200
 
 # no norm with aug (bs 降低)
-python -m emg2pose.train experiment=emgformer/regression_emgformer_middle_aggressive batch_size=400
-python -m emg2pose.train experiment=emgformer/regression_emgformer_large_aggressive batch_size=250
+python -m egoemg.train experiment=emgformer/regression_emgformer_middle_aggressive batch_size=400
+python -m egoemg.train experiment=emgformer/regression_emgformer_large_aggressive batch_size=250
 
 # no norm without aug
-python -m emg2pose.train experiment=emgformer/regression_emgformer_small_aggressive transforms=rotation_augmentation
-python -m emg2pose.train experiment=emgformer/regression_emgformer_middle_aggressive transforms=rotation_augmentation batch_size=400
-python -m emg2pose.train experiment=emgformer/regression_emgformer_large_aggressive transforms=rotation_augmentation batch_size=250
+python -m egoemg.train experiment=emgformer/regression_emgformer_small_aggressive transforms=rotation_augmentation
+python -m egoemg.train experiment=emgformer/regression_emgformer_middle_aggressive transforms=rotation_augmentation batch_size=400
+python -m egoemg.train experiment=emgformer/regression_emgformer_large_aggressive transforms=rotation_augmentation batch_size=250
 ```
 
 ---

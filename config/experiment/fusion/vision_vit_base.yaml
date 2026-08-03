@@ -75,7 +75,7 @@ loss_weights:
 
 # ── Module ──────────────────────────────────────────────────────────────────
 module:
-  _target_: emg2pose.models.modules.vit_vision.VisionViTPose
+  _target_: egoemg.models.modules.vit_vision.VisionViTPose
   backbone_type: vit_base
   out_channels: 22
   pretrained: true

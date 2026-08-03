@@ -107,8 +107,8 @@ def _add_cylinder_bone(meshes, pa, pb, radius, color):
 
 def fk_mesh(angles_20d, wrist_aa, wrist_trans, scale, hand_model):
     """Compute UmeTrack skinned mesh from angles + wrist rotation + translation + scale."""
-    from emg2pose.kinematics import apply_to_hand_model, broadcast_hand_model_to
-    from emg2pose.UmeTrack.lib.common.hand_skinning import (
+    from egoemg.kinematics import apply_to_hand_model, broadcast_hand_model_to
+    from egoemg.UmeTrack.lib.common.hand_skinning import (
         _get_skinned_vertices, _hand_skinning_transform, _lbs,
     )
     hm = broadcast_hand_model_to(hand_model, (1,))

@@ -45,7 +45,7 @@ mkdir -p "$OUTPUT_ROOT"
 cd "$REPO"
 echo "Fresh RN50 ImageNet + EMGFormer-M scratch fusion: 8x A800, per-GPU batch ${PER_GPU_BATCH_SIZE}"
 
-TORCH_HOME="$TORCH_HOME" CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 "$PYTHON_BIN" -m emg2pose.train \
+TORCH_HOME="$TORCH_HOME" CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 "$PYTHON_BIN" -m egoemg.train \
     experiment=fusion/fusion_rn50_m_imagenet_emgscratch_augbest \
     "egoemg_memmap_dir=${EGOEMG_MEMMAP_DIR}" \
     "showee_memmap_dir=${SHOWEE_MEMMAP_DIR}" \

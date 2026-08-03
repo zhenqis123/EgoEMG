@@ -9,7 +9,7 @@ RUN_DIR=${REPO}/logs/20260728/fusion_5vision_s_simple_unfrozen_augbest_30e/wilor
 cd "${REPO}"
 mkdir -p "${RUN_DIR}"
 
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 "${PYTHON}" -m emg2pose.train \
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5 "${PYTHON}" -m egoemg.train \
     experiment=fusion/fusion_wilor_s_simple_unfrozen_augbest_30e \
     batch_size=12 val_batch_size=12 \
     train=true eval=false trainer.devices='[0,1,2,3,4,5]' \

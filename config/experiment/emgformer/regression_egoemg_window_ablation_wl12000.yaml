@@ -20,12 +20,12 @@ module:
   provide_initial_pos: false
   featurizer:
     conv_blocks:
-      - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+      - _target_: egoemg.models.featurizers.tds.Conv1dBlock
         in_channels: 8
         out_channels: 256
         kernel_size: 11
         stride: 5
-      - _target_: emg2pose.models.featurizers.tds.Conv1dBlock
+      - _target_: egoemg.models.featurizers.tds.Conv1dBlock
         in_channels: 256
         out_channels: 256
         kernel_size: 5

@@ -1,4 +1,4 @@
-_target_: emg2pose.models.modules.resnet_vision.ResNetVisionPose
+_target_: egoemg.models.modules.resnet_vision.ResNetVisionPose
 
 out_channels: 22
 pretrained: true

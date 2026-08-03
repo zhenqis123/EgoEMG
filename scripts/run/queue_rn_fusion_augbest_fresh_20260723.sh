@@ -25,7 +25,7 @@ run_job() {
 
     log "START ${name}: fresh fusion, ${MAX_EPOCHS} epochs, best batch augmentation"
     CUDA_VISIBLE_DEVICES=${VISIBLE_GPUS} \
-        python -m emg2pose.train \
+        python -m egoemg.train \
         experiment=fusion/fusion_allvision_s_egoemg_showee \
         +augmentation=batch_aug_best_v2 \
         "module.vision_backbone_type=${backbone}" \

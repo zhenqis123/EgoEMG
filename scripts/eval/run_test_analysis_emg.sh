@@ -15,7 +15,7 @@ echo "=============================================="
 # ── emg2pose dataset (per_user) ──────────────────────────────────────────
 echo ""
 echo "===== EMG2Pose dataset: small_aggressive ====="
-python -m emg2pose.test_analysis \
+python -m egoemg.test_analysis \
   experiment=emgformer/regression_emgformer_small_aggressive \
   checkpoint="$ROOT/test_results/emg2pose_small_aggressive/checkpoints/best.ckpt" \
   +per_user=true \
@@ -23,7 +23,7 @@ python -m emg2pose.test_analysis \
 
 echo ""
 echo "===== EMG2Pose dataset: middle_aggressive ====="
-python -m emg2pose.test_analysis \
+python -m egoemg.test_analysis \
   experiment=emgformer/regression_emgformer_middle_aggressive \
   checkpoint="$ROOT/test_results/emg2pose_middle_aggressive/checkpoints/best.ckpt" \
   +per_user=true \
@@ -31,7 +31,7 @@ python -m emg2pose.test_analysis \
 
 echo ""
 echo "===== EMG2Pose dataset: large_aggressive ====="
-python -m emg2pose.test_analysis \
+python -m egoemg.test_analysis \
   experiment=emgformer/regression_emgformer_large_aggressive \
   checkpoint="$ROOT/test_results/emg2pose_large_aggressive/checkpoints/best.ckpt" \
   +per_user=true \
@@ -40,7 +40,7 @@ python -m emg2pose.test_analysis \
 # ── EgoEMG dataset (per_group_stats) ─────────────────────────────────────
 echo ""
 echo "===== EgoEMG dataset: small_aggressive ====="
-python -m emg2pose.test_analysis \
+python -m egoemg.test_analysis \
   experiment=emgformer/regression_emgformer_small_aggressive_egoemg \
   checkpoint="$ROOT/test_results/egoemg_small_best.ckpt" \
   +per_group_stats=true \
@@ -48,7 +48,7 @@ python -m emg2pose.test_analysis \
 
 echo ""
 echo "===== EgoEMG dataset: middle_aggressive ====="
-python -m emg2pose.test_analysis \
+python -m egoemg.test_analysis \
   experiment=emgformer/regression_emgformer_middle_aggressive_egoemg \
   checkpoint="$ROOT/test_results/egoemg_middle_best.ckpt" \
   +per_group_stats=true \
@@ -56,7 +56,7 @@ python -m emg2pose.test_analysis \
 
 echo ""
 echo "===== EgoEMG dataset: large_aggressive ====="
-python -m emg2pose.test_analysis \
+python -m egoemg.test_analysis \
   experiment=emgformer/regression_emgformer_large_aggressive_egoemg \
   checkpoint="$ROOT/test_results/egoemg_large_best.ckpt" \
   +per_group_stats=true \

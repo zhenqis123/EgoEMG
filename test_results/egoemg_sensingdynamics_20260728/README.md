@@ -1,7 +1,7 @@
 # SensingDynamics on EgoEMG
 
 The best validation checkpoint was selected at epoch 44 and evaluated with
-`emg2pose.test_analysis` on full 10,167-sample windows. Both hands are pooled
+`egoemg.test_analysis` on full 10,167-sample windows. Both hands are pooled
 using the same per-user test protocol as the other reimplemented EgoEMG
 baselines in the paper.
 

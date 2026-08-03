@@ -31,8 +31,8 @@ ALIGN_TRANS = np.array([106.72334, -11.8804455, -4.48328], dtype=np.float32)
 
 
 def umetrack_fk(hand_model, angles_22, device):
-    from emg2pose.kinematics import broadcast_hand_model_to, apply_to_hand_model
-    from emg2pose.UmeTrack.lib.common.hand_skinning import (
+    from egoemg.kinematics import broadcast_hand_model_to, apply_to_hand_model
+    from egoemg.UmeTrack.lib.common.hand_skinning import (
         _get_skinned_vertices, _hand_skinning_transform, _lbs,
     )
     hm = broadcast_hand_model_to(hand_model, (1,))
@@ -100,7 +100,7 @@ def main():
     mano_faces = mano_layer.th_faces.cpu().numpy()
 
     # Set up UmeTrack
-    from emg2pose.kinematics import apply_to_hand_model, load_default_hand_model
+    from egoemg.kinematics import apply_to_hand_model, load_default_hand_model
     hand_model = load_default_hand_model()
     hand_model = apply_to_hand_model(hand_model, lambda t: t.float().to(device))
     ut_faces = hand_model.mesh_triangles.cpu().numpy()[:, ::-1]

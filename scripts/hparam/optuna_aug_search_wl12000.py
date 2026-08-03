@@ -78,7 +78,7 @@ def build_overrides(
     extra_overrides: list[str] | None = None,
     fixed_seed: int | None = None,
 ) -> list[str]:
-    """Build the emg2pose.train command from a dict of physical parameters.
+    """Build the egoemg.train command from a dict of physical parameters.
 
     ``params`` is a flat dict of the 16 search dimensions (physical quantities,
     not abstract strengths) produced by ``objective``. Sub-parameters not in
@@ -155,7 +155,7 @@ def build_overrides(
         overrides.append(f"trainer.max_epochs={max_epochs}")
     if extra_overrides:
         overrides.extend(extra_overrides)
-    return [sys.executable, "-m", "emg2pose.train", *overrides]
+    return [sys.executable, "-m", "egoemg.train", *overrides]
 
 
 # ---------------------------------------------------------------------------

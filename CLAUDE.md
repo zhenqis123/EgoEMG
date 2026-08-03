@@ -20,7 +20,7 @@ to work on them.
 ```bash
 conda env create -f environment.yml && conda activate emg2pose
 pip install -e .
-pip install -e emg2pose/UmeTrack
+pip install -e egoemg/UmeTrack
 ```
 
 ## Main Commands
@@ -47,7 +47,7 @@ Or directly via Hydra CLI with base templates:
 
 ```bash
 # EgoEMG regression (template: regression_egoemg)
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emgformer/regression_egoemg \
   egoemg_memmap_dir=/path/to/EgoEMG_memmap \
   'trainer.devices=[0,1,2,3,4,5]' \
@@ -55,13 +55,13 @@ python -m emg2pose.train \
   batch_size=500
 
 # emg2pose_v3 regression (template: regression_emg2pose)
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=emgformer/regression_emg2pose \
   'trainer.devices=[0,1,2,3,4,5]' \
   batch_size=600
 
 # Evaluation only
-python -m emg2pose.train \
+python -m egoemg.train \
   train=False eval=True \
   experiment=emgformer/regression_egoemg \
   egoemg_memmap_dir=/path/to/EgoEMG_memmap \
@@ -69,7 +69,7 @@ python -m emg2pose.train \
   'trainer.devices=[0]' batch_size=50
 
 # Offline analysis
-python -m emg2pose.test_analysis \
+python -m egoemg.test_analysis \
   experiment=emgformer/regression_egoemg \
   'checkpoint="/path/to/checkpoint.ckpt"' \
   egoemg_memmap_dir=/path/to/EgoEMG_memmap
@@ -103,12 +103,12 @@ python scripts/viz/visualize_egoemg_vision_dataset.py \
   --target-hand both
 
 # Train and evaluate fusion / vision-to-pose on EgoEMG (single entrypoint)
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=fusion/fusion_rn18_s_center_8ch \
   train=true eval=true trainer.devices=[0,1,2,3,4]
 
 # Vision-only single-frame baseline
-python -m emg2pose.train \
+python -m egoemg.train \
   experiment=fusion/vision_resnet18 \
   train=true eval=true trainer.devices=[0]
 ```
@@ -117,13 +117,55 @@ Vision/fusion config architecture: experiments in `config/experiment/fusion/`
 inherit `config/lineage/fusion.yaml`. See `docs/config_architecture.md` for the
 three-layer structure.
 
+### Unified EgoEMG + ShowEE + Incre memmap (dataset merge)
+
+Three recording corpora can be physically merged into one `egoemg_v2_memmap`-
+format directory so training loads a single dataset instead of a mixed
+`ConcatDataset`. Per-source availability is preserved via a per-frame
+`dataset_source_id` field:
+
+- **EgoEMG** — full supervision (EMG + joint angles + wrist + vision),
+  `dataset_source_id=0`.
+- **ShowEE** — wrist angles unavailable (zero-filled,
+  `wrist_angles_valid=false`); the wrist loss is masked for ShowEE rows,
+  `dataset_source_id=1`.
+- **Incre** — vision/mocap unavailable (stale/invalid flags); only right-hand
+  EMG + finger joint angles supervised, `dataset_source_id=2`.
+
+Build the unified memmap and its norm stats, then train with
+`dataset=egoemg_unified_angle_regression` and `egoemg_unified_memmap_dir`
+pointing at the merged directory (see the config header for details).
+Validation/test automatically use EgoEMG-only rows (ShowEE/Incre are train-only
+augmentations):
+
+```bash
+python scripts/data/merge_datasets_to_unified_memmap.py \
+    --egoemg <egoemg_v2_memmap_dir> \
+    --showee <showee_memmap_dir> \
+    --incre  <egoemg_incre>/data_right_merged \
+    --out    <unified_memmap_dir>          # needs ~229 GB free
+python scripts/data/compute_unified_norm_stats.py \
+    --input assets/per_dataset_norm_stats_repro_filtered_paper_alias.json \
+    --output assets/per_dataset_norm_stats_unified.json
+
+# Training entrypoint (datamodule reads the unified memmap)
+python -m egoemg.train \
+  experiment=emgformer/regression_egoemg \
+  dataset=egoemg_unified_angle_regression \
+  egoemg_unified_memmap_dir=/path/to/unified_memmap \
+  'trainer.devices=[0,1,2,3,4,5]' '+trainer.strategy=ddp' batch_size=500
+```
+
+Note: `scripts/data/merge_egoemg_incre.py` is the legacy single-pair merge;
+`merge_datasets_to_unified_memmap.py` is the current three-source path.
+
 ## Tests And Checks
 
 ```bash
-pytest emg2pose/tests -q
-pytest emg2pose/tests -q -k test_name
+pytest egoemg/tests -q
+pytest egoemg/tests -q -k test_name
 isort . && flake8
-mypy emg2pose/
+mypy egoemg/
 ```
 
 For dataset or visualization changes, prefer small smoke tests with synthetic
@@ -143,14 +185,14 @@ EMG window (B, C, T)
 
 Key files:
 
-- `emg2pose/train.py`: Hydra supervised training entrypoint.
-- `emg2pose/lightning.py`: `EmgPredictionModule` for supervised training,
+- `egoemg/train.py`: Hydra supervised training entrypoint.
+- `egoemg/lightning.py`: `EmgPredictionModule` for supervised training,
   metrics, checkpoint loading, and fine-tuning behavior.
-- `emg2pose/models/modules/emgformer.py`: `Emg2PoseFormer`.
-- `emg2pose/models/modules/emgformer_pretrain.py`: EMGFormer pretraining
+- `egoemg/models/modules/emgformer.py`: `Emg2PoseFormer`.
+- `egoemg/models/modules/emgformer_pretrain.py`: EMGFormer pretraining
   backbone used by EMGFormer configs that explicitly target it.
-- `emg2pose/models/featurizers/tds.py`: TDS-style temporal EMG featurizers.
-- `emg2pose/models/decoders/transformer.py`: transformer decoder components.
+- `egoemg/models/featurizers/tds.py`: TDS-style temporal EMG featurizers.
+- `egoemg/models/decoders/transformer.py`: transformer decoder components.
 - `config/experiment/emgformer/`: active EMGFormer experiment configs.
 
 ### Vision-to-Pose Path
@@ -165,16 +207,16 @@ EgoEMG webcam frame
 
 Key files:
 
-- `emg2pose/train.py`: single Hydra entrypoint for all training (EMG, vision,
-  fusion) — `python -m emg2pose.train experiment=<group>/<name>`.
-- `emg2pose/datasets/egoemg_memmap_dataset.py`: EgoEMG memmap dataset that
+- `egoemg/train.py`: single Hydra entrypoint for all training (EMG, vision,
+  fusion) — `python -m egoemg.train experiment=<group>/<name>`.
+- `egoemg/datasets/egoemg_memmap_dataset.py`: EgoEMG memmap dataset that
   serves both EMG-only and vision (pre-crops + all-intra videos) samples.
-- `emg2pose/models/modules/mid_fusion.py`: `MidFusionPoseFormer` (EMG+vision
+- `egoemg/models/modules/mid_fusion.py`: `MidFusionPoseFormer` (EMG+vision
   fusion, center_supervised / vision_only / emg_only modes).
-- `emg2pose/models/modules/{wilor_vit,vit_vision,resnet_vision}.py`:
+- `egoemg/models/modules/{wilor_vit,vit_vision,resnet_vision}.py`:
   vision-only backbone modules used by fusion experiments.
-- `emg2pose/video_io.py`: all-intra path resolution and `decord` reader cache.
-- `emg2pose/mano.py`: local MANO utilities; datasets should not initialize
+- `egoemg/video_io.py`: all-intra path resolution and `decord` reader cache.
+- `egoemg/mano.py`: local MANO utilities; datasets should not initialize
   MANO.
 - `scripts/data/build_egoemg_vision_index.py`: one-time sidecar index builder.
 - `scripts/viz/visualize_egoemg_vision_dataset.py`: dataset visualization debug.

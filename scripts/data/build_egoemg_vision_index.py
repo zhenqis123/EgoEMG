@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from emg2pose.datasets.egoemg_vision_dataset import build_egoemg_vision_index
+from egoemg.datasets.egoemg_vision_dataset import build_egoemg_vision_index
 
 
 def parse_args() -> argparse.Namespace:

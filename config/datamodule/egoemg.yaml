@@ -1,7 +1,7 @@
 # @package _global_
 # EgoEMG datamodule preset — shared by regression_egoemg, finetune_egoemg, etc.
 datamodule:
-  _target_: emg2pose.datamodule.WindowedEmgDataModule
+  _target_: egoemg.datamodule.WindowedEmgDataModule
   dataset_conf: ${dataset}
   window_length: 7_790
   val_test_window_length: 7_790

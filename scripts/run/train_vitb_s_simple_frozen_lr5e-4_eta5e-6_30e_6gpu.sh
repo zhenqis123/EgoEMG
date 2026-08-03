@@ -15,7 +15,7 @@ export EMG2POSE_ROOT="${REPO}"
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-"${PYTHON}" -m emg2pose.train \
+"${PYTHON}" -m egoemg.train \
   experiment=fusion/fusion_vitb_s_simple_frozen_augbest_30e \
   train=true eval=false \
   trainer.devices='[0,1,2,3,4,5]' \

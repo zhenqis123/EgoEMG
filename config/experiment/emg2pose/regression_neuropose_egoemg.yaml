@@ -8,7 +8,7 @@
 #   - out_channels: 20→22
 #
 # Usage:
-#   python -m emg2pose.train experiment=emg2pose/regression_neuropose_egoemg
+#   python -m egoemg.train experiment=emg2pose/regression_neuropose_egoemg
 
 defaults:
   - /lineage/emg2pose
@@ -27,73 +27,73 @@ module:
   provide_initial_pos: False
   predict_vel: False
   featurizer:
-    _target_: emg2pose.models.featurizers.neuropose.NeuroPose
+    _target_: egoemg.models.featurizers.neuropose.NeuroPose
     linear_in_channels: 32
     out_channels: 22
     encoder_blocks:
-      - _target_: emg2pose.models.featurizers.neuropose.EncoderBlock
+      - _target_: egoemg.models.featurizers.neuropose.EncoderBlock
         in_channels: 1
         out_channels: 32
         kernel_size: [3, 2]
         max_pool_size: [10, 2]
         dropout_rate: 0.05
-      - _target_: emg2pose.models.featurizers.neuropose.EncoderBlock
+      - _target_: egoemg.models.featurizers.neuropose.EncoderBlock
         in_channels: 32
         out_channels: 128
         kernel_size: [3, 2]
         max_pool_size: [8, 2]
         dropout_rate: 0.05
-      - _target_: emg2pose.models.featurizers.neuropose.EncoderBlock
+      - _target_: egoemg.models.featurizers.neuropose.EncoderBlock
         in_channels: 128
         out_channels: 256
         kernel_size: [3, 2]
         max_pool_size: [4, 4]
         dropout_rate: 0.05
     residual_blocks:
-      - _target_: emg2pose.models.featurizers.neuropose.ResidualBlock
+      - _target_: egoemg.models.featurizers.neuropose.ResidualBlock
         in_channels: 256
         out_channels: 256
         kernel_size: [3, 2]
         num_convs: 3
         dropout_rate: 0.05
-      - _target_: emg2pose.models.featurizers.neuropose.ResidualBlock
+      - _target_: egoemg.models.featurizers.neuropose.ResidualBlock
         in_channels: 256
         out_channels: 256
         kernel_size: [3, 2]
         num_convs: 3
         dropout_rate: 0.05
-      - _target_: emg2pose.models.featurizers.neuropose.ResidualBlock
+      - _target_: egoemg.models.featurizers.neuropose.ResidualBlock
         in_channels: 256
         out_channels: 256
         kernel_size: [3, 2]
         num_convs: 3
         dropout_rate: 0.05
-      - _target_: emg2pose.models.featurizers.neuropose.ResidualBlock
+      - _target_: egoemg.models.featurizers.neuropose.ResidualBlock
         in_channels: 256
         out_channels: 256
         kernel_size: [3, 2]
         num_convs: 3
         dropout_rate: 0.05
-      - _target_: emg2pose.models.featurizers.neuropose.ResidualBlock
+      - _target_: egoemg.models.featurizers.neuropose.ResidualBlock
         in_channels: 256
         out_channels: 256
         kernel_size: [3, 2]
         num_convs: 3
         dropout_rate: 0.05
     decoder_blocks:
-      - _target_: emg2pose.models.featurizers.neuropose.DecoderBlock
+      - _target_: egoemg.models.featurizers.neuropose.DecoderBlock
         in_channels: 256
         out_channels: 128
         kernel_size: [3, 2]
         upsampling: [10, 4]
         dropout_rate: 0.05
-      - _target_: emg2pose.models.featurizers.neuropose.DecoderBlock
+      - _target_: egoemg.models.featurizers.neuropose.DecoderBlock
         in_channels: 128
         out_channels: 32
         kernel_size: [3, 2]
         upsampling: [8, 4]
         dropout_rate: 0.05
-      - _target_: emg2pose.models.featurizers.neuropose.DecoderBlock
+      - _target_: egoemg.models.featurizers.neuropose.DecoderBlock
         in_channels: 32
         out_channels: 1
         kernel_size: [3, 2]
@@ -110,7 +110,7 @@ optimizer:
 
 dataset:
   train:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -125,7 +125,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -141,7 +141,7 @@ dataset:
       dataset_name: egoemg
 
   val:
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
@@ -156,7 +156,7 @@ dataset:
       norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
       dataset_name: egoemg
 
-    - _target_: emg2pose.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
+    - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
       memmap_dir: ${egoemg_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}

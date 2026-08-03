@@ -1,39 +1,39 @@
 # @package _global_
 to_tensor:
-  _target_: emg2pose.transforms.ExtractToTensor
+  _target_: egoemg.transforms.ExtractToTensor
   field: emg
 
 transforms:
   train:
-  - _target_: emg2pose.transforms.ExtractField
+  - _target_: egoemg.transforms.ExtractField
     field: emg
-  - _target_: emg2pose.transforms.RotationAugmentation
+  - _target_: egoemg.transforms.RotationAugmentation
     channel_dim: -1
-  - _target_: emg2pose.transforms.RandomGain
+  - _target_: egoemg.transforms.RandomGain
     min_gain: 0.8
     max_gain: 1.25
     mask_prob: 0.5
     per_channel: true
     channel_dim: -1
-  - _target_: emg2pose.transforms.ToFloatTensor
-  - _target_: emg2pose.transforms.RandomChannelMask
+  - _target_: egoemg.transforms.ToFloatTensor
+  - _target_: egoemg.transforms.RandomChannelMask
     mask_prob: 0.3
     min_masked: 0
     max_masked: null
     channel_dim: -1
     mask_value: 0.0
-  - _target_: emg2pose.transforms.RandomTimeMask
+  - _target_: egoemg.transforms.RandomTimeMask
     max_mask_size: 800
     num_masks: 3
     min_mask_size: 0
     time_dim: 0
     mask_value: 0.0
-  - _target_: emg2pose.transforms.RandomFrequencyMask
+  - _target_: egoemg.transforms.RandomFrequencyMask
     max_mask_size: 128
     num_masks: 5
     min_mask_size: 0
     time_dim: 0
-  - _target_: emg2pose.transforms.RandomGaussianNoise
+  - _target_: egoemg.transforms.RandomGaussianNoise
     min_snr_db: 20
     max_snr_db: 30
     apply_prob: 0.7

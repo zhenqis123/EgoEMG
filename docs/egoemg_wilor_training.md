@@ -16,7 +16,7 @@ The training entrypoint expects three data roots:
 
 `EgoEmgVisionDataset` reads labels and transforms from the memmap, but reads
 webcam frames from all-intra videos only. Video decoding is done with `decord`
-through `emg2pose.video_io.DecordVideoReaderCache`. Missing all-intra videos are
+through `egoemg.video_io.DecordVideoReaderCache`. Missing all-intra videos are
 treated as errors; there is intentionally no OpenCV or original-video fallback
 in this path.
 
@@ -84,7 +84,7 @@ Direct usage:
 ```python
 from pathlib import Path
 
-from emg2pose.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
+from egoemg.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
 
 dataset = EgoEmgVisionDataset(
     memmap_dir=Path("data/EgoEMG_memmap"),
@@ -141,7 +141,7 @@ config or CLI.
 The training entrypoint is:
 
 ```bash
-python -m emg2pose.train \
+python -m egoemg.train \
     experiment=fusion/vision_resnet_small \
     data_location=data/EgoEMG_memmap \
     video_root=data/EgoEMG \
@@ -166,7 +166,7 @@ The defaults live in `config/vision_base.yaml`. Common overrides:
 Example evaluation-only run:
 
 ```bash
-python -m emg2pose.train \
+python -m egoemg.train \
     experiment=fusion/vision_resnet_small \
     data_location=data/EgoEMG_memmap \
     video_root=data/EgoEMG \
@@ -179,7 +179,7 @@ python -m emg2pose.train \
 
 ## Training Flow
 
-`python -m emg2pose.train` (with a fusion or vision-only experiment config)
+`python -m egoemg.train` (with a fusion or vision-only experiment config)
 performs the following steps:
 
 1. Loads `config/vision_base.yaml` through Hydra.
@@ -214,7 +214,7 @@ Hydra writes outputs under the run directory. Checkpoints are saved under
 - `scripts/reencode_egoemg_webcam_allintra.py`: all-intra webcam conversion.
 - `scripts/visualize_egoemg_vision_dataset.py`: dataset sample debug.
 - `scripts/visualize_egoemg_mesh.py`: world-space MANO mesh projection debug.
-- `emg2pose/train.py`: the unified training entrypoint; vision/fusion training
+- `egoemg/train.py`: the unified training entrypoint; vision/fusion training
   is launched with `experiment=fusion/...` or a vision-only experiment config.
 
 ## Mixed EgoEMG and ShowEE training
@@ -230,14 +230,14 @@ Ready-to-run experiment deltas are provided for all three main modes:
 
 ```bash
 # EMG-only
-python -m emg2pose.train experiment=emgformer/regression_egoemg_showee
+python -m egoemg.train experiment=emgformer/regression_egoemg_showee
 
 # Vision-only
-python -m emg2pose.train \
+python -m egoemg.train \
     experiment=fusion/vision_resnet_middle_egoemg_showee
 
 # EMG + vision fusion
-python -m emg2pose.train \
+python -m egoemg.train \
     experiment=fusion/fusion_rn18_s_center_8ch_egoemg_showee
 ```
 

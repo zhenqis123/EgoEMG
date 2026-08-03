@@ -7,7 +7,7 @@
 from setuptools import find_packages, setup
 
 setup(
-    name="emg2pose",
+    name="egoemg",
     version="0.1.0",
     description="sEMG hand-pose estimation benchmark + EgoEMG vision/fusion models",
     author="CTRL Research Team, Meta Reality Labs",

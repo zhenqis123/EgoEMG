@@ -46,7 +46,7 @@ run_job() {
         log "START ${name} from pretrained single-modality checkpoints"
     fi
 
-    CUDA_VISIBLE_DEVICES="${GPUS}" "${PYTHON}" -m emg2pose.train \
+    CUDA_VISIBLE_DEVICES="${GPUS}" "${PYTHON}" -m egoemg.train \
         "experiment=fusion/${experiment}" \
         "batch_size=${batch_size}" "val_batch_size=${batch_size}" \
         train=true eval=false "trainer.devices=${DEVICES}" \

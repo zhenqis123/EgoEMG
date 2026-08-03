@@ -16,11 +16,11 @@ import numpy as np
 import plotly.io as pio
 import torch
 
-import emg2pose.visualization as visualization
-from emg2pose.datasets.emg2pose_dataset_legacy import Emg2PoseSessionData
-from emg2pose.datasets.pimforce_dataset import _pimforce_to_emg2pose_angles
-from emg2pose.lightning import EmgPredictionModule
-from emg2pose.utils import generate_hydra_config_from_overrides
+import egoemg.visualization as visualization
+from egoemg.datasets.emg2pose_dataset_legacy import Emg2PoseSessionData
+from egoemg.datasets.pimforce_dataset import _pimforce_to_emg2pose_angles
+from egoemg.lightning import EmgPredictionModule
+from egoemg.utils import generate_hydra_config_from_overrides
 
 
 def _load_emg2pose_session(

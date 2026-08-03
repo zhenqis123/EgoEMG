@@ -97,7 +97,7 @@ def main():
             raise KeyError(f"Field '{field}' not in manifest. Run batch_ik_mesh.py first.")
 
     # ── Init models ─────────────────────────────────────────────────────
-    from emg2pose.kinematics import apply_to_hand_model, load_default_hand_model
+    from egoemg.kinematics import apply_to_hand_model, load_default_hand_model
 
     mano_layer = ManoLayer(
         rot_mode="axisang", side="right",
@@ -139,8 +139,8 @@ def main():
 
     # UmeTrack FK (single-frame, for visualization)
     def umetrack_fk_single(angles_20):
-        from emg2pose.kinematics import broadcast_hand_model_to
-        from emg2pose.UmeTrack.lib.common.hand_skinning import (
+        from egoemg.kinematics import broadcast_hand_model_to
+        from egoemg.UmeTrack.lib.common.hand_skinning import (
             _get_skinned_vertices, _hand_skinning_transform, _lbs,
         )
         hm = broadcast_hand_model_to(hand_model, (1,))

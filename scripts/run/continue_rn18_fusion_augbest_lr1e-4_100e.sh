@@ -63,7 +63,7 @@ echo "Continuing RN18 from epoch ${SOURCE_EPOCH} through epoch $((TARGET_MAX_EPO
 echo "Cosine reset: ${BASE_LR} -> ${ETA_MIN} over ${EXTRA_EPOCHS} epochs"
 
 CUDA_VISIBLE_DEVICES=${VISIBLE_GPUS} \
-    python -m emg2pose.train \
+    python -m egoemg.train \
     experiment=fusion/fusion_allvision_s_egoemg_showee \
     +augmentation=batch_aug_best_v2 \
     module.vision_backbone_type=resnet18 \

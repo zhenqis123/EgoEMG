@@ -7,7 +7,7 @@ RUN_ROOT=${REPO}/logs/20260728/wilor_s_simple_frozen_exactvision_augbest_lr1e-5_
 conda activate emg2pose_env
 cd "$REPO"
 
-exec python -m emg2pose.train \
+exec python -m egoemg.train \
   experiment=fusion/fusion_wilor_s_simple_frozen_augbest_30e \
   batch_size=400 \
   val_batch_size=400 \

@@ -7,7 +7,7 @@ conventions to keep the codebase consistent and reproducible.
 
 ```shell
 conda env create -f environment.yml && conda activate emg2pose
-pip install -e . && pip install -e emg2pose/UmeTrack
+pip install -e . && pip install -e egoemg/UmeTrack
 ```
 
 ## Code style
@@ -28,12 +28,12 @@ hardcode machine-specific absolute paths.
 
 ## Tests
 
-Place tests in `emg2pose/tests/` with `test_*.py` filenames. Keep them
+Place tests in `egoemg/tests/` with `test_*.py` filenames. Keep them
 deterministic and fast (small fixtures or synthetic tensors; no large dataset
 downloads).
 
 ```shell
-pytest emg2pose/tests -q
+pytest egoemg/tests -q
 ```
 
 ## Pull requests

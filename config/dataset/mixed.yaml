@@ -2,7 +2,7 @@
 dataset:
   train:
     # emg2pose (train split)
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${data_location}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -12,7 +12,7 @@ dataset:
       allowed_splits: [train]
 
     # emg2qwerty (all sessions -> train)
-    - _target_: emg2pose.datasets.emg2qwerty_dataset.Emg2QwertyDataset
+    - _target_: egoemg.datasets.emg2qwerty_dataset.Emg2QwertyDataset
       root_dir: data/emg_corpus/emg2qwerty_v3
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -20,7 +20,7 @@ dataset:
       jitter: true
 
     # ninapro DB1 (all sessions -> train)
-    - _target_: emg2pose.datasets.ninapro_dataset.NinaproDB1Dataset
+    - _target_: egoemg.datasets.ninapro_dataset.NinaproDB1Dataset
       root_dir: data/emg_corpus/Ninapro_relabeled_zarr/DB1
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
@@ -31,7 +31,7 @@ dataset:
       return_gesture_labels: false
 
     # pimforce (all sessions -> train)
-    - _target_: emg2pose.datasets.pimforce_dataset.PimforceDataset
+    - _target_: egoemg.datasets.pimforce_dataset.PimforceDataset
       root_dirs: [data/emg_corpus/PiMforce/pimforce_v3]
       window_start: 0
       window_stop: null
@@ -43,7 +43,7 @@ dataset:
 
   val:
     # emg2pose (val split only)
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${data_location}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
@@ -54,7 +54,7 @@ dataset:
 
   test:
     # emg2pose (test split only)
-    - _target_: emg2pose.datasets.emg2pose_dataset.Emg2PoseDataset
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${data_location}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}

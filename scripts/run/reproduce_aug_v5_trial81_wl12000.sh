@@ -6,7 +6,7 @@ cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 export PYTHONUNBUFFERED=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-exec python -u -m emg2pose.train \
+exec python -u -m egoemg.train \
   experiment=emgformer/_archive/regression_emgformer_middle_aug_search_egoemg \
   egoemg_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap \
   +egoemg_emg_field_preference=filtered_paper \
