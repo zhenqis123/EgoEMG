@@ -183,20 +183,56 @@ The `experiment` CLI option supports the following experiments (see `config/expe
 
 ## Downloading Pre-trained Checkpoints
 
-We provide pre-trained checkpoints (as `.ckpt` files) for the following:
-
-1. vemg2pose (tracking, regression settings)
-2. neuropose (regression setting)
-
-To download and unpack these checkpoints, run the following.
+We provide six pretrained checkpoints covering the main benchmark tasks (see
+[Reproducing Paper Results](#reproducing-paper-results) below). They are
+mirrored on Google Drive and Baidu Netdisk.
 
 ```shell
-# Download checkpoints
-cd ~ && curl "https://fb-ctrl-oss.s3.amazonaws.com/emg2pose/emg2pose_model_checkpoints.tar.gz" -o emg2pose_model_checkpoints.tar.gz
+# Google Drive (default)
+bash scripts/download/download_checkpoints.sh
 
-# Unpack to ~/emg2pose_model_checkpoints
-tar -xvzf emg2pose_model_checkpoints.tar.gz
+# or from Baidu Netdisk (requires `baidupcs` login)
+bash scripts/download/download_checkpoints.sh baidupcs
 ```
+
+The script fetches the six `.ckpt` files into `checkpoints/`.
+
+## Downloading the EgoEMG Dataset
+
+The EgoEMG dataset package (`EgoEMG-dataset-small`) is released under
+CC-BY-NC-4.0 for research use and mirrored on Google Drive and Baidu Netdisk.
+
+```shell
+# Google Drive (default)
+bash scripts/download/download_egoemg_data.sh
+
+# or from Baidu Netdisk (requires `baidupcs` login)
+bash scripts/download/download_egoemg_data.sh --source baidupcs
+```
+
+The package is self-contained: it includes the memmap data, a webcam all-intra
+video, pre-cropped LMDB shards, metadata/calibration, and a visualization tool.
+See the package `README.md` for the full layout.
+
+## Reproducing Paper Results
+
+Key numbers from the paper, reproduced by the provided checkpoints:
+
+| Task | Method | Checkpoint | Test MAE (rad) | Test MAE (°) | Aggregation |
+|------|--------|-----------|---------------|-------------|-------------|
+| EMG-to-Pose (EMG2Pose) | EMGFormer-Small | `emg2pose_emgformer_small.ckpt` | 0.2153 | 12.34° | user_stage |
+| EMG-to-Pose (EgoEMG) | EMGFormer-Small | `egoemg_emgformer_small.ckpt` | 0.262 | 15.0° | sample_weighted |
+| Vision-to-Pose | ResNet-18 | `vision_resnet18.ckpt` | 0.1021 | 5.85° | sample_weighted |
+| Vision-to-Pose | ViT-Small | `vision_vit_small.ckpt` | 0.1052 | 6.03° | sample_weighted |
+| EMG+Vision Fusion | ResNet-18 + EMGFormer-Small | `fusion_resnet_small_emgfusion_center.ckpt` | 0.0978 | 5.60° | center-frame |
+| EMG+Vision Fusion | ViT-Small + EMGFormer-Small | `fusion_vit_small_emgfusion_center.ckpt` | 0.0966 | 5.53° | center-frame |
+
+Aggregation strategy used by `test_analysis.py` and `test_analysis_fusion.py`:
+**user_stage** = held-out user generalization averaged across stage splits;
+**sample_weighted** = weighted average across all 6 EgoEMG splits (user/left,
+user/right, gesture/left, gesture/right, both/left, both/right);
+**center-frame** = MAE computed on the center frame of the sliding window,
+used for vision and fusion models that predict on single frames.
 
 ## Evaluation / Testing
 
@@ -245,19 +281,28 @@ should remain versioned versus local-only, see
 
 ## License
 
-emg2pose is CC-BY-NC-SA-4.0 licensed, as found in the LICENSE file.
+The baseline code is distributed under the **MIT License**, as found in the
+LICENSE file. The **EgoEMG dataset** is released under **CC-BY-NC-4.0** for
+research use. Portions of this codebase are derived from
+[emg2pose](https://github.com/facebookresearch/emg2pose), distributed under
+CC-BY-NC-SA-4.0.
 
-emg2pose is also licensed subject to the licenses of its code dependencies.
+Third-party assets remain subject to their original licenses:
 
-UmeTrack is licensed under Attribution-NonCommercial 4.0 International, as found in the egoemg/UmeTrack/LICENSE and [GitHub](https://github.com/facebookresearch/UmeTrack/blob/main/LICENSE).
+- UmeTrack is licensed under Attribution-NonCommercial 4.0 International, as
+  found in `egoemg/UmeTrack/LICENSE` and
+  [GitHub](https://github.com/facebookresearch/UmeTrack/blob/main/LICENSE).
+- The MANO model and pretrained vision backbones are subject to their own
+  licenses.
 
-## Citing emg2pose
+## Citing EgoEMG
+
+If you use this benchmark or dataset in your research, please cite:
 
 ```
-@inproceedings{salteremg2pose,
-  title={emg2pose: A Large and Diverse Benchmark for Surface Electromyographic Hand Pose Estimation},
-  author={Salter, Sasha and Warren, Richard and Schlager, Collin and Spurr, Adrian and Han, Shangchen and Bhasin, Rohin and Cai, Yujun and Walkington, Peter and Bolarinwa, Anuoluwapo and Wang, Robert and others},
-  booktitle={The Thirty-eight Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
-  year={2024}
+@article{egoemg2026,
+  title={EgoEmg: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation},
+  author={Anonymous},
+  year={2026}
 }
 ```

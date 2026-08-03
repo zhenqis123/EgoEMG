@@ -1,65 +1,20 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite it using these metadata."
-title: "emg2pose: A Large and Diverse Benchmark for Surface Electromyographic Hand Pose Estimation"
-type: proceedings
-date-released: "2024-12-03"
-repository-code: "https://github.com/facebookresearch/emg2pose"
-url: "https://emg2pose.github.io/"
+message: "If you use this dataset or software, please cite it as follows."
+title: "EgoEmg: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation"
+type: dataset
+date-released: "2026-01-01"
 authors:
-  - family-names: Salter
-    given-names: Sasha
-  - family-names: Warren
-    given-names: Richard
-  - family-names: Schlager
-    given-names: Collin
-  - family-names: Spurr
-    given-names: Adrian
-  - family-names: Han
-    given-names: Shangchen
-  - family-names: Bhasin
-    given-names: Rohin
-  - family-names: Cai
-    given-names: Yujun
-  - family-names: Walkington
-    given-names: Peter
-  - family-names: Bolarinwa
-    given-names: Anuoluwapo
-  - family-names: Wang
-    given-names: Robert
-conference:
-  name: "The Thirty-eighth Conference on Neural Information Processing Systems Datasets and Benchmarks Track"
-  year: 2024
-preferred-citation:
-  type: conference-paper
-  title: "emg2pose: A Large and Diverse Benchmark for Surface Electromyographic Hand Pose Estimation"
-  authors:
-    - family-names: Salter
-      given-names: Sasha
-    - family-names: Warren
-      given-names: Richard
-    - family-names: Schlager
-      given-names: Collin
-    - family-names: Spurr
-      given-names: Adrian
-    - family-names: Han
-      given-names: Shangchen
-    - family-names: Bhasin
-      given-names: Rohin
-    - family-names: Cai
-      given-names: Yujun
-    - family-names: Walkington
-      given-names: Peter
-    - family-names: Bolarinwa
-      given-names: Anuoluwapo
-    - family-names: Wang
-      given-names: Robert
-  conference:
-    name: "The Thirty-eighth Conference on Neural Information Processing Systems Datasets and Benchmarks Track"
-  year: 2024
+  - given-names: Anonymous
 keywords:
   - electromyography
   - hand pose estimation
-  - emg
   - egocentric vision
   - sensor fusion
-license: "CC-BY-NC-SA-4.0"
+  - EMG
+license: "MIT AND CC-BY-NC-4.0"
+preferred-citation:
+  type: article
+  title: "EgoEmg: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation"
+  authors:
+    - given-names: Anonymous
+  year: 2026
