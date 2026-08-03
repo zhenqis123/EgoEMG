@@ -73,7 +73,7 @@ def infer_dataset_type(config: DictConfig) -> str:
             if "egoemg_memmap_dataset" in target.lower():
                 return "egoemg"
 
-    if config.get("egoemg_memmap_dir"):
+    if config.get("egoemg_unified_memmap_dir") or config.get("egoemg_memmap_dir"):
         return "egoemg"
     return "emg2pose"
 
@@ -109,7 +109,7 @@ class EMG2PoseEvaluation:
             # settings that are irrelevant to the emg2pose evaluation dataset.
             # The user may explicitly want to evaluate a pretrain/egoemg model
             # on the emg2pose benchmark.
-            if not self.config.get("egoemg_memmap_dir"):
+            if not (self.config.get("egoemg_unified_memmap_dir") or self.config.get("egoemg_memmap_dir")):
                 self.dataset_type = inferred_dataset_type
 
         # Determine memmap directory
@@ -126,7 +126,11 @@ class EMG2PoseEvaluation:
             self.dataloaders = self.get_dataloaders()
 
     def _find_memmap_dir(self) -> str:
-        """Find memmap directory from data_location."""
+        """Find memmap directory from the unified/legacy config keys, then data_location."""
+        for key in ("egoemg_unified_memmap_dir", "egoemg_memmap_dir"):
+            memmap = self.config.get(key)
+            if memmap and os.path.exists(os.path.join(str(memmap).rstrip("/"), "manifest.json")):
+                return str(memmap)
         data_dir = self.data_dir.rstrip("/")
         # Check if data_location is already memmap
         if os.path.exists(os.path.join(data_dir, "manifest.json")):
@@ -279,7 +283,7 @@ class EMG2PoseEvaluation:
         """Create EgoEMG test dataloaders grouped by generalization split."""
         from egoemg.datasets.pretrain_wrapper import PretrainWrapperDataset
 
-        memmap_dir = self.config.get("egoemg_memmap_dir", "")
+        memmap_dir = self.config.get("egoemg_unified_memmap_dir") or self.config.get("egoemg_memmap_dir", "")
         emg_layout = self.config.get("egoemg_emg_layout", "emg2pose_interpolate16")
         channel_indices = self.config.get("egoemg_emg2pose_channel_indices",
                                           [10, 12, 0, 1, 2, 4, 5, 6])
