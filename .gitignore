@@ -224,21 +224,9 @@ visualizations/
 scripts/viz/emg_verification_samples/
 scripts/viz/verification_samples/
 
-# Paper build products and agent traces
-paper/.aris/
-paper/build/
-paper/build_arxiv/
-# Intermediate main.pdf (main_submission.pdf is the authoritative version)
-paper/aaai2027/main.pdf
-paper/**/*.aux
-paper/**/*.bbl
-paper/**/*.blg
-paper/**/*.fdb_latexmk
-paper/**/*.fls
-paper/**/*.log
-paper/**/*.out
-paper/**/*.synctex.gz
-paper/arxiv_submit.tar.gz
+# Paper materials are local-only (LaTeX source, PDFs, figures) and are not
+# part of the software release. Scripts in scripts/paper/ regenerate them.
+paper/
 
 # test_results contains machine-specific run provenance and absolute paths
 # (config.yaml, overrides.yaml, *_models.json); it is local experiment output,
