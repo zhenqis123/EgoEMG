@@ -3,12 +3,12 @@
 # Validation/test remain EgoEMG-only for direct baseline comparability.
 defaults:
   - /experiment/emgformer/regression_egoemg_window_ablation_wl12000
-  - override /dataset: egoemg_showee_angle_regression
+  - override /dataset: egoemg_unified_angle_regression
   - override /augmentation: batch_aug_best_v2
   - _self_
 
 showee_memmap_dir: data/ShowEE_202607_memmap
-egoemg_incre_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_incre/data_right_merged
+egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
 showee_video_root: ${oc.env:EMG2POSE_ROOT,.}/data/showee
 showee_allintra_root: data/ShowEE_202607_allintra
 showee_per_episode_crops_dir: data/ShowEE_202607_crops

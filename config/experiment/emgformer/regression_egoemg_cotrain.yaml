@@ -7,7 +7,7 @@
 # Usage:
 #   python -m egoemg.train \
 #     experiment=emgformer/regression_egoemg_cotrain \
-#     egoemg_memmap_dir=/path/to/EgoEMG_memmap \
+#     egoemg_unified_memmap_dir=/path/to/EgoEMG_unified_memmap \
 #     emg2pose_memmap_dir=/path/to/emg2pose_v3_memmap \
 #     'trainer.devices=[0,1,2,3,4,5]' \
 #     +trainer.strategy=ddp \
@@ -65,7 +65,7 @@ dataset:
   train:
     # ── EgoEMG left hand (target_hand 8ch) ──────────────────────────
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
       allowed_splits: [train]
@@ -81,7 +81,7 @@ dataset:
 
     # ── EgoEMG right hand (target_hand 8ch) ─────────────────────────
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
       allowed_splits: [train]
@@ -112,7 +112,7 @@ dataset:
   val:
     # ── EgoEMG val only (user/gesture/both generalization splits) ──
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
       allowed_splits: [user, gesture, both]
@@ -126,7 +126,7 @@ dataset:
       dataset_name: egoemg
 
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
       allowed_splits: [user, gesture, both]

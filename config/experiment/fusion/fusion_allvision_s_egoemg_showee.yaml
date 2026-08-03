@@ -3,7 +3,7 @@
 # backbone/checkpoint. Training uses EgoEMG + ShowEE and excludes Incre.
 defaults:
   - /experiment/fusion/fusion_rn18_s_center_8ch_egoemg_showee
-  - override /dataset: egoemg_showee_fusion_angle_regression
+  - override /dataset: egoemg_unified_angle_regression
   - _self_
 
 checkpoint: null

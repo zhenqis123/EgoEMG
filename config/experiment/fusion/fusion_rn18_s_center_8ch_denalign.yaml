@@ -18,7 +18,7 @@ defaults:
   - _self_
 
 # ── Data paths ───────────────────────────────────────────────────────────────
-egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
+egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
 egoemg_emg_layout: target_hand
 egoemg_emg2pose_channel_indices: null
 egoemg_channel_interpolate: false

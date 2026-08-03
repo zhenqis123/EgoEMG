@@ -2,7 +2,7 @@
 # Vision-only ResNet34 training on the mixed EgoEMG + ShowEE dataset.
 defaults:
   - /experiment/fusion/vision_resnet_middle
-  - override /dataset: egoemg_showee_angle_regression
+  - override /dataset: egoemg_unified_angle_regression
   - _self_
 
 showee_memmap_dir: data/ShowEE_202607_memmap

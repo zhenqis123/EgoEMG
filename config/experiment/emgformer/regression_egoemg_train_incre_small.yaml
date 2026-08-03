@@ -23,7 +23,7 @@ datamodule:
 dataset:
   train:
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
       allowed_splits: [train]
@@ -38,7 +38,7 @@ dataset:
       jitter: true
 
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
       allowed_splits: [train]
@@ -55,7 +55,7 @@ dataset:
 
   val:
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
       allowed_splits: [user, gesture, both]
@@ -69,7 +69,7 @@ dataset:
       dataset_name: egoemg
 
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
       allowed_splits: [user, gesture, both]

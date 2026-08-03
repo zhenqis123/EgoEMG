@@ -59,7 +59,7 @@ dataset:
   train:
     # ── EgoEMG left hand (all splits) ──
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
       allowed_splits: [train, user, gesture, both]
@@ -75,7 +75,7 @@ dataset:
       jitter: true
     # ── EgoEMG right hand (all splits) ──
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
       allowed_splits: [train, user, gesture, both]
@@ -92,7 +92,7 @@ dataset:
       jitter: true
     # ── Incre train (Ep 4-5 前80% only; Ep 0-3 excluded) ──
     - _target_: egoemg.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
-      memmap_dir: ${egoemg_incre_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
       allowed_splits: [train]
@@ -114,7 +114,7 @@ dataset:
   val:
     # ── Incre val (Ep 4-5 后20% only; Ep 0-3 excluded) ──
     - _target_: egoemg.datasets.egoemg_incre_dataset.EgoEmgIncreDataset
-      memmap_dir: ${egoemg_incre_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
       allowed_splits: [val]

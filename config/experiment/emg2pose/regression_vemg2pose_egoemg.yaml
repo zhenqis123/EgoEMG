@@ -16,7 +16,7 @@ defaults:
   - /module: vemg_with_initial_state
   - _self_
 
-egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
+egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
 egoemg_emg_layout: emg2pose_interpolate16
 egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
 egoemg_channel_interpolate: false
@@ -48,7 +48,7 @@ optimizer:
 dataset:
   train:
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
       allowed_splits: [train]
@@ -63,7 +63,7 @@ dataset:
       dataset_name: egoemg
 
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
       allowed_splits: [train]
@@ -79,7 +79,7 @@ dataset:
 
   val:
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
       allowed_splits: [val]
@@ -94,7 +94,7 @@ dataset:
       dataset_name: egoemg
 
     - _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
-      memmap_dir: ${egoemg_memmap_dir}
+      memmap_dir: ${egoemg_unified_memmap_dir}
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
       allowed_splits: [val]

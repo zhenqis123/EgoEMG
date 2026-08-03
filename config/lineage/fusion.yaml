@@ -16,7 +16,7 @@
 #   per_episode_crops_dir, max_epochs, devices.
 defaults:
   - /lineage/_base
-  - override /dataset: egoemg_angle_regression
+  - override /dataset: egoemg_unified_angle_regression
   - override /datamodule: default
   - override /lr_scheduler: cosine
   - _self_
@@ -25,7 +25,8 @@ defaults:
 # Lineage identifier.
 lineage: fusion
 
-# ── Shared data path (EgoEMG memmap). Experiments may override.
+# ── Shared data path (unified EgoEMG memmap). Experiments may override.
+egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
 
 # WiLoR / MANO paths NOT pinned here — only wilor_vit experiments need them,
 # and they set their own. Other fusion experiments (resnet/vit/mid_fusion) don't.

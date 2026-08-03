@@ -49,7 +49,7 @@ Or directly via Hydra CLI with base templates:
 # EgoEMG regression (template: regression_egoemg)
 python -m egoemg.train \
   experiment=emgformer/regression_egoemg \
-  egoemg_memmap_dir=/path/to/EgoEMG_memmap \
+  egoemg_unified_memmap_dir=/path/to/EgoEMG_unified_memmap \
   'trainer.devices=[0,1,2,3,4,5]' \
   +trainer.strategy=ddp \
   batch_size=500
@@ -64,7 +64,7 @@ python -m egoemg.train \
 python -m egoemg.train \
   train=False eval=True \
   experiment=emgformer/regression_egoemg \
-  egoemg_memmap_dir=/path/to/EgoEMG_memmap \
+  egoemg_unified_memmap_dir=/path/to/EgoEMG_unified_memmap \
   'checkpoint="/path/to/checkpoint.ckpt"' \
   'trainer.devices=[0]' batch_size=50
 
@@ -72,7 +72,7 @@ python -m egoemg.train \
 python -m egoemg.test_analysis \
   experiment=emgformer/regression_egoemg \
   'checkpoint="/path/to/checkpoint.ckpt"' \
-  egoemg_memmap_dir=/path/to/EgoEMG_memmap
+  egoemg_unified_memmap_dir=/path/to/EgoEMG_unified_memmap
 ```
 
 Use 5 base templates under `config/experiment/emgformer/`:
@@ -89,15 +89,15 @@ Legacy configs are archived in `config/experiment/emgformer/_archive/`.
 ```bash
 # Build the sidecar index once
 python scripts/data/build_egoemg_vision_index.py \
-  --memmap-dir /path/to/EgoEMG_memmap \
-  --output-dir /path/to/EgoEMG_memmap/vision_index
+  --memmap-dir /path/to/EgoEMG_unified_memmap \
+  --output-dir /path/to/EgoEMG_unified_memmap/vision_index
 
 # Visualize actual dataset samples
 python scripts/viz/visualize_egoemg_vision_dataset.py \
-  --memmap-dir /path/to/EgoEMG_memmap \
+  --memmap-dir /path/to/EgoEMG_unified_memmap \
   --video-root /path/to/EgoEMG \
   --allintra-root /path/to/EgoEMG_allintra \
-  --vision-index-dir /path/to/EgoEMG_memmap/vision_index \
+  --vision-index-dir /path/to/EgoEMG_unified_memmap/vision_index \
   --output-dir /tmp/egoemg_vision_dataset_viz \
   --num-samples 16 \
   --target-hand both

@@ -4,7 +4,7 @@
 # selected module; center_supervised is the main single-frame fusion setup.
 defaults:
   - /experiment/fusion/fusion_rn18_s_center_8ch
-  - override /dataset: egoemg_showee_angle_regression
+  - override /dataset: egoemg_unified_angle_regression
   - _self_
 
 showee_memmap_dir: data/ShowEE_202607_memmap

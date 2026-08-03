@@ -5,14 +5,14 @@
 # Trainable: MLP only (~0.7M params)
 
 defaults:
-  - /dataset: egoemg_angle_regression
+  - /dataset: egoemg_unified_angle_regression
   - /datamodule: default
   - /transforms: emgformer_regression_aug_best
   - /lr_scheduler: cosine
   - _self_
 
 # ── EMG data ────────────────────────────────────────────────────────────────
-egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
+egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
 egoemg_emg_layout: emg2pose_interpolate16
 egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
 egoemg_channel_interpolate: false

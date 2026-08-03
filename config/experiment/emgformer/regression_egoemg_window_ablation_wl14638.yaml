@@ -27,8 +27,8 @@ checkpoint:
 pretrained_checkpoint: null
 pretrained_strict: false
 
-# egoemg_memmap_dir is supplied via CLI (the active experiment scripts pass
-# egoemg_memmap_dir=${EGOEMG_DATA:-data/EgoEMG_memmap} on the command line).
+# egoemg_unified_memmap_dir is supplied via CLI (the active experiment scripts pass
+# egoemg_unified_memmap_dir=${EGOEMG_DATA:-data/EgoEMG_unified_memmap} on the command line).
 egoemg_emg_field_preference: filtered
 # Raw 8-channel layout: pass the 8 channels of the target hand through
 # without sparse-place / ring-interpolation. No channel-index mapping

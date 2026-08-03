@@ -23,7 +23,7 @@ defaults:
   - override /transforms: emgformer_regression_no_aug
   - _self_
 
-eval_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
+eval_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
 eval_target_hand: right
 eval_dataset_name: egoemg
 eval_allowed_splits: [test]

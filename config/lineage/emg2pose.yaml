@@ -11,7 +11,7 @@
 #   log_every_n_steps=50, check_val_every_n_epoch=1.
 defaults:
   - /lineage/_base
-  - override /dataset: egoemg_angle_regression
+  - override /dataset: egoemg_unified_angle_regression
   - override /datamodule: default
   - override /transforms: rotation_augmentation
   - override /lr_scheduler: cosine
@@ -22,7 +22,8 @@ defaults:
 # Lineage identifier.
 lineage: emg2pose
 
-# ── Shared data path (EgoEMG memmap). Experiments may override.
+# ── Shared data path (unified EgoEMG memmap). Experiments may override.
+egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
 
 # ── Uniform training-framework defaults ─────────────────────────────────────
 
