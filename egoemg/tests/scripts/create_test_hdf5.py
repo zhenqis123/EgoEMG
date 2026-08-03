@@ -36,7 +36,7 @@ def create_a_sample_hdf5_file():
     with h5py.File("../assets/test_data.hdf5", "w") as f:
         emg2pose = f.create_group("emg2pose")
         emg2pose["timeseries"] = main_timeseries
-        egoemg.attrs.update(metadata)
+        emg2pose.attrs.update(metadata)
 
 
 if __name__ == "__main__":

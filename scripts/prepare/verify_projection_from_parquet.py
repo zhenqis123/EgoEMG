@@ -88,7 +88,7 @@ def _read_parquet_columns(pq_path, columns):
     arrays = {}
     for col_name in columns:
         col = table.column(col_name).combine_chunks()
-        if col.type.equals(pyarrow_fixed_size_list_12):
+        if col.type.equals(fixed_size_list_12):
             flat = col.flatten().to_numpy(zero_copy_only=False)
             arrays[col_name] = flat.reshape(len(col), 12)
         else:
