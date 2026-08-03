@@ -6,7 +6,7 @@ set -Eeuo pipefail
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 SCRIPT_REPO=$(cd -- "${SCRIPT_DIR}/../.." && pwd)
-SHARED_ROOT=${EMG2POSE_SHARED_ROOT:-${EMG2POSE_SHARED_ROOT:-/shared}/develop}
+SHARED_ROOT=${EMG2POSE_SHARED_ROOT:-./shared}
 
 first_existing_path() {
     local candidate
@@ -36,11 +36,7 @@ resolve_python() {
     # Direct interpreter paths avoid relying on `conda init` inside a Pod.
     for candidate in \
         "${CONDA_PREFIX:-}/bin/python" \
-        python \
-        python \
-        python \
-        /root/miniconda3/envs/v2c_env/bin/python \
-        /opt/conda/envs/emg2pose_env/bin/python; do
+        python; do
         if [[ -x "$candidate" ]] \
             && "$candidate" -c 'import torch, pytorch_lightning, lmdb' \
                 >/dev/null 2>&1; then

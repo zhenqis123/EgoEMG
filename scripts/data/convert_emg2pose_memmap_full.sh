@@ -5,7 +5,7 @@
 #   bash scripts/data/convert_emg2pose_memmap_full.sh
 #
 # 磁盘需求: ~465 GB (emg + joint_angles + valid_mask + time)
-# 当前可用: 检查 /mnt/nvme
+# 请确保目标磁盘有足够的可用空间
 
 set -e
 

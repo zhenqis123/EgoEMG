@@ -7,14 +7,14 @@ receive joint angle predictions for real-time visualization.
 Usage:
   # Real-time inference mode (server must be running)
   python scripts/realtime/collect_and_predict.py \\
-    --server 192.168.1.100 --com-port COM3 --out data
+    --server <server-ip> --com-port COM3 --out data
 
   # Pure data collection mode (no server needed)
   python scripts/realtime/collect_and_predict.py --com-port COM3 --out data
 
   # With Manus glove (same as collect.py)
   python scripts/realtime/collect_and_predict.py \\
-    --server 192.168.1.100 --com-port COM3 \\
+    --server <server-ip> --com-port COM3 \\
     --redis-host localhost --out data
 
 Over SSH tunnel:
