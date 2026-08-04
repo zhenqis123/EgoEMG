@@ -41,7 +41,10 @@ class EmgformerPretrain(nn.Module):
         return aligned.squeeze(1).to(torch.bool)
 
     def forward(self, batch: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        emg = batch["emg"]
+        try:
+            emg = batch["emg"]
+        except KeyError:
+            raise KeyError("batch must contain 'emg'") from None
         features = self.featurizer(emg)  # (B, C, T)
         decoded = self.decoder(features)
         outputs = {}

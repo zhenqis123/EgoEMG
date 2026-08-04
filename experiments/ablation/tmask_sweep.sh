@@ -11,7 +11,7 @@ LR=0.0005
 EPOCHS=4
 SEED=50
 BASE_LOG="logs/ablation/tmask_sweep"
-DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
+DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_unified_memmap"
 
 # Disable all aug, then enable only target
 NOAUG_EXCEPT="batch_augmentation.random_gain.mask_prob=0.0 \
@@ -24,7 +24,7 @@ NOAUG_EXCEPT="batch_augmentation.random_gain.mask_prob=0.0 \
 
 common_args() {
   echo "experiment=${BASE_CONFIG} \
-    egoemg_memmap_dir=${DATA_DIR} \
+    egoemg_unified_memmap_dir=${DATA_DIR} \
     trainer.devices=[${GPUS}] \
     +trainer.strategy=ddp \
     trainer.max_epochs=${EPOCHS} \

@@ -1,7 +1,6 @@
 # CLAUDE.md
 
 This file provides agent-facing guidance for the active repository workflows.
-Keep it synchronized with `AGENTS.md`.
 
 ## Project Scope
 
@@ -20,7 +19,6 @@ to work on them.
 ```bash
 conda env create -f environment.yml && conda activate emg2pose
 pip install -e .
-pip install -e egoemg/UmeTrack
 ```
 
 ## Main Commands
@@ -98,7 +96,8 @@ python scripts/viz/visualize_egoemg_vision_dataset.py \
   --video-root /path/to/EgoEMG \
   --allintra-root /path/to/EgoEMG_allintra \
   --vision-index-dir /path/to/EgoEMG_unified_memmap/vision_index \
-  --output-dir /tmp/egoemg_vision_dataset_viz \
+  # (or --auto-build-index to create the index on the fly, as in the README)
+  --output-dir /tmp/egoemg_vision_viz \
   --num-samples 16 \
   --target-hand both
 

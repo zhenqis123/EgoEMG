@@ -1332,8 +1332,9 @@ class EgoEmgMemmapDataset(Dataset):
         """Fast path: vision_only + preloaded features.
 
         Reads exclusively from preloaded numpy arrays — zero file I/O.
-        ``center_idx`` is accepted but ignored: joint angles were preloaded
-        at the same center frame during ``_preload_all_features``.
+        ``center_idx`` is used only for ``_resolve_dataset_name`` (dataset
+        provenance); joint angles were preloaded at the same center frame
+        during ``_preload_all_features``.
         """
         hand = self.target_hand
         hand_idx = 0 if hand == "left" else 1
@@ -1407,10 +1408,16 @@ class EgoEmgMemmapDataset(Dataset):
             ep_id, np.array([video_frame_idx], dtype=np.int64), hand_code
         )
         if frames_rgb is None:
+            # Missing pre-crop: hand back a zero patch for shape consistency
+            # but mark the vision sample INVALID so downstream losses/eval
+            # can exclude it instead of silently training on black images.
             frames_rgb = np.zeros(
                 (1, self.vision_patch_size, self.vision_patch_size, 3),
                 dtype=np.uint8,
             )
+            vision_ok = False
+        else:
+            vision_ok = True
 
         # ── Normalize single image ──────────────────────────────────────
         frame_rgb = frames_rgb[0]
@@ -1425,7 +1432,7 @@ class EgoEmgMemmapDataset(Dataset):
         dataset_name = self._resolve_dataset_name(center_idx)
         return {
             "vision_img": img_patch,  # (3, 256, 256)
-            "vision_valid_mask": np.array([True], dtype=bool),
+            "vision_valid_mask": np.array([vision_ok], dtype=bool),
             "vision_frame_indices": np.array([video_frame_idx], dtype=np.int64),
             "joint_angles": ja_full[:, None],  # (22, 1)
             "label_valid_mask": np.array([label_valid], dtype=bool),
@@ -1505,10 +1512,16 @@ class EgoEmgMemmapDataset(Dataset):
             ep_id, np.array([video_frame_idx], dtype=np.int64), hand_code
         )
         if frames_rgb is None:
+            # Missing pre-crop: hand back a zero patch for shape consistency
+            # but mark the vision sample INVALID so downstream losses/eval
+            # can exclude it instead of silently training on black images.
             frames_rgb = np.zeros(
                 (1, self.vision_patch_size, self.vision_patch_size, 3),
                 dtype=np.uint8,
             )
+            vision_ok = False
+        else:
+            vision_ok = True
 
         # ── Normalize single image ──────────────────────────────────────
         frame_rgb = frames_rgb[0]
@@ -1519,7 +1532,7 @@ class EgoEmgMemmapDataset(Dataset):
         dataset_name = self._resolve_dataset_name(center_idx)
         return {
             "vision_img": img_patch,  # (3, 256, 256)
-            "vision_valid_mask": np.array([True], dtype=bool),
+            "vision_valid_mask": np.array([vision_ok], dtype=bool),
             "vision_frame_indices": np.array([video_frame_idx], dtype=np.int64),
             "joint_angles": ja_full[:, None],  # (22, 1)
             "label_valid_mask": np.array([label_valid], dtype=bool),

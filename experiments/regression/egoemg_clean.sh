@@ -13,7 +13,7 @@ LR=0.0005
 EPOCHS=150
 SEED=42
 BASE_LOG="logs/regression/egoemg_clean"
-DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
+DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_unified_memmap"
 
 # No augmentation — clean baseline
 AUG="batch_augmentation=null"
@@ -30,7 +30,7 @@ mkdir -p "${BASE_LOG}"
 
 python -m egoemg.train \
   experiment=${BASE_CONFIG} \
-  egoemg_memmap_dir=${DATA_DIR} \
+  egoemg_unified_memmap_dir=${DATA_DIR} \
   trainer.devices=[${GPUS}] \
   +trainer.strategy=ddp \
   trainer.max_epochs=${EPOCHS} \

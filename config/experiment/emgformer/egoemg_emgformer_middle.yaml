@@ -1,5 +1,5 @@
 # @package _global_
-# EMG→pose (EgoEMG) EMGFormer-Small, on the unified EgoEMG memmap.
+# EMG→pose (EgoEMG) EMGFormer-Middle, on the unified EgoEMG memmap.
 #
 # Mirrors the released egoemg_emgformer_middle.ckpt architecture (16-ch
 # interpolate16 layout, 3-layer small decoder) and evaluates on the post-merge

@@ -25,6 +25,8 @@ __all__ = [
     "MyoKiDataset",
     "PretrainWrapperDataset",
     "EgoEmgMemmapDataset",
+    "EgoEmgVisionDataset",
+    "NinaproMemmapDataset",
     "EgoEmgIncreDataset",
 ]
 

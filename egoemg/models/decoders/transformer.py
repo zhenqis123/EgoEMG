@@ -117,6 +117,8 @@ class RotaryMultiheadAttention(nn.Module):
                     combined_mask = combined_mask[None, None, :, :]
                 combined_mask = combined_mask | key_mask
             else:
+                if combined_mask.dim() == 2:
+                    combined_mask = combined_mask[None, None, :, :]
                 mask_val = torch.finfo(combined_mask.dtype).min
                 combined_mask = combined_mask + key_mask.to(combined_mask.dtype) * mask_val
 

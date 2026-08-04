@@ -33,7 +33,7 @@ for WL in 1000 3000 5000 7000 9000 11000 13000 15000 20000 25000 30000 35000; do
 
     python -m egoemg.train \
       experiment=${EXPERIMENT} \
-      egoemg_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap \
+      egoemg_unified_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_unified_memmap \
       trainer.devices=[${GPUS}] \
       +trainer.strategy=ddp \
       trainer.max_epochs=${EPOCHS} \

@@ -4,7 +4,7 @@ from torch import nn
 from typing import Optional, List, Literal
 
 def _apply_rotary_emb(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
-    """标准 RoPE 旋转应用逻辑"""
+    """Standard RoPE rotation application."""
     # x: (..., dim), cos/sin: (..., dim//2)
     x1 = x[..., ::2]
     x2 = x[..., 1::2]

@@ -7,7 +7,9 @@ from torch import nn
 def _get_activation(name: Literal["relu", "gelu"]) -> nn.Module:
     if name == "gelu":
         return nn.GELU()
-    return nn.ReLU()
+    if name == "relu":
+        return nn.ReLU()
+    raise ValueError(f"Unsupported activation: {name!r}")
 
 
 class MLPHead(nn.Module):

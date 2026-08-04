@@ -790,13 +790,16 @@ class MidFusionPoseFormer(BaseModule):
         half_ctx = self.left_context // 2
         right_stop = -half_ctx if half_ctx > 0 else None
         targets = ja[..., half_ctx:right_stop]
-        mask = mask[..., half_ctx:right_stop]
 
         targets = F_interpolate(targets, size=T, mode="linear", align_corners=False)
-        mask = self.align_mask(mask, T)
 
+        # Vision-only supervision is single-frame: only the center frame is
+        # valid (the earlier align_mask result was discarded, so don't compute
+        # it — this is the sole validity mask used downstream).
         center = T // 2
-        mask = torch.zeros_like(mask)
+        mask = torch.zeros(
+            mask.shape[0], T, device=mask.device, dtype=torch.float32
+        )
         if vision_valid is not None:
             mask[vision_valid, center] = 1.0
         else:

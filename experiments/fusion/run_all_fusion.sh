@@ -1,2 +1,0 @@
-bash experiments/fusion/train_resnet_small_emgfusion_center.sh
-bash experiments/fusion/train_vit_small_emgfusion_center.sh

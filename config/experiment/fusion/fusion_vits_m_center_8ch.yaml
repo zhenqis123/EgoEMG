@@ -1,7 +1,7 @@
 # @package _global_
 # Migrated to inherit lineage/fusion.yaml (framework defaults).
 # Business params preserved verbatim; resolved config identical to pre-migration.
-# F-RN18+S: ResNet18 + EMGFormer-S fusion, 8ch target_hand, center-supervised.
+# ViT-S + EMGFormer-M fusion, 8ch target_hand, center-supervised.
 # EMG init from incre cotrain S checkpoint (val_mae≈0.25).
 # Vision backbone frozen, EMG branch + fusion head trainable.
 #

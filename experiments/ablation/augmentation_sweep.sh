@@ -11,12 +11,12 @@ LR=0.0005
 EPOCHS=2
 BASE_SEED=42
 BASE_LOG="logs/ablation/aug_sweep"
-DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
+DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_unified_memmap"
 
 # Common Hydra args for all experiments
 common_args() {
   echo "experiment=${BASE_CONFIG} \
-    egoemg_memmap_dir=${DATA_DIR} \
+    egoemg_unified_memmap_dir=${DATA_DIR} \
     trainer.devices=[${GPUS}] \
     +trainer.strategy=ddp \
     trainer.max_epochs=${EPOCHS} \

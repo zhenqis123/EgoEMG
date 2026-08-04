@@ -63,6 +63,8 @@ class StatePoseModule(BaseModule):
         self.state_condition = state_condition
         self.predict_vel = predict_vel
         self.rollout_freq = rollout_freq
+        if rollout_freq <= 0:
+            raise ValueError(f"rollout_freq must be > 0, got {rollout_freq}")
 
     def _predict_pose(self, emg: torch.Tensor, initial_pos: torch.Tensor):
 

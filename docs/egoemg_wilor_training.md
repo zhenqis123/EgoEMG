@@ -8,7 +8,7 @@ implementation constraints that keep startup and decoding fast.
 
 The training entrypoint expects three data roots:
 
-- `data_location`: EgoEMG memmap directory, for example `data/EgoEMG_memmap`.
+- `data_location`: EgoEMG memmap directory, for example `data/EgoEMG_unified_memmap`.
 - `video_root`: raw EgoEMG dataset root containing the original webcam paths and
   reprojection assets, for example `data/EgoEMG`.
 - `allintra_root`: all-intra re-encoded webcam videos, for example
@@ -27,8 +27,8 @@ startup.
 
 ```bash
 python scripts/data/build_egoemg_vision_index.py \
-    --memmap-dir data/EgoEMG_memmap \
-    --output-dir data/EgoEMG_memmap/vision_index
+    --memmap-dir data/EgoEMG_unified_memmap \
+    --output-dir data/EgoEMG_unified_memmap/vision_index
 ```
 
 The index stores valid frame ids per split, episode, and hand. At runtime the
@@ -39,7 +39,7 @@ If you need to create all-intra videos, use the repository conversion script:
 
 ```bash
 python scripts/prepare/reencode_egoemg_webcam_allintra.py \
-    --memmap-dir data/EgoEMG_memmap \
+    --memmap-dir data/EgoEMG_unified_memmap \
     --data-root data/EgoEMG \
     --output-root data/EgoEMG_allintra
 ```
@@ -52,10 +52,10 @@ training crop, bbox, and normalized patch keypoints.
 
 ```bash
 python scripts/viz/visualize_egoemg_vision_dataset.py \
-    --memmap-dir data/EgoEMG_memmap \
+    --memmap-dir data/EgoEMG_unified_memmap \
     --video-root data/EgoEMG \
     --allintra-root data/EgoEMG_allintra \
-    --vision-index-dir data/EgoEMG_memmap/vision_index \
+    --vision-index-dir data/EgoEMG_unified_memmap/vision_index \
     --output-dir /tmp/egoemg_vision_dataset_viz \
     --num-samples 16 \
     --target-hand both
@@ -65,10 +65,10 @@ For quick startup profiling, reduce to one or two samples:
 
 ```bash
 python scripts/viz/visualize_egoemg_vision_dataset.py \
-    --memmap-dir data/EgoEMG_memmap \
+    --memmap-dir data/EgoEMG_unified_memmap \
     --video-root data/EgoEMG \
     --allintra-root data/EgoEMG_allintra \
-    --vision-index-dir data/EgoEMG_memmap/vision_index \
+    --vision-index-dir data/EgoEMG_unified_memmap/vision_index \
     --output-dir /tmp/egoemg_vision_dataset_viz \
     --num-samples 1 \
     --target-hand both
@@ -87,10 +87,10 @@ from pathlib import Path
 from egoemg.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
 
 dataset = EgoEmgVisionDataset(
-    memmap_dir=Path("data/EgoEMG_memmap"),
+    memmap_dir=Path("data/EgoEMG_unified_memmap"),
     video_root=Path("data/EgoEMG"),
     allintra_root=Path("data/EgoEMG_allintra"),
-    vision_index_dir=Path("data/EgoEMG_memmap/vision_index"),
+    vision_index_dir=Path("data/EgoEMG_unified_memmap/vision_index"),
     target_hand="both",
     allowed_splits=["train"],
     stride=30,
@@ -143,10 +143,10 @@ The training entrypoint is:
 ```bash
 python -m egoemg.train \
     experiment=fusion/vision_resnet_middle_egoemg_showee \
-    data_location=data/EgoEMG_memmap \
+    data_location=data/EgoEMG_unified_memmap \
     video_root=data/EgoEMG \
     allintra_root=data/EgoEMG_allintra \
-    vision_index_dir=data/EgoEMG_memmap/vision_index \
+    vision_index_dir=data/EgoEMG_unified_memmap/vision_index \
     mano_model_path=../WiLoR/mano_data \
     wilor_checkpoint_path=../WiLoR/pretrained_models/wilor_final.ckpt \
     train=True \
@@ -168,10 +168,10 @@ Example evaluation-only run:
 ```bash
 python -m egoemg.train \
     experiment=fusion/vision_resnet_middle_egoemg_showee \
-    data_location=data/EgoEMG_memmap \
+    data_location=data/EgoEMG_unified_memmap \
     video_root=data/EgoEMG \
     allintra_root=data/EgoEMG_allintra \
-    vision_index_dir=data/EgoEMG_memmap/vision_index \
+    vision_index_dir=data/EgoEMG_unified_memmap/vision_index \
     checkpoint=/path/to/checkpoints/last.ckpt \
     train=False \
     eval=True

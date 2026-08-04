@@ -16,7 +16,7 @@ CHECKPOINT="logs/pretrain/latest/checkpoints/last.ckpt"
 
 python -m egoemg.train \
   experiment=${EXPERIMENT} \
-  egoemg_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap \
+  egoemg_unified_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_unified_memmap \
   trainer.devices=[${GPUS}] \
   +trainer.strategy=ddp \
   trainer.max_epochs=${EPOCHS} \

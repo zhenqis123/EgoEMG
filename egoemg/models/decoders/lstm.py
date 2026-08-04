@@ -43,7 +43,10 @@ class SequentialLSTM(nn.Module):
             batch_size = x.size(0)
             device = x.device
             size = (self.num_layers, batch_size, self.hidden_size)
-            self.hidden = (torch.zeros(*size).to(device), torch.zeros(*size).to(device))
+            self.hidden = (
+                torch.zeros(*size, device=device),
+                torch.zeros(*size, device=device),
+            )
 
         out, self.hidden = self.lstm(x[:, None], self.hidden)
         return self.mlp_out(out[:, 0]) * self.scale

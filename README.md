@@ -126,7 +126,6 @@ bash scripts/download/download_checkpoints.sh baidupcs
 ```shell
 conda env create -f environment.yml && conda activate emg2pose
 pip install -e .
-pip install -e egoemg/UmeTrack
 ```
 
 The Google Drive download scripts use `gdown`, which is not included in the
@@ -215,16 +214,17 @@ the three test splits):
 *`vEMG2Pose` and `NeuroPose` rows are paper-reported; their checkpoints are not
 released.*
 
-**EMG-to-pose on the EMG2Pose benchmark** (same splits; MAE in degrees):
+**EMG-to-pose on the EMG2Pose benchmark** (MAE in degrees, per-user mean ± std
+across the User / Stage / User+Stage test splits):
 
-| Method | Params | Gesture | User | Both | Avg. |
-|--------|--------|---------|------|------|------|
-| EMGFormer-S | 3.5M | 12.3 ± 1.5 | 16.0 ± 0.6 | 16.3 ± 1.5 | 14.1 |
-| EMGFormer-M | 6.6M | 11.7 ± 1.6 | 15.9 ± 0.6 | 16.4 ± 1.5 | 13.8 |
-| EMGFormer-L | 16.3M | 11.9 ± 1.6 | 16.0 ± 0.8 | 16.4 ± 1.2 | 13.9 |
+| Method | Params | User | Stage | User+Stage |
+|--------|--------|------|-------|------------|
+| EMGFormer-S | 3.5M | 12.5 ± 1.1 | 11.1 ± 1.2 | 12.3 ± 1.1 |
+| EMGFormer-M | 6.6M | 12.4 ± 1.1 | 10.2 ± 1.1 | 12.4 ± 1.1 |
+| EMGFormer-L | 16.3M | 12.3 ± 1.1 | 9.3 ± 1.1 | 12.3 ± 1.1 |
 
-*Paper-reported; all three rows have released checkpoints
-(`emg2pose_emgformer_{small,middle,large}.ckpt`).*
+*Rows correspond to the released `emg2pose_emgformer_{small,middle,large}.ckpt`
+checkpoints; prior-work rows in the paper are paper-reported.*
 
 **Vision-only → EMG+vision fusion on EgoEMG** (MAE in degrees on identical
 center frames; Frz./FT = frozen/fine-tuned visual predictor; Avg. is the

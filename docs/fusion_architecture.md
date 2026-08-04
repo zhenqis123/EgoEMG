@@ -8,7 +8,7 @@ TransformerDecoder, then fuses decoder output with vision features before the pr
 
 **Training entrypoint:** `python -m egoemg.train`
 
-**Config:** `experiment=fusion/vision_resnet_small_emgfusion_center` (see `config/experiment/fusion/`)
+**Config:** `experiment=fusion/fusion_rn18_s_center_16ch_wl7790` (see `config/experiment/fusion/`)
 
 **Source:** `egoemg/models/modules/mid_fusion.py`
 
@@ -250,13 +250,13 @@ Additional metrics logged: per-finger MAE, velocity, accuracy, fingertip distanc
 ```bash
 # Full training
 python -m egoemg.train \
-  experiment=fusion/vision_resnet_small_emgfusion_center \
+  experiment=fusion/fusion_rn18_s_center_16ch_wl7790 \
   trainer.devices=[1] \
   num_workers=8
 
 # Quick dry-run (1 epoch, no workers)
 python -m egoemg.train \
-  experiment=fusion/vision_resnet_small_emgfusion_center \
+  experiment=fusion/fusion_rn18_s_center_16ch_wl7790 \
   max_epochs=1 trainer.max_epochs=1 \
   trainer.devices=[1] \
   datamodule.stride=7790 \

@@ -283,3 +283,6 @@ results.csv
 
 # Ablation study is internal research notes (Chinese) + paper tables; local-only.
 ablation_study/
+
+# Editor workspace files
+*.code-workspace

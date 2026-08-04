@@ -7,6 +7,7 @@ a pretrained ResNet backbone, and predicts 22 joint angles.
 from __future__ import annotations
 
 import torch
+import torchvision.models as tv_models
 from torch import nn
 
 from egoemg.models.modules._vision_constants import RESNET_DIMS as _RESNET_DIMS
@@ -45,8 +46,6 @@ class ResNetVisionPose(nn.Module):
                 f"Unknown backbone_type: {backbone_type}. "
                 f"Choose from {list(_RESNET_BUILDERS)}."
             )
-
-        import torchvision.models as tv_models
 
         resnet_fn, weights_cls = _RESNET_BUILDERS[backbone_type]
         weights = getattr(tv_models, weights_cls).IMAGENET1K_V1 if pretrained else None

@@ -29,7 +29,7 @@
 
 ## Build, Test, and Development Commands
 - Set up environment and editable install:
-  `conda env create -f environment.yml && conda activate emg2pose && pip install -e . && pip install -e egoemg/UmeTrack`.
+  `conda env create -f environment.yml && conda activate emg2pose && pip install -e .`.
 - EMGFormer supervised EMG-to-pose training (single entrypoint for all lines):
   `python -m egoemg.train experiment=emgformer/regression_egoemg train=true eval=true trainer.devices=[0]`.
 - EMGFormer pretraining: `python -m egoemg.train_pretrain` (uses

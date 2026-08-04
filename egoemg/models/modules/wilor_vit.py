@@ -103,6 +103,11 @@ class WiLoRViTPose(nn.Module):
                     p.requires_grad = False
 
     def _extract_feature(self, images: torch.Tensor) -> torch.Tensor:
+        if images.shape[2] < 64:
+            raise ValueError(
+                "WiLoR expects 256px-tall inputs (crops 32px top/bottom to the "
+                f"192px PE grid); got height {images.shape[2]}"
+            )
         images = images[:, :, 32:-32, :]  # 256→192 height (WiLoR ViT PE grid)
         out = self.backbone(images)
         # out is (pred_mano_params, pred_cam, pred_mano_feats, img_feat)

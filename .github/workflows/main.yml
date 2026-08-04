@@ -25,7 +25,6 @@ jobs:
     - name: Install packages
       run: |
         pip install -e .
-        pip install -e egoemg/UmeTrack
         pip install flake8 pytest
 
     - name: Lint with flake8

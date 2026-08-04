@@ -15,7 +15,7 @@ LR=0.0005
 EPOCHS=150
 SEED=42
 BASE_LOG="logs/regression/egoemg_cotrain"
-DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_memmap"
+DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_unified_memmap"
 EMG2POSE_DATA="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/emg_corpus/emg2pose_v3_memmap"
 
 echo "=== Co-Training: EgoEMG + emg2pose (8ch aligned) ==="
@@ -30,7 +30,7 @@ mkdir -p "${BASE_LOG}"
 
 python -m egoemg.train \
   experiment=${BASE_CONFIG} \
-  egoemg_memmap_dir=${DATA_DIR} \
+  egoemg_unified_memmap_dir=${DATA_DIR} \
   emg2pose_memmap_dir=${EMG2POSE_DATA} \
   trainer.devices=[${GPUS}] \
   +trainer.strategy=ddp \
