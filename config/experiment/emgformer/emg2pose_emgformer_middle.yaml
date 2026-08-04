@@ -1,0 +1,82 @@
+# @package _global_
+# emg2pose_v3 回归训练基础模板
+# Note: not migrated to lineage/emgformer — uses emg2pose_v3 dataset
+# (not EgoEMG), so doesn't match the EgoEMG emgformer lineage assumptions.
+
+defaults:
+  - /module: emgformer
+  - override /module/featurizer: tds_slim_16ch
+  - override /module/decoder: transformer/preset/middle_aggressive
+  - override /transforms: emgformer_regression_aug_best
+  - override /datamodule: egoemg
+  - _self_
+
+pretrained_strict: true
+
+module:
+  out_channels: 20
+  head:
+    out_channels: 20
+  provide_initial_pos: false
+  decoder:
+    causal: false
+
+num_workers: 12
+
+datamodule:
+  norm_mode: null
+
+dataset:
+  train:
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      padding: [0, 0]
+      jitter: true
+      skip_ik_failures: False
+      allowed_splits: [train]
+  val:
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: False
+      allowed_splits: [val, test]
+  test:
+    - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
+      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      padding: [0, 0]
+      jitter: false
+      skip_ik_failures: False
+      allowed_splits: [test]
+
+trainer:
+  gradient_clip_val: 1
+  precision: bf16-mixed
+  max_epochs: 250
+  check_val_every_n_epoch: 1
+  devices: [0]
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    save_top_k: 3
+    save_last: true
+    filename: "emg2pose-{epoch:03d}-{${monitor_metric}:.4f}"
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: .
+  name: regression_emg2pose
+  version: null
+  default_hp_metric: false
