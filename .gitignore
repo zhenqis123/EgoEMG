@@ -280,3 +280,6 @@ texput.log
 
 # Eval artifact written by test_analysis (Hydra run dirs are already ignored)
 results.csv
+
+# Ablation study is internal research notes (Chinese) + paper tables; local-only.
+ablation_study/
