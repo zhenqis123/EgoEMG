@@ -18,7 +18,7 @@ egoemg_channel_interpolate: false
 skip_emg_loading: true
 
 # ── Pre-cropped images ──────────────────────────────────────────────────────
-per_episode_crops_dir: data/EgoEMG_v2_crops
+per_episode_crops_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_v2_crops
 vision_num_frames: 1
 vision_frame_selection: center
 vision_patch_size: 256

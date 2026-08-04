@@ -24,7 +24,7 @@ egoemg_channel_interpolate: false
 egoemg_emg_field_preference: filtered_paper
 
 # ── Vision (ResNet18, pre-crops) ─────────────────────────────────────────────
-per_episode_crops_dir: data/EgoEMG_v2_crops
+per_episode_crops_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_v2_crops
 vision_num_frames: 1
 vision_frame_selection: center
 vision_patch_size: 256

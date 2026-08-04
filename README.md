@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/dataset_stats.png" width="100%" alt="EgoEMG dataset statistics">
+  <img src="images/dataset_stats.svg" width="100%" alt="EgoEMG dataset statistics">
 </p>
 
 <h1 align="center">EgoEMG</h1>
@@ -7,7 +7,7 @@
 <p align="center">
   <b>A multimodal egocentric dataset with bilateral surface EMG and webcam vision
   for hand pose estimation</b><br>
-  EMG-to-pose · vision-to-pose · EMG+vision fusion baselines
+  EMG-to-pose · vision-to-pose · EMG+vision fusion
 </p>
 
 <p align="center">
@@ -20,10 +20,10 @@
 </p>
 
 <p align="center">
-  [ <a href="#-reproducing-paper-results">Paper</a> ·
+  [ <a href="#-reproducing-paper-results">Results</a> ·
     <a href="#-dataset">Dataset</a> ·
     <a href="#-pre-trained-checkpoints">Checkpoints</a> ·
-    <a href="#-citing-egoemg">BibTeX</a> ]
+    <a href="#-citing-egoemg">Citation</a> ]
 </p>
 
 ---
@@ -34,8 +34,8 @@
   bilateral surface EMG.
 - **👁️ Vision-to-pose** — ResNet / ViT single-frame predictors on the egocentric
   webcam stream.
-- **🔀 EMG+vision fusion** — combines EMG and visual cues on identical center
-  frames, with consistent gains over each modality alone.
+- **🔀 EMG+vision fusion** — combines EMG and visual cues on identical
+  center frames.
 
 ## 📖 Contents
 
@@ -46,29 +46,47 @@
 - [Visualization](#-visualization)
 - [Reproducing Paper Results](#-reproducing-paper-results)
 - [Repository Layout](#-repository-layout)
-- [FAQ](#-faq)
 - [License](#-license)
-- [Citing EgoEMG](#-citing-egoemg)
+- [Citation](#-citing-egoemg)
 
 ## 📦 Dataset
 
-The EgoEMG dataset package (memmap data, all-intra webcam videos, pre-cropped
-patches, metadata/calibration, and a visualization tool) is released under
-**CC-BY-NC-4.0** for research use and mirrored on Google Drive and Baidu Netdisk:
+EgoEMG is released under **CC-BY-NC-4.0** for research use. It pairs hand-pose
+labels with bilateral sEMG, wrist IMUs, egocentric RGB video, external RGB-D,
+and motion-capture annotations.
+
+### Preview package
+
+The self-contained `EgoEMG-dataset-small` preview contains one episode of
+memmap data, all-intra webcam video, pre-cropped LMDB patches, and
+metadata/calibration. Download it for a quick data-layout inspection:
 
 ```shell
-# Google Drive (default)
+# Google Drive (default; install gdown once with: pip install gdown)
+pip install gdown
 bash scripts/download/download_egoemg_data.sh
 
 # or from Baidu Netdisk (requires `baidupcs` login)
 bash scripts/download/download_egoemg_data.sh --source baidupcs
 ```
 
-The `EgoEMG-dataset-small` package is a self-contained single-episode preview
-(memmap + webcam video + pre-crop LMDB + metadata) — ideal for a first look.
-The complete unified memmap (EgoEMG + ShowEE + Incre), the all-intra videos,
-and the pre-crop patches are distributed separately under `EgoEMG_release/`
-on Baidu Netdisk / the corresponding Google Drive folders.
+### Full release
+
+The EgoEMG EMGFormer, vision, and fusion workflows require the complete
+unified memmap (`EgoEMG + ShowEE + Incre`). ResNet/ViT vision and fusion
+experiments also use the pre-cropped image patches; the actual-frame/WiLoR
+pipeline additionally needs all-intra webcam videos. These assets are
+distributed separately under `EgoEMG_release/` on Baidu Netdisk and in the
+corresponding Google Drive folders. EMG2Pose benchmark checkpoints instead
+require the corresponding EMG2Pose memmap (see [Evaluation](#evaluation)).
+
+Keep the full release under a data root and set `EMG2POSE_ROOT` to its
+**absolute** path. The supplied configurations resolve assets relative to this
+variable; Hydra run directories make relative paths unreliable.
+
+```shell
+export EMG2POSE_ROOT=/absolute/path/to/data_root
+```
 
 > **Baidu Netdisk note**: single files are capped at 128 GB there, so the two
 > largest files of `emg2pose_v3_memmap` (`emg.dat`, `joint_angles.dat`) are
@@ -96,6 +114,7 @@ Netdisk:
 
 ```shell
 # Google Drive (default)
+pip install gdown
 bash scripts/download/download_checkpoints.sh
 
 # or from Baidu Netdisk (requires `baidupcs` login)
@@ -110,21 +129,24 @@ pip install -e .
 pip install -e egoemg/UmeTrack
 ```
 
-Configs resolve data paths through `${oc.env:EMG2POSE_ROOT,.}`, so point it at
-your dataset location — use an **absolute** path (Hydra changes the working
-directory at runtime, so a relative root silently breaks path resolution):
-
-```shell
-export EMG2POSE_ROOT=/path/to/data_root
-```
+The Google Drive download scripts use `gdown`, which is not included in the
+training environment. Install it only when you use that download route.
+Set `EMG2POSE_ROOT` as shown in [Full release](#full-release) before running a
+configuration that reads dataset assets.
 
 ## 🚀 Training
 
-All training shares one entrypoint (`egoemg.train`); the experiment config
-selects the model family:
+Supervised EMG, vision, and fusion training use `egoemg.train`; the Hydra
+experiment selects the model family. The commands below assume the full release
+is available at `$EMG2POSE_ROOT`:
+
+> **Hardware:** the reference recipes use NVIDIA GPUs with CUDA 11.8. The EMG
+> example below is a six-GPU run and the fusion example uses five GPUs. For a
+> one-GPU smoke run, set `trainer.devices=[0]` and reduce `batch_size` (and
+> `val_batch_size` when applicable) to fit your GPU memory.
 
 ```shell
-# EMG-to-pose (EMGFormer-S regression on EgoEMG)
+# EMG-to-pose (EMGFormer-M regression recipe on EgoEMG)
 python -m egoemg.train \
   experiment=emgformer/regression_egoemg \
   'trainer.devices=[0,1,2,3,4,5]' '+trainer.strategy=ddp' \
@@ -139,28 +161,38 @@ python -m egoemg.train \
 python -m egoemg.train \
   experiment=fusion/fusion_rn18_s_center_16ch_wl7790 \
   train=true eval=true 'trainer.devices=[0,1,2,3,4]'
+
+# EMGFormer multi-task pretraining
+python -m egoemg.train_pretrain \
+  experiment=emgformer/pretrain_multitask \
+  train=true eval=false 'trainer.devices=[0]'
 ```
 
-Experiment configs live in `config/experiment/{emgformer,fusion}/`; shell
-launchers for the paper's experiments live in `experiments/`. For *evaluation*
-use `egoemg.test_analysis` (see [Reproducing Paper Results](#-reproducing-paper-results))
-— the fusion configs default `train=true`, so `egoemg.train` would start a new
-training run instead of evaluating.
+Active experiments live in `config/experiment/emgformer/` and
+`config/experiment/fusion/`; shell launchers for the paper experiments live in
+`experiments/`. For evaluation, use `egoemg.test_analysis` (see
+[Evaluation](#evaluation)): fusion configs default to `train=true`, so the
+training entrypoint would otherwise start a new run.
 
 ## 🎥 Visualization
 
-The dataset-centric visualization renders dataset-aligned frames for selected
-samples (headless; writes PNG/MP4). It does not require the per-episode camera
-calibration assets (it falls back to identity intrinsics when they are absent):
+The dataset-centric visualizer renders the exact samples emitted by
+`EgoEmgVisionDataset`, including the dataset-aligned frame, hand box,
+projected labels, and normalized training patch. It is headless and writes one
+PNG per selected sample.
 
 ```shell
 python scripts/viz/visualize_egoemg_vision_dataset.py \
   --memmap-dir ${EMG2POSE_ROOT}/data/EgoEMG_unified_memmap \
-  --video-root ${EMG2POSE_ROOT}/data/EgoEMG_allintra \
+  --video-root ${EMG2POSE_ROOT}/data/EgoEMG \
+  --allintra-root ${EMG2POSE_ROOT}/data/EgoEMG_allintra \
   --output-dir /tmp/egoemg_vision_viz \
   --num-samples 8 --target-hand both \
   --auto-build-index   # builds <memmap-dir>/vision_index if missing
 ```
+
+For a larger visual check or WiLoR-specific setup notes, see
+[the EgoEMG/WiLoR training guide](docs/egoemg_wilor_training.md).
 
 ## 📊 Reproducing Paper Results
 
@@ -169,7 +201,8 @@ Key numbers from the paper. Rows backed by a released checkpoint (see
 commands below; the remaining rows are reported from the paper only.
 
 **EMG-to-pose on EgoEMG** (MAE in degrees, per-user mean ± std across the
-Gesture / User / Both test splits; Avg. is the mean MAE):
+Gesture / User / Both test splits; Avg. is the per-sample-weighted MAE across
+the three test splits):
 
 | Method | Params | Gesture | User | Both | Avg. |
 |--------|--------|---------|------|------|------|
@@ -194,8 +227,8 @@ released.*
 (`emg2pose_emgformer_{small,middle,large}.ckpt`).*
 
 **Vision-only → EMG+vision fusion on EgoEMG** (MAE in degrees on identical
-center frames; Frz./FT = frozen/fine-tuned visual predictor; Avg. is the mean,
-Δavg the fusion gain):
+center frames; Frz./FT = frozen/fine-tuned visual predictor; Avg. is the
+per-sample-weighted MAE, Δavg the fusion gain):
 
 | Backbone | Update | Vision Avg | Fusion Avg | Δavg |
 |----------|--------|-----------|-----------|------|
@@ -218,7 +251,8 @@ checkpoints (see [Pre-trained Checkpoints](#-pre-trained-checkpoints); they
 land in `checkpoints/`) and export `EMG2POSE_ROOT` as an **absolute** path.
 The EgoEMG experiment configs enable `per_group_stats` by default, so the
 output reports the per-user / per-gesture mean ± std (matching the paper
-tables) plus an `overall` MAE that reproduces the paper's Avg column:
+tables) plus an `overall` MAE: the same per-sample-weighted aggregate reported
+in the paper's Avg column:
 
 ```shell
 export EMG2POSE_ROOT=/absolute/path/to/dataset_root
@@ -283,25 +317,6 @@ evaluation), selected automatically by the experiment config.
 - `docs/` — config architecture and dataset notes.
 - `assets/` — EMG layout figures and per-dataset normalization statistics.
 
-## ❓ FAQ
-
-**为什么 Baidu 网盘下载慢？**
-非会员下载被限速。Google Drive 镜像与百度网盘同步更新，优先使用 GDrive；
-国内用户可配合会员或第三方加速工具使用网盘链接。
-
-**数据集可以商用吗？**
-数据集采用 **CC-BY-NC-4.0**，仅限研究用途；代码本体为 **MIT**。
-
-**复现的数字和论文对不上？**
-评测 config 必须与 checkpoint 的训练设置一致（EMG 通道数、窗口长度、
-归一化统计）。已发布的 vision/fusion checkpoint 为 16ch + WL=7790，请使用
-`*_16ch_wl7790` config（见 [Evaluation](#evaluation)）。
-
-**评测报 `FileNotFoundError`？**
-检查三点：`EMG2POSE_ROOT` 是否为绝对路径、checkpoint 路径是否含 `=`（需
-symlink 或写进 config 的 `checkpoint:` 字段）、config 是否与 checkpoint
-匹配。
-
 ## 📜 License
 
 The baseline code is distributed under the **MIT License**, as found in the
@@ -315,12 +330,6 @@ the MANO model, and pretrained vision backbones).
 
 ## 📖 Citing EgoEMG
 
-If you use this benchmark or dataset in your research, please cite:
-
-```bibtex
-@article{egoemg2026,
-  title={EgoEmg: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation},
-  author={Xi, Ziheng},
-  year={2026}
-}
-```
+The paper is currently under review. Official citation metadata will be added
+when a public version is available. Until then, please reference this
+repository and the exact commit used for your experiments.
