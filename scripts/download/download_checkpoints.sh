@@ -1,9 +1,10 @@
 #!/bin/bash
 # Download pretrained checkpoints for the EgoEMG benchmark experiments.
 #
-# Six checkpoints are provided:
-#   emg2pose_emgformer_small | egoemg_emgformer_small | vision_resnet18 |
-#   vision_vit_small | fusion_resnet_emgfusion | fusion_vit_emgfusion
+# Ten checkpoints are provided:
+#   egoemg_emgformer_{small,middle,large} | emg2pose_emgformer_{small,middle,large} |
+#   vision_resnet18 | vision_vit_small |
+#   fusion_resnet_emgfusion_center | fusion_vit_emgfusion_center
 #
 # Two mirrored sources are supported:
 #   gdrive    (default) Google Drive folder, via gdown
