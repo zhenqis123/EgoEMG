@@ -70,6 +70,12 @@ The complete unified memmap (EgoEMG + ShowEE + Incre), the all-intra videos,
 and the pre-crop patches are distributed separately under `EgoEMG_release/`
 on Baidu Netdisk / the corresponding Google Drive folders.
 
+> **Baidu Netdisk note**: single files are capped at 128 GB there, so the two
+> largest files of `emg2pose_v3_memmap` (`emg.dat`, `joint_angles.dat`) are
+> distributed as 100 GB `*.part_XX` chunks — reassemble them with
+> `bash scripts/download/assemble_emg2pose_parts.sh <memmap_dir>` after
+> downloading (the Google Drive copies are already assembled).
+
 ## 🏆 Pre-trained Checkpoints
 
 Ten pretrained checkpoints are provided and mirrored on Google Drive and Baidu
