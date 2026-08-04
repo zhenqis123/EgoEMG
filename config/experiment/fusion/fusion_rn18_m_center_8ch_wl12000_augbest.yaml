@@ -127,3 +127,5 @@ logger:
   name: fusion_rn18_m_8ch_augbest_wl12000
   version: null
   default_hp_metric: false
+
+center_frame_eval: true

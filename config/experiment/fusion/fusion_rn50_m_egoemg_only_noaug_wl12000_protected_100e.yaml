@@ -19,3 +19,5 @@ callbacks:
 
 logger:
   name: fusion_rn50_m_egoemg_only_noaug_wl12000_protected_100e
+
+center_frame_eval: true

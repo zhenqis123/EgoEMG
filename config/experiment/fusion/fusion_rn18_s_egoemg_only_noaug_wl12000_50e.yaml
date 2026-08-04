@@ -14,3 +14,5 @@ lr_scheduler:
 
 logger:
   name: fusion_rn18_s_egoemg_only_noaug_wl12000_50e
+
+center_frame_eval: true

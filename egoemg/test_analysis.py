@@ -30,6 +30,21 @@ from egoemg.transforms import Compose
 DEFAULT_DATA_DIR = "/emg2pose_data/"
 
 
+def _results_output_path() -> str:
+    """Where to write the results.csv eval artifact.
+
+    Uses the Hydra run output dir when available, so eval runs never clobber
+    a results.csv in the working directory (repo root). Falls back to cwd.
+    """
+    try:
+        from hydra.core.hydra_config import HydraConfig
+
+        output_dir = HydraConfig.get().runtime.output_dir
+    except Exception:
+        output_dir = os.getcwd()
+    return os.path.abspath(os.path.join(output_dir, "results.csv"))
+
+
 class _DatasetWithIndex(torch.utils.data.Dataset):
     """Thin wrapper that adds the dataset index and metadata to each sample."""
 
@@ -275,6 +290,29 @@ class EMG2PoseEvaluation:
             )
             if hasattr(self.config, 'datamodule') and self.config.datamodule is not None:
                 kwargs['datamodule'] = self.config.datamodule
+            # Checkpoints bake their training-time init paths (pretrained EMG
+            # backbone, vision checkpoint) into hparams. Those absolute paths
+            # may not exist on the evaluating machine; for evaluation the
+            # trained weights come from this checkpoint, so skip init loads
+            # instead of crashing (F3: portability of released checkpoints).
+            ckpt_hparams = (
+                checkpoint.get("hyper_parameters", {})
+                if isinstance(checkpoint, dict)
+                else {}
+            )
+            for key in (
+                "pretrained_emg_checkpoint",
+                "pretrained_checkpoint",
+                "stage2_vision_checkpoint",
+                "vision_pretrained_checkpoint",
+            ):
+                hp_val = ckpt_hparams.get(key)
+                if hp_val and not os.path.exists(os.path.expanduser(str(hp_val))):
+                    kwargs[key] = None
+                    print(
+                        f"Note: {key}={hp_val} does not exist on this machine; "
+                        "skipping pretrained-init load during evaluation"
+                    )
             module = module.__class__.load_from_checkpoint(ckpt_path, **kwargs)
 
         module.eval()
@@ -1064,7 +1102,7 @@ def _run_center_frame_eval(config: DictConfig) -> pd.DataFrame:
             }
         )
     df = pd.DataFrame(rows)
-    results_filename = os.path.join(os.getcwd(), "results.csv")
+    results_filename = _results_output_path()
     print(f"Saving center-frame results to {results_filename}")
     df.to_csv(results_filename, index=False)
     return df
@@ -1091,7 +1129,7 @@ def cli(config: DictConfig):
     )
     results_df = evaluation.evaluate()
 
-    results_filename = os.path.join(os.getcwd(), "results.csv")
+    results_filename = _results_output_path()
     print(f"Saving results to {results_filename}")
     results_df.to_csv(results_filename, index=False)
 

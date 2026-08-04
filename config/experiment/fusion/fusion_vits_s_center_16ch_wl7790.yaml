@@ -1,29 +1,35 @@
 # @package _global_
-# Migrated to inherit lineage/fusion.yaml (framework defaults).
-# Business params preserved verbatim; resolved config identical to pre-migration.
-# F-RN18+M (WL=7790 variant): ResNet18 + EMGFormer-S fusion, 8ch target_hand, center-supervised.
-# EMG init from incre cotrain S checkpoint (val_mae≈0.25).
-# Vision backbone frozen, EMG branch + fusion head trainable.
+# Eval/repro config for the trained ViT-S + EMGFormer-S fusion checkpoint.
 #
-# Usage:
-#   python -m egoemg.train experiment=fusion/fusion_rn18_s_center_8ch \
-#     trainer.devices=[2,3,4,5] trainer.max_epochs=150
+# IMPORTANT: this config matches the checkpoints actually produced by training
+# (see logs/fusion/vit_small_emgfusion_center/*/checkpoints/): 16 EMG
+# channels (emg2pose_interpolate16 + tds_slim_16ch), WL=7790, stride=400,
+# val_stride=7790, per-dataset norm from assets/per_dataset_norm_stats.json.
+# Use this config for center-frame evaluation:
+#
+#   python -m egoemg.test_analysis \
+#     experiment=fusion/fusion_vits_s_center_16ch_wl7790 \
+#     'checkpoint=logs/fusion/vit_small_emgfusion_center/version_8/checkpoints/vit-small-centerfusion-epoch=000-val_mae=0.0966.ckpt' \
+#     'trainer.devices=[0]'
+#
+# Note: checkpoint filenames containing '=' break Hydra CLI overrides; pass the
+# path via `checkpoint=` only when it has no '=' (symlink otherwise, or put the
+# path in `checkpoint:` in a user config).
 defaults:
   - /lineage/fusion
   - /module: mid_fusion
-  - /augmentation: batch_aug_best_v2
   - override /transforms: emgformer_regression_aug_extended
-  - override /module/featurizer: tds_slim
+  - override /module/featurizer: tds_slim_16ch
   - _self_
 
 # ── Data paths ───────────────────────────────────────────────────────────────
 egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
-egoemg_emg_layout: target_hand
-egoemg_emg2pose_channel_indices: null
+egoemg_emg_layout: emg2pose_interpolate16
+egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
 egoemg_channel_interpolate: false
 egoemg_emg_field_preference: filtered_paper
 
-# ── Vision (ResNet18, pre-crops) ─────────────────────────────────────────────
+# ── Vision (ViT-S, pre-crops) ────────────────────────────────────────────────
 per_episode_crops_dir: data/EgoEMG_v2_crops
 vision_num_frames: 1
 vision_frame_selection: center
@@ -32,8 +38,8 @@ skip_emg_loading: false
 center_target_only: true
 
 # ── Checkpoints ──────────────────────────────────────────────────────────────
-vision_resnet_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/fusion/vision_resnet/version_9/checkpoints/last.ckpt
-pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_middle_incre_cotrain/checkpoints/best.ckpt
+vision_vit_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/fusion/vision_vit_small/version_0/checkpoints/last.ckpt
+pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
 checkpoint:
 
 # ── Not used (config compatibility) ──────────────────────────────────────────
@@ -49,23 +55,23 @@ val_batch_size: 100
 num_workers: 10
 
 trainer:
-  devices: [2, 3, 4, 5]
+  devices: [0]
   max_epochs: 150
   check_val_every_n_epoch: 1
   log_every_n_steps: 1
 optimizer:
-  _target_: torch.optim.Adam
-  lr: 6.0e-4
-  weight_decay: 1.0e-4
+  _target_: torch.optim.AdamW
+  lr: 1.0e-4
+  weight_decay: 1.0e-2
 
 datamodule:
   window_length: 7_790
   val_test_window_length: 7_790
-  stride: 780
+  stride: 400
   val_test_stride: 7_790
-  dataset_repeat: 1
+  dataset_repeat: 2
   norm_mode: per-dataset
-  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
   skip_ik_failures: false
   persistent_workers: true
   prefetch_factor: 2
@@ -76,11 +82,11 @@ loss_weights:
   fingertip_distance: 0.01
   delta_reg: 0.0
 
-# ── Module ───────────────────────────────────────────────────────────────────
+# ── Module (matches trained checkpoint architecture) ─────────────────────────
 module:
-  vision_backbone_type: resnet18
-  vision_embed_dim: 512
-  vision_pretrained_checkpoint: ${vision_resnet_checkpoint}
+  vision_backbone_type: vit_small
+  vision_embed_dim: 384
+  vision_pretrained_checkpoint: ${vision_vit_checkpoint}
   skip_vision_backbone: false
   fusion_mode: center_supervised
   moddrop_prob: 0.0
@@ -94,9 +100,9 @@ module:
     pos_encoding: rope
     in_channels: 256
     model_dim: 256
-    num_heads: 8
-    num_layers: 6
-    ffn_dim: 1024
+    num_heads: 4
+    num_layers: 3
+    ffn_dim: 512
     dropout: 0.15
   head:
     in_channels: 256
@@ -118,12 +124,12 @@ callbacks:
     mode: min
     save_top_k: 3
     save_last: true
-    filename: "rn18-m-8ch-augbest-{epoch:03d}-{val_mae:.4f}"
+    filename: "vits-s-16ch-wl7790-{epoch:03d}-{val_mae:.4f}"
   - _target_: pytorch_lightning.callbacks.LearningRateMonitor
 logger:
   _target_: pytorch_lightning.loggers.TensorBoardLogger
   save_dir: logs/fusion
-  name: fusion_rn18_m_8ch_augbest_wl7790
+  name: vit_small_emgfusion_center
   version: null
   default_hp_metric: false
 

@@ -167,7 +167,10 @@ def eval_center_frame(
             vision_patch_size=int(cfg_or_dataset("vision_patch_size", default=256) or 256),
             video_root=resolve_path(cfg_or_dataset("video_root", default=None)),
             allintra_root=resolve_path(cfg_or_dataset("allintra_root", default=None)),
-            skip_emg_loading=False,
+            # Respect the config: vision-only configs set skip_emg_loading=true
+            # (their models never touch EMG), which also avoids loading EMG
+            # norm stats and the spurious "raw-EMG statistics" warning.
+            skip_emg_loading=bool(cfg_or_dataset("skip_emg_loading", default=False)),
             center_target_only=bool(cfg_or_dataset("center_target_only", default=True)),
         )
         preds, targets = [], []
@@ -185,9 +188,18 @@ def eval_center_frame(
                         count += 1
                         continue
                     try:
-                        sample = ds._getitem_center_supervised(
-                            ep_idx, model_start, model_end, ref_center
-                        )
+                        if ds.skip_emg_loading:
+                            # Vision-only model: point-read the center frame
+                            # only (no EMG I/O, no norm-stats noise). The
+                            # center_supervised path below would KeyError on
+                            # the pruned EMG fields.
+                            sample = ds._getitem_vision_only_crops(
+                                ep_idx, ref_center
+                            )
+                        else:
+                            sample = ds._getitem_center_supervised(
+                                ep_idx, model_start, model_end, ref_center
+                            )
                     except Exception as exc:
                         if first_err is None:
                             first_err = f"{type(exc).__name__}: {exc}"

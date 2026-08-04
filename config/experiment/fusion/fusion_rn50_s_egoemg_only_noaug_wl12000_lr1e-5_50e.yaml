@@ -19,3 +19,4 @@ trainer:
 logger:
   name: fusion_rn50_s_egoemg_only_noaug_wl12000_lr1e-5_50e
 
+center_frame_eval: true

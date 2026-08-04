@@ -36,6 +36,11 @@
   `config_name=pretrain`; experiment configs in `config/experiment/emgformer/`).
 - EgoEMG vision/fusion training (same entrypoint, fusion experiment):
   `python -m egoemg.train experiment=fusion/fusion_rn18_s_center_8ch train=true eval=true trainer.devices=[0,1,2,3,4]`.
+- Vision/fusion EVALUATION uses `egoemg.test_analysis` (never `egoemg.train`
+  — fusion configs default train=true and would start training). Fusion configs
+  carry `center_frame_eval: true`; released vision/fusion checkpoints are
+  16ch + WL=7790 → use `fusion_*_center_16ch_wl7790.yaml` / `vision_*` configs.
+  See CLAUDE.md for examples and pitfalls.
 - Build the EgoEMG vision sidecar index once:
   `python scripts/data/build_egoemg_vision_index.py --memmap-dir /path/to/EgoEMG_unified_memmap --output-dir /path/to/EgoEMG_unified_memmap/vision_index`.
 - Visualize actual EgoEMG vision dataset samples:

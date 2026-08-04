@@ -37,3 +37,5 @@ trainer:
 
 logger:
   name: fusion_rn18_s_egoemg_only_augbest_pretrained
+
+center_frame_eval: true

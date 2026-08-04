@@ -48,3 +48,5 @@ anchor_loss_weight: 1.0
 
 logger:
   name: fusion_frozenvision_s_egoemg_only_augbest_50e
+
+center_frame_eval: true

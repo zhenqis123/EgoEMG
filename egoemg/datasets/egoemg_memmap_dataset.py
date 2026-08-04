@@ -343,7 +343,10 @@ class EgoEmgMemmapDataset(Dataset):
         if self.allowed_splits and self._frame_split_available:
             self._skip_fields.discard("frame_split_id")
         self._load_metadata()
-        self._load_norm_stats()
+        if not self.skip_emg_loading:
+            # EMG is never read in vision_only mode, so skip the norm-stats
+            # load (and its "raw-EMG statistics" sanity warning) entirely.
+            self._load_norm_stats()
         self._open_memmaps()
         self._load_mano_npy()
         self._load_vision_calibration()

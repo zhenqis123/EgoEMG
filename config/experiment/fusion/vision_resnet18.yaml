@@ -106,4 +106,9 @@ logger:
   version: null
   default_hp_metric: false
 
+# Trained checkpoints live under logs/fusion/vision_resnet/ (older logger name),
+# e.g. logs/fusion/vision_resnet/version_9/checkpoints/last.ckpt — this config
+# and that checkpoint share the same WL=7790 / 16ch EMG layout / norm-stats
+# setup, so they load directly (no overrides).
+
 center_frame_eval: true

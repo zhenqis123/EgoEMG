@@ -12,3 +12,5 @@ module:
 
 logger:
   name: fusion_rn152_s_simple_unfrozen_augbest_30e
+
+center_frame_eval: true

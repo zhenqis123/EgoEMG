@@ -32,3 +32,5 @@ module:
 
 logger:
   name: fusion_rn50_m_egoemg_only_noaug_wl12000_50e
+
+center_frame_eval: true

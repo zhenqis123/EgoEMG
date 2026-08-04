@@ -35,3 +35,5 @@ component_lr_scales:
 
 logger:
   name: fusion_simple_unfrozenvision_s_egoemg_only_augbest_30e
+
+center_frame_eval: true

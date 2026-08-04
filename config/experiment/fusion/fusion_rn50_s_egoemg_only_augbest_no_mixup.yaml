@@ -26,3 +26,5 @@ lr_scheduler:
 
 logger:
   name: fusion_rn50_s_egoemg_only_augbest_no_mixup
+
+center_frame_eval: true

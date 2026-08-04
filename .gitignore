@@ -277,3 +277,6 @@ experiment_inputs/
 # Stray editor/build artifacts
 texput.log
 
+
+# Eval artifact written by test_analysis (Hydra run dirs are already ignored)
+results.csv

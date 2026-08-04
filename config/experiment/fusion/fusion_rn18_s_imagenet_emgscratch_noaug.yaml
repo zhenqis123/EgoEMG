@@ -31,3 +31,5 @@ module:
 
 logger:
   name: fusion_rn18_s_imagenet_emgscratch_noaug
+
+center_frame_eval: true

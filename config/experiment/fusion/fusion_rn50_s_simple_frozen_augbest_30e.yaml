@@ -13,3 +13,4 @@ module:
 logger:
   name: fusion_rn50_s_simple_frozen_augbest_30e
 
+center_frame_eval: true

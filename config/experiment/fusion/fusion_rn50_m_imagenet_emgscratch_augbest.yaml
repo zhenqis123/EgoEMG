@@ -52,3 +52,5 @@ module:
 
 logger:
   name: fusion_rn50_m_imagenet_emgscratch_augbest
+
+center_frame_eval: true

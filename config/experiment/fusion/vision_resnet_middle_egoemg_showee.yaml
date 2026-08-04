@@ -19,3 +19,5 @@ datamodule:
 
 logger:
   name: vision_resnet_middle_egoemg_showee
+
+center_frame_eval: true

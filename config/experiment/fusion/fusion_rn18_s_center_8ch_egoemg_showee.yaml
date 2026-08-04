@@ -21,3 +21,5 @@ datamodule:
 
 logger:
   name: fusion_rn18_s_8ch_egoemg_showee
+
+center_frame_eval: true

@@ -11,3 +11,5 @@ defaults:
 
 logger:
   name: fusion_rn18_s_egoemg_only_legacy_wl7790_aug_dense
+
+center_frame_eval: true

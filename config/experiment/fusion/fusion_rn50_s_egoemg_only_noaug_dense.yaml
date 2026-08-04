@@ -8,3 +8,5 @@ defaults:
 
 logger:
   name: fusion_rn50_s_egoemg_only_noaug_dense
+
+center_frame_eval: true

@@ -10,3 +10,5 @@ datamodule:
 
 logger:
   name: fusion_rn18_s_egoemg_only_noaug_wl4000_50e
+
+center_frame_eval: true

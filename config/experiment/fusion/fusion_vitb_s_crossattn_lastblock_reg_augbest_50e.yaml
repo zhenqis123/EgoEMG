@@ -23,3 +23,5 @@ optimizer:
 
 logger:
   name: fusion_vitb_s_crossattn_lastblock_reg_augbest_50e
+
+center_frame_eval: true

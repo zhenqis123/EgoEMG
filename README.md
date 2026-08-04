@@ -117,34 +117,60 @@ center frames; Frz./FT = frozen/fine-tuned visual predictor; Avg. is the mean,
 | ViT-L/14 | Frz. | 5.39 | 5.36 | +0.03 |
 | WiLoR | Frz. | 4.73 | 4.68 | +0.04 |
 
-Evaluate a released checkpoint with `test_analysis`. The EgoEMG experiment
-configs enable `per_group_stats` by default, so the output reports the
-per-user / per-gesture mean ± std (matching the paper tables) plus an
-`overall` MAE that reproduces the paper's Avg column:
+Evaluate a released checkpoint with `test_analysis`. First download the
+checkpoints (see `scripts/download/download_checkpoints.sh`; they land in
+`checkpoints/`) and export `EMG2POSE_ROOT` as an **absolute** path to the
+dataset root — Hydra changes the working directory at runtime, so a relative
+root silently breaks data/checkpoint resolution. The EgoEMG experiment configs
+enable `per_group_stats` by default, so the output reports the per-user /
+per-gesture mean ± std (matching the paper tables) plus an `overall` MAE that
+reproduces the paper's Avg column:
 
 ```shell
+export EMG2POSE_ROOT=/absolute/path/to/dataset_root
+
 # EgoEMG EMGFormer (8ch target_hand layout); reports per-group stats + overall
 python -m egoemg.test_analysis \
   experiment=emgformer/egoemg_emgformer_small \
-  'checkpoint=/path/to/egoemg_emgformer_small.ckpt' \
-  egoemg_unified_memmap_dir=${EMG2POSE_ROOT}/data/EgoEMG_unified_memmap
+  'checkpoint=checkpoints/egoemg_emgformer_small.ckpt'
 
 # EMG2Pose benchmark EMGFormer (16ch)
 python -m egoemg.test_analysis \
   experiment=emgformer/emg2pose_emgformer_small \
-  'checkpoint=/path/to/emg2pose_emgformer_small.ckpt' \
+  'checkpoint=checkpoints/emg2pose_emgformer_small.ckpt' \
   data_location=${EMG2POSE_ROOT}/data/emg_corpus/emg2pose_v3_memmap
 ```
 
 **Vision and fusion** checkpoints use the same `test_analysis` entrypoint; their
 experiment configs enable `center_frame_eval`, which evaluates on identical
-center frames and reports the per-joint MAE:
+center frames and reports the per-hand MAE. The config must match the
+checkpoint's training setup (EMG channels, window length): the released
+vision/fusion checkpoints were trained with 16 EMG channels (`emg2pose_interpolate16`
+layout) at WL=7790, so use the `*_16ch_wl7790` fusion configs:
 
 ```shell
+# Vision-only ResNet18
 python -m egoemg.test_analysis \
   experiment=fusion/vision_resnet18 \
-  'checkpoint=/path/to/vision_resnet18.ckpt'
+  'checkpoint=checkpoints/vision_resnet18.ckpt'
+
+# EMG+vision fusion (ResNet18 + EMGFormer-S)
+python -m egoemg.test_analysis \
+  experiment=fusion/fusion_rn18_s_center_16ch_wl7790 \
+  'checkpoint=checkpoints/fusion_resnet_emgfusion_center.ckpt'
 ```
+
+Notes for evaluation:
+
+- Checkpoint filenames containing `=` (e.g. `epoch=011-val_mae=0.1022.ckpt`)
+  cannot be passed through Hydra CLI overrides; symlink to a `=`-free path or
+  set the `checkpoint:` field in a user config.
+- Fusion and vision evals use the same 2096/2082 center frames per hand.
+  If a fusion eval reports fewer samples, its evaluation window is longer
+  than the reference WL=7790 grid and frames near episode edges are dropped
+  (the model window must fit inside the episode). Expected, not a bug.
+- `results.csv` is written into the Hydra run directory (`logs/<date>/...`),
+  never into the repo root.
 
 `test_analysis` is the single evaluation tool for all three modalities
 (EMG generalization splits with per-group stats, and vision/fusion center-frame

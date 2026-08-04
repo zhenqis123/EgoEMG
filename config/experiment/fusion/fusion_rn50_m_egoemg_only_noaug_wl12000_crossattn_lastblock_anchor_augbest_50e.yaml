@@ -16,3 +16,5 @@ lr_scheduler:
 
 logger:
   name: fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_augbest_50e
+
+center_frame_eval: true

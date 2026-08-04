@@ -128,3 +128,5 @@ logger:
   name: fusion_rn18_s_8ch_denalign_stage2
   version: null
   default_hp_metric: false
+
+center_frame_eval: true

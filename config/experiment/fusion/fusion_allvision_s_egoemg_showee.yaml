@@ -31,3 +31,5 @@ callbacks:
 
 logger:
   name: fusion_allvision_s_egoemg_showee
+
+center_frame_eval: true

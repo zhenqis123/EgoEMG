@@ -111,7 +111,32 @@ python -m egoemg.train \
 python -m egoemg.train \
   experiment=fusion/vision_resnet18 \
   train=true eval=true trainer.devices=[0]
+
+# Evaluate a trained vision/fusion checkpoint (center-frame eval, NO training).
+# Use test_analysis, NOT `egoemg.train` — fusion configs default train=true and
+# the train entrypoint would start a multi-hundred-epoch training run.
+python -m egoemg.test_analysis \
+  experiment=fusion/vision_resnet18 \
+  'checkpoint=logs/fusion/vision_resnet/version_9/checkpoints/last.ckpt' \
+  'trainer.devices=[0]'
 ```
+
+Evaluation notes:
+
+- The config must match the checkpoint's training setup. The released
+  vision/fusion checkpoints use 16 EMG channels (`emg2pose_interpolate16` +
+  `tds_slim_16ch`) at WL=7790 → use `fusion_*_center_16ch_wl7790.yaml` or
+  `vision_resnet18.yaml` / `vision_vit_small.yaml`. The legacy 8ch
+  (`target_hand`, WL=12000) configs do NOT load those checkpoints (featurizer
+  shape mismatch).
+- Fusion configs enable `center_frame_eval`, which selects the center-frame
+  evaluation path in `test_analysis` (EMG-only configs instead report
+  per-group stats). All `config/experiment/fusion/*` configs carry the flag.
+- Checkpoint filenames containing `=` break Hydra CLI overrides — symlink to a
+  `=`-free path or set `checkpoint:` in a user config.
+- `EMG2POSE_ROOT` must be an absolute path (Hydra changes cwd at runtime).
+- `test_analysis` writes `results.csv` into the Hydra run directory
+  (`logs/<date>/<time>_emg2pose/`), never the repo root.
 
 Vision/fusion config architecture: experiments in `config/experiment/fusion/`
 inherit `config/lineage/fusion.yaml`. See `docs/config_architecture.md` for the

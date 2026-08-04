@@ -111,3 +111,5 @@ component_lr_scales:
 
 logger:
   name: fusion_rn18_s_token_self_attention_direct_pose_egoemg_only
+
+center_frame_eval: true

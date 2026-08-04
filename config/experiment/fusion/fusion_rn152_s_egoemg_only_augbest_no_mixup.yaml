@@ -12,3 +12,5 @@ module:
 
 logger:
   name: fusion_rn152_s_egoemg_only_augbest_no_mixup
+
+center_frame_eval: true

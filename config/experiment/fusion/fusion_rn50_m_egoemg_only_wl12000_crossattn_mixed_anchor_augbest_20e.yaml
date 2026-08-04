@@ -11,3 +11,5 @@ anchor_shuffle_fraction: 0.5
 
 logger:
   name: fusion_rn50_m_egoemg_only_wl12000_crossattn_mixed_anchor_augbest_20e
+
+center_frame_eval: true
