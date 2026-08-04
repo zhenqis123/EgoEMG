@@ -1,6 +1,6 @@
 # EgoEMG
 
-[ [`BibTeX`](#citing-egoemg) ]
+[BibTeX](#citing-egoemg)
 
 A multimodal egocentric dataset with bilateral surface EMG and webcam vision
 for hand pose estimation, together with EMG-to-pose, vision-to-pose, and
@@ -66,12 +66,42 @@ pip install -e .
 pip install -e egoemg/UmeTrack
 ```
 
-Configs resolve data paths through `${oc.env:EMG2POSE_ROOT,./}`, so point it at
-your dataset location:
+Configs resolve data paths through `${oc.env:EMG2POSE_ROOT,.}`, so point it at
+your dataset location — use an **absolute** path (Hydra changes the working
+directory at runtime, so a relative root silently breaks path resolution):
 
 ```shell
 export EMG2POSE_ROOT=/path/to/data_root
 ```
+
+## Training
+
+All training shares one entrypoint (`egoemg.train`); the experiment config
+selects the model family:
+
+```shell
+# EMG-to-pose (EMGFormer-S regression on EgoEMG)
+python -m egoemg.train \
+  experiment=emgformer/regression_egoemg \
+  'trainer.devices=[0,1,2,3,4,5]' '+trainer.strategy=ddp' \
+  batch_size=500
+
+# Vision-only single-frame baseline (ResNet-18)
+python -m egoemg.train \
+  experiment=fusion/vision_resnet18 \
+  train=true eval=true 'trainer.devices=[0]'
+
+# EMG+vision fusion (ResNet-18 + EMGFormer-S, center-supervised)
+python -m egoemg.train \
+  experiment=fusion/fusion_rn18_s_center_16ch_wl7790 \
+  train=true eval=true 'trainer.devices=[0,1,2,3,4]'
+```
+
+Experiment configs live in `config/experiment/{emgformer,fusion}/`; shell
+launchers for the paper's experiments live in `experiments/`. For *evaluation*
+use `egoemg.test_analysis` (see [Reproducing Paper Results](#reproducing-paper-results))
+— the fusion configs default `train=true`, so `egoemg.train` would start a new
+training run instead of evaluating.
 
 ## Visualization
 
@@ -81,7 +111,7 @@ calibration assets (it falls back to identity intrinsics when they are absent).
 
 ```shell
 python scripts/viz/visualize_egoemg_vision_dataset.py \
-  --memmap-dir ${EMG2POSE_ROOT}/data/EgoEMG_memmap \
+  --memmap-dir ${EMG2POSE_ROOT}/data/EgoEMG_unified_memmap \
   --video-root ${EMG2POSE_ROOT}/data/EgoEMG_allintra \
   --output-dir /tmp/egoemg_vision_viz \
   --num-samples 8 --target-hand both \
@@ -90,7 +120,9 @@ python scripts/viz/visualize_egoemg_vision_dataset.py \
 
 ## Reproducing Paper Results
 
-Key numbers from the paper, reproduced by the provided checkpoints.
+Key numbers from the paper. Rows backed by a released checkpoint (see
+[Pre-trained Checkpoints](#pre-trained-checkpoints)) are reproducible with the
+commands below; the remaining rows are reported from the paper only.
 
 **EMG-to-pose on EgoEMG** (MAE in degrees, per-user mean ± std across the
 Gesture / User / Both test splits; Avg. is the mean MAE):
@@ -102,6 +134,9 @@ Gesture / User / Both test splits; Avg. is the mean MAE):
 | EMGFormer-L | 16.3M | 11.9 ± 1.6 | 16.0 ± 0.8 | 16.4 ± 1.2 | 13.9 |
 | vEMG2Pose | 6.0M | 15.0 ± 1.4 | 16.3 ± 1.7 | 17.3 ± 1.3 | 15.9 |
 | NeuroPose | 6.4M | 15.8 ± 1.2 | 15.7 ± 1.3 | 16.3 ± 0.7 | 16.1 |
+
+*`vEMG2Pose` and `NeuroPose` rows are paper-reported; their checkpoints are not
+released.*
 
 **Vision-only → EMG+vision fusion on EgoEMG** (MAE in degrees on identical
 center frames; Frz./FT = frozen/fine-tuned visual predictor; Avg. is the mean,
@@ -116,6 +151,10 @@ center frames; Frz./FT = frozen/fine-tuned visual predictor; Avg. is the mean,
 | ViT-B/14 | Frz. | 5.78 | 5.75 | +0.03 |
 | ViT-L/14 | Frz. | 5.39 | 5.36 | +0.03 |
 | WiLoR | Frz. | 4.73 | 4.68 | +0.04 |
+
+*Released checkpoints cover the fine-tuned ResNet-18 / ViT-S rows and their
+fusions; the frozen-backbone rows (ResNet-50/152, ViT-B/L, WiLoR) are
+paper-reported.*
 
 Evaluate a released checkpoint with `test_analysis`. First download the
 checkpoints (see `scripts/download/download_checkpoints.sh`; they land in
@@ -176,6 +215,18 @@ Notes for evaluation:
 (EMG generalization splits with per-group stats, and vision/fusion center-frame
 evaluation), selected automatically by the experiment config.
 
+## Repository Layout
+
+- `egoemg/` — source code: models, dataset wrappers, training/eval entrypoints
+  (`train.py`, `test_analysis.py`), and vendored `UmeTrack` FK utilities.
+- `config/` — Hydra experiment configs (`config/experiment/{emgformer,fusion}/`)
+  over shared lineage defaults (`config/lineage/`).
+- `scripts/` — data conversion, dataset/checkpoint download, visualization,
+  and paper-figure regeneration.
+- `experiments/` — shell launchers for the paper's experiments.
+- `docs/` — config architecture and dataset notes.
+- `assets/` — EMG layout figures and per-dataset normalization statistics.
+
 ## License
 
 The baseline code is distributed under the **MIT License**, as found in the
@@ -194,7 +245,7 @@ If you use this benchmark or dataset in your research, please cite:
 ```bibtex
 @article{egoemg2026,
   title={EgoEmg: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation},
-  author={Anonymous},
+  author={Xi, Ziheng},
   year={2026}
 }
 ```

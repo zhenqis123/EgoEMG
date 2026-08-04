@@ -17,7 +17,7 @@ For each selected dataset sample it renders a side-by-side debug canvas:
 
 Usage:
     python scripts/viz/visualize_egoemg_vision_dataset.py \
-        --memmap-dir data/EgoEMG_memmap \
+        --memmap-dir data/EgoEMG_unified_memmap \
         --video-root data/EgoEMG \
         --output-dir /tmp/egoemg_vision_dataset_viz \
         --num-samples 16 \
@@ -58,7 +58,7 @@ TEXT_SHADOW_BGR = (20, 20, 20)
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--memmap-dir", default="data/EgoEMG_memmap")
+    parser.add_argument("--memmap-dir", default="data/EgoEMG_unified_memmap")
     parser.add_argument("--video-root", default="data/EgoEMG")
     parser.add_argument("--allintra-root", default=None)
     parser.add_argument("--allintra-suffix", default="_allintra")
