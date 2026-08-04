@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <a href="#dataset"><img src="https://img.shields.io/badge/Dataset-CC--BY--NC--4.0-orange" alt="Dataset license"></a>
-  <a href="#license"><img src="https://img.shields.io/badge/Code-MIT-blue" alt="Code license"></a>
-  <a href="#pre-trained-checkpoints"><img src="https://img.shields.io/badge/checkpoints-10-brightgreen" alt="Checkpoints"></a>
+  <a href="#-dataset"><img src="https://img.shields.io/badge/Dataset-CC--BY--NC--4.0-orange" alt="Dataset license"></a>
+  <a href="#-license"><img src="https://img.shields.io/badge/Code-MIT-blue" alt="Code license"></a>
+  <a href="#-pre-trained-checkpoints"><img src="https://img.shields.io/badge/checkpoints-10-brightgreen" alt="Checkpoints"></a>
   <a href="https://github.com/zhenqis123/EMG2PP/actions"><img src="https://img.shields.io/github/actions/workflow/status/zhenqis123/EMG2PP/main.yml?branch=main" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.11-blue" alt="Python">
   <img src="https://img.shields.io/badge/version-1.0.0-8A2BE2" alt="Version">
