@@ -136,8 +136,19 @@ python -m egoemg.test_analysis \
   data_location=${EMG2POSE_ROOT}/data/emg_corpus/emg2pose_v3_memmap
 ```
 
-For vision and fusion checkpoints, use `test_analysis_fusion.py` with the
-corresponding `vision_*` / `fusion_*` experiment config.
+**Vision and fusion** checkpoints use the same `test_analysis` entrypoint; their
+experiment configs enable `center_frame_eval`, which evaluates on identical
+center frames and reports the per-joint MAE:
+
+```shell
+python -m egoemg.test_analysis \
+  experiment=fusion/vision_resnet18 \
+  'checkpoint=/path/to/vision_resnet18.ckpt'
+```
+
+`test_analysis` is the single evaluation tool for all three modalities
+(EMG generalization splits with per-group stats, and vision/fusion center-frame
+evaluation), selected automatically by the experiment config.
 
 ## License
 
