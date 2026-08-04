@@ -7,6 +7,7 @@
 """Offline evaluation for trained EMG2Pose models using memmap datasets."""
 
 import os
+from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -1031,8 +1032,49 @@ def _egoemg_collate_fn(batch):
     return default_collate(processed)
 
 
+def _run_center_frame_eval(config: DictConfig) -> pd.DataFrame:
+    """Evaluate a vision/fusion checkpoint on unified center frames.
+
+    Uses the in-process center-frame evaluator (``egoemg.center_frame``) with
+    the already-composed Hydra config, so it works inside the enclosing
+    ``@hydra.main`` without re-entering Hydra.
+    """
+    from egoemg import center_frame
+
+    ckpt_path = config.get("center_frame_ckpt") or config.checkpoint
+    if not ckpt_path:
+        raise ValueError("center_frame_eval requires a checkpoint (center_frame_ckpt or checkpoint)")
+    memmap_dir = (
+        config.get("egoemg_unified_memmap_dir")
+        or config.get("egoemg_memmap_dir")
+        or "data/EgoEMG_memmap"
+    )
+    center_window = config.get("center_frame_window_length")
+    results = center_frame.eval_center_frame(
+        config, str(ckpt_path), Path(memmap_dir), center_window
+    )
+
+    rows = []
+    for hand, r in results.items():
+        rows.append(
+            {
+                "hand": hand,
+                "test_mae": r.get("overall_mae"),
+                "n_valid": r.get("n_valid"),
+            }
+        )
+    df = pd.DataFrame(rows)
+    results_filename = os.path.join(os.getcwd(), "results.csv")
+    print(f"Saving center-frame results to {results_filename}")
+    df.to_csv(results_filename, index=False)
+    return df
+
+
 @hydra.main(config_path="../config", config_name="base", version_base="1.1")
 def cli(config: DictConfig):
+    if config.get("center_frame_eval", False):
+        return _run_center_frame_eval(config)
+
     dataset_type = config.get("dataset_type") or infer_dataset_type(config)
     per_user = config.get("per_user", False)
     per_group_stats = config.get("per_group_stats", False)

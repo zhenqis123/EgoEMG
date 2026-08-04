@@ -637,8 +637,19 @@ class EgoEmgMemmapDataset(Dataset):
         calib_path = (
             self.video_root / "reprojection_assets" / "GX010023_standard_calibration.json"
         )
-        with calib_path.open("r", encoding="utf-8") as f:
-            calib = json.load(f)
+        try:
+            with calib_path.open("r", encoding="utf-8") as f:
+                calib = json.load(f)
+        except (OSError, ValueError) as exc:
+            # Missing/malformed camera calibration: fall back to identity
+            # intrinsics so headless/center-frame evaluation can run without
+            # the reprojection_assets calibration files.
+            self._K_calib = np.eye(3, dtype=np.float64)
+            self._dist_calib = np.zeros((1, 5), dtype=np.float64)
+            self._calib_w = 640
+            self._calib_h = 480
+            print(f"Warning: calibration unavailable ({exc}); using identity intrinsics.", flush=True)
+            return
         self._K_calib = np.asarray(calib["camera_matrix"], dtype=np.float64)
         self._dist_calib = np.asarray(
             calib["distortion_coefficients"], dtype=np.float64
