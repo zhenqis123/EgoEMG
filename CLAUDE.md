@@ -82,7 +82,7 @@ Use 5 base templates under `config/experiment/emgformer/`:
 - `pretrain_multitask.yaml` — multi-task pretraining
 
 Experiment scripts live in `experiments/{regression,finetune,pretrain,ablation}/`.
-Legacy configs are archived in `config/experiment/emgformer/_archive/`.
+Legacy configs are archived in `config/experiment/{emgformer,fusion}/_archive/`.
 
 ### EgoEMG/WiLoR Vision-to-Pose
 
