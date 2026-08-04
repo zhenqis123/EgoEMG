@@ -11,7 +11,7 @@ defaults:
 checkpoint: null
 
 # Compatible 8-channel/target_hand initializers (not fusion checkpoints).
-vision_resnet_checkpoint: data/experiment_inputs/vision_checkpoints/rn18.ckpt
+vision_resnet_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/data/experiment_inputs/vision_checkpoints/rn18.ckpt
 pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
 
 # Use the dense WL12000 regime, but train only on EgoEMG (the parent config

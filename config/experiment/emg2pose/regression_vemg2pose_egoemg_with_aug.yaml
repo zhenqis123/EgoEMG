@@ -9,7 +9,7 @@
 #   - decoder in_channels: 84→86 (64 features + 22 state)
 #
 # Usage:
-#   python -m egoemg.train experiment=emg2pose/regression_vemg2pose_egoemg
+#   python -m egoemg.train experiment=emg2pose/regression_vemg2pose_egoemg_with_aug
 
 defaults:
   - /lineage/emg2pose

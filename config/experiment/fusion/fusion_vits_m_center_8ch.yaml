@@ -6,7 +6,7 @@
 # Vision backbone frozen, EMG branch + fusion head trainable.
 #
 # Usage:
-#   python -m egoemg.train experiment=fusion/fusion_rn18_s_center_8ch \
+#   python -m egoemg.train experiment=fusion/fusion_vits_m_center_8ch \
 #     trainer.devices=[2,3,4,5] trainer.max_epochs=150
 defaults:
   - /lineage/fusion

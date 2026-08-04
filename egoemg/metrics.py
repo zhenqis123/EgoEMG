@@ -46,7 +46,7 @@ class Metric:
         raise NotImplementedError
 
 
-class AnglularDerivatives(Metric):
+class AngularDerivatives(Metric):
     """Mean absolute value of angular velocity, acceleration, and jerk."""
 
     def __call__(
@@ -92,6 +92,9 @@ class AnglularDerivatives(Metric):
         if mask.shape[-1] < 2:
             return mask[..., :0]
         return ~F.max_pool1d((~mask).float(), kernel_size=2, stride=1).to(bool)
+
+
+AnglularDerivatives = AngularDerivatives  # backcompat alias
 
 
 class AngleMAE(Metric):

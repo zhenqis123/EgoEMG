@@ -27,7 +27,6 @@ from egoemg.lightning import EmgPredictionModule
 from egoemg.train import _extract_state_dict, _is_pretrain_checkpoint, make_lightning_module
 from egoemg.transforms import Compose
 
-DEFAULT_DATA_DIR = "/emg2pose_data/"
 
 
 def _results_output_path() -> str:

@@ -8,7 +8,7 @@
 #   - out_channels: 20→22
 #
 # Usage:
-#   python -m egoemg.train experiment=emg2pose/regression_neuropose_egoemg
+#   python -m egoemg.train experiment=emg2pose/regression_neuropose_egoemg_with_aug
 
 defaults:
   - /lineage/emg2pose

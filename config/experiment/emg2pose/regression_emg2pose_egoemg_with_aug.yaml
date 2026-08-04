@@ -10,7 +10,7 @@
 #
 # Usage:
 #   python -m egoemg.train \
-#     experiment=emg2pose/regression_emg2pose_egoemg \
+#     experiment=emg2pose/regression_emg2pose_egoemg_with_aug \
 #     data_location=/path/to/EgoEMG_memmap
 
 defaults:
