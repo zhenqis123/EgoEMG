@@ -21,6 +21,7 @@ from omegaconf import OmegaConf
 from egoemg.datasets.egoemg_memmap_dataset import EgoEmgMemmapDataset
 
 REF_WL = 7790
+repo_root = Path(__file__).resolve().parents[1]
 
 
 def collect_val_centers(
@@ -127,10 +128,19 @@ def eval_center_frame(
             value = OmegaConf.select(dataset_template, key, default=default)
         return value
 
+    def resolve_path(value):
+        """Resolve a possibly-relative data path against the repo root."""
+        if not value:
+            return value
+        p = Path(value)
+        if not p.is_absolute():
+            p = repo_root / p
+        return p
+
     for hand in hands:
         # Per-hand dataset so _getitem_center_supervised uses the target hand.
         ds = EgoEmgMemmapDataset(
-            memmap_dir=cfg_or_dataset("egoemg_memmap_dir", default=memmap_dir),
+            memmap_dir=resolve_path(cfg_or_dataset("egoemg_memmap_dir", default=memmap_dir)),
             window_length=wl,
             stride=wl,
             allowed_splits=["user", "gesture", "both"],
@@ -151,10 +161,12 @@ def eval_center_frame(
             ),
             dataset_name="egoemg",
             vision_num_frames=int(cfg_or_dataset("vision_num_frames", default=0) or 0),
-            per_episode_crops_dir=cfg_or_dataset("per_episode_crops_dir", default=None),
+            per_episode_crops_dir=resolve_path(
+                cfg_or_dataset("per_episode_crops_dir", default=None)
+            ),
             vision_patch_size=int(cfg_or_dataset("vision_patch_size", default=256) or 256),
-            video_root=cfg_or_dataset("video_root", default=None),
-            allintra_root=cfg_or_dataset("allintra_root", default=None),
+            video_root=resolve_path(cfg_or_dataset("video_root", default=None)),
+            allintra_root=resolve_path(cfg_or_dataset("allintra_root", default=None)),
             skip_emg_loading=False,
             center_target_only=bool(cfg_or_dataset("center_target_only", default=True)),
         )
