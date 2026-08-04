@@ -26,7 +26,7 @@ Build the sidecar vision index once. This avoids scanning every frame at dataset
 startup.
 
 ```bash
-python scripts/build_egoemg_vision_index.py \
+python scripts/data/build_egoemg_vision_index.py \
     --memmap-dir data/EgoEMG_memmap \
     --output-dir data/EgoEMG_memmap/vision_index
 ```
@@ -38,7 +38,7 @@ dataset selects samples from this sidecar according to `allowed_*_splits`,
 If you need to create all-intra videos, use the repository conversion script:
 
 ```bash
-python scripts/reencode_egoemg_webcam_allintra.py \
+python scripts/prepare/reencode_egoemg_webcam_allintra.py \
     --memmap-dir data/EgoEMG_memmap \
     --data-root data/EgoEMG \
     --output-root data/EgoEMG_allintra
@@ -51,7 +51,7 @@ samples emitted by `EgoEmgVisionDataset`, including the raw-frame supervision,
 training crop, bbox, and normalized patch keypoints.
 
 ```bash
-python scripts/visualize_egoemg_vision_dataset.py \
+python scripts/viz/visualize_egoemg_vision_dataset.py \
     --memmap-dir data/EgoEMG_memmap \
     --video-root data/EgoEMG \
     --allintra-root data/EgoEMG_allintra \
@@ -64,7 +64,7 @@ python scripts/visualize_egoemg_vision_dataset.py \
 For quick startup profiling, reduce to one or two samples:
 
 ```bash
-python scripts/visualize_egoemg_vision_dataset.py \
+python scripts/viz/visualize_egoemg_vision_dataset.py \
     --memmap-dir data/EgoEMG_memmap \
     --video-root data/EgoEMG \
     --allintra-root data/EgoEMG_allintra \
@@ -142,7 +142,7 @@ The training entrypoint is:
 
 ```bash
 python -m egoemg.train \
-    experiment=fusion/vision_resnet_small \
+    experiment=fusion/vision_resnet_middle_egoemg_showee \
     data_location=data/EgoEMG_memmap \
     video_root=data/EgoEMG \
     allintra_root=data/EgoEMG_allintra \
@@ -153,7 +153,7 @@ python -m egoemg.train \
     eval=True
 ```
 
-The defaults live in `config/vision_base.yaml`. Common overrides:
+The defaults live in `config/experiment/fusion/vision_resnet_middle_egoemg_showee.yaml`. Common overrides:
 
 - `devices=[0]`: GPU selection.
 - `batch_size=64 val_batch_size=64`: train and eval batch sizes.
@@ -167,7 +167,7 @@ Example evaluation-only run:
 
 ```bash
 python -m egoemg.train \
-    experiment=fusion/vision_resnet_small \
+    experiment=fusion/vision_resnet_middle_egoemg_showee \
     data_location=data/EgoEMG_memmap \
     video_root=data/EgoEMG \
     allintra_root=data/EgoEMG_allintra \
@@ -182,7 +182,7 @@ python -m egoemg.train \
 `python -m egoemg.train` (with a fusion or vision-only experiment config)
 performs the following steps:
 
-1. Loads `config/vision_base.yaml` through Hydra.
+1. Loads `config/experiment/fusion/vision_resnet_middle_egoemg_showee.yaml` through Hydra.
 2. Builds the WiLoR config from `WiLoR/pretrained_models/model_config.yaml`.
 3. Creates train/val/test `EgoEmgVisionDataset` instances.
 4. Loads all-intra video frames with `decord`.
@@ -210,9 +210,9 @@ Hydra writes outputs under the run directory. Checkpoints are saved under
 
 ## Related Scripts
 
-- `scripts/build_egoemg_vision_index.py`: one-time sidecar index generation.
-- `scripts/reencode_egoemg_webcam_allintra.py`: all-intra webcam conversion.
-- `scripts/visualize_egoemg_vision_dataset.py`: dataset sample debug.
+- `scripts/data/build_egoemg_vision_index.py`: one-time sidecar index generation.
+- `scripts/prepare/reencode_egoemg_webcam_allintra.py`: all-intra webcam conversion.
+- `scripts/viz/visualize_egoemg_vision_dataset.py`: dataset sample debug.
 - `scripts/visualize_egoemg_mesh.py`: world-space MANO mesh projection debug.
 - `egoemg/train.py`: the unified training entrypoint; vision/fusion training
   is launched with `experiment=fusion/...` or a vision-only experiment config.
