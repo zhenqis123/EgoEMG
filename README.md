@@ -117,10 +117,13 @@ center frames; Frz./FT = frozen/fine-tuned visual predictor; Avg. is the mean,
 | ViT-L/14 | Frz. | 5.39 | 5.36 | +0.03 |
 | WiLoR | Frz. | 4.73 | 4.68 | +0.04 |
 
-Evaluate a released checkpoint with `test_analysis`:
+Evaluate a released checkpoint with `test_analysis`. The EgoEMG experiment
+configs enable `per_group_stats` by default, so the output reports the
+per-user / per-gesture mean ± std (matching the paper tables) plus an
+`overall` MAE that reproduces the paper's Avg column:
 
 ```shell
-# EgoEMG EMGFormer (8ch target_hand layout)
+# EgoEMG EMGFormer (8ch target_hand layout); reports per-group stats + overall
 python -m egoemg.test_analysis \
   experiment=emgformer/egoemg_emgformer_small \
   'checkpoint=/path/to/egoemg_emgformer_small.ckpt' \

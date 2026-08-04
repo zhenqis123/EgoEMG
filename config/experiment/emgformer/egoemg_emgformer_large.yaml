@@ -23,6 +23,8 @@ egoemg_emg_layout: target_hand
 egoemg_emg2pose_channel_indices: null
 egoemg_channel_interpolate: false
 
+per_group_stats: true
+
 module:
   out_channels: 22
   provide_initial_pos: false
