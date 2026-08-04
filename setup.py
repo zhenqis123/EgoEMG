@@ -8,10 +8,10 @@ from setuptools import find_packages, setup
 
 setup(
     name="egoemg",
-    version="0.1.0",
+    version="1.0.0",
     description="sEMG hand-pose estimation benchmark + EgoEMG vision/fusion models",
-    author="CTRL Research Team, Meta Reality Labs",
-    author_email="opensource-conduct@fb.com",
+    author="Ziheng Xi",
+    author_email="xige11424@gmail.com",
     packages=find_packages(),
     install_requires=[
         # Left empty so you use the conda environment.yml file

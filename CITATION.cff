@@ -2,9 +2,12 @@ cff-version: 1.2.0
 message: "If you use this dataset or software, please cite it as follows."
 title: "EgoEmg: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation"
 type: dataset
-date-released: "2026-01-01"
+date-released: "2026-08-04"
 authors:
-  - given-names: Anonymous
+  - given-names: Ziheng
+    family-names: Xi
+    affiliation: Tsinghua University
+    email: xige11424@gmail.com
 keywords:
   - electromyography
   - hand pose estimation
@@ -16,5 +19,7 @@ preferred-citation:
   type: article
   title: "EgoEmg: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation"
   authors:
-    - given-names: Anonymous
+    - given-names: Ziheng
+      family-names: Xi
+      affiliation: Tsinghua University
   year: 2026
