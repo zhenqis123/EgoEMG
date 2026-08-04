@@ -1,3 +1,8 @@
+# Eval config for emg2pose_emgformer_middle.ckpt on the emg2pose_v3 dataset.
+# For test_analysis, the emg2pose data is located by probing `data_location`
+# (and `data_location`+"_memmap"); the dataset.memmap_dir/root_dir below is the
+# training-time default and is not read by the test_analysis emg2pose branch.
+
 # @package _global_
 # emg2pose_v3 回归训练基础模板
 # Note: not migrated to lineage/emgformer — uses emg2pose_v3 dataset

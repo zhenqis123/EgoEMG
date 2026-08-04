@@ -84,7 +84,8 @@ python scripts/viz/visualize_egoemg_vision_dataset.py \
   --memmap-dir ${EMG2POSE_ROOT}/data/EgoEMG_memmap \
   --video-root ${EMG2POSE_ROOT}/data/EgoEMG_allintra \
   --output-dir /tmp/egoemg_vision_viz \
-  --num-samples 8 --target-hand both
+  --num-samples 8 --target-hand both \
+  --auto-build-index   # builds <memmap-dir>/vision_index if missing
 ```
 
 ## Reproducing Paper Results
