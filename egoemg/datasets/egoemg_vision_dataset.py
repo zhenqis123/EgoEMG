@@ -724,6 +724,10 @@ class EgoEmgVisionDataset(Dataset):
     allintra_root: Path | None = None
     allintra_suffix: str = DEFAULT_ALLINTRA_SUFFIX
     calibration_path: Path | None = None
+    # When False, skip loading per-episode camera calibration and fall back to
+    # an identity intrinsics + no-distortion default (so headless visualization
+    # can render without the reprojection_assets calibration files).
+    load_calibration: bool = True
     allowed_episode_ids: Sequence[str] | None = None
     allowed_subjects: Sequence[str] | None = None
     allowed_splits: Sequence[str] | None = None
@@ -816,15 +820,37 @@ class EgoEmgVisionDataset(Dataset):
             self._log_init_stage("open_memmaps", t)
 
             t = time.perf_counter()
-            with self.calibration_path.open("r", encoding="utf-8") as f:
-                calib = json.load(f)
-            self._K_calib = np.asarray(calib["camera_matrix"], dtype=np.float64)
-            self._dist_calib = np.asarray(
-                calib["distortion_coefficients"],
-                dtype=np.float64,
-            ).reshape(-1, 1)
-            self._calib_w = int(calib["image_width"])
-            self._calib_h = int(calib["image_height"])
+            if self.load_calibration and self.calibration_path is not None:
+                try:
+                    with self.calibration_path.open("r", encoding="utf-8") as f:
+                        calib = json.load(f)
+                    self._K_calib = np.asarray(calib["camera_matrix"], dtype=np.float64)
+                    self._dist_calib = np.asarray(
+                        calib["distortion_coefficients"],
+                        dtype=np.float64,
+                    ).reshape(-1, 1)
+                    self._calib_w = int(calib["image_width"])
+                    self._calib_h = int(calib["image_height"])
+                except (OSError, KeyError, ValueError) as exc:
+                    # Missing / malformed per-episode calibration: fall back to an
+                    # identity intrinsics + no-distortion default so headless
+                    # visualization can render without the calibration assets.
+                    self._K_calib = np.eye(3, dtype=np.float64)
+                    self._dist_calib = np.zeros((1, 5), dtype=np.float64)
+                    self._calib_w = 640
+                    self._calib_h = 480
+                    self._calib_skipped = True
+                    print(
+                        f"Warning: calibration unavailable ({exc}); using identity intrinsics.",
+                        flush=True,
+                    )
+            else:
+                # Identity intrinsics + no distortion; enables headless rendering
+                # when per-episode calibration assets are unavailable.
+                self._K_calib = np.eye(3, dtype=np.float64)
+                self._dist_calib = np.zeros((1, 5), dtype=np.float64)
+                self._calib_w = 640
+                self._calib_h = 480
             self._log_init_stage("calibration", t)
 
             _ds_resource_cache[cache_key] = self._cacheable()

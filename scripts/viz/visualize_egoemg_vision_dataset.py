@@ -249,7 +249,7 @@ def _build_raw_frame_panel(
         f"episode={sample['episode_id']} subject={sample['episode_subject']}",
         f"frame_idx={int(sample['frame_index'])} video_frame={int(sample['video_frame_index'])}",
         f"bbox_source={sample['bbox_source_name']} joints={joints_valid}/21 markers={markers_valid}/21",
-        f"raw_right={float(sample['raw_right']):.0f} canonical_right={float(sample['is_right']):.0f}",
+        f"raw_right={float(sample['raw_right']):.0f} canonical_right={float(sample['raw_right']):.0f}",
     ]
     return _draw_text_block(panel, lines)
 
