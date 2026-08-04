@@ -32,6 +32,7 @@ def _build_synthetic_memmap(out_dir: Path, n_rows: int = 4000, n_episodes: int =
         "mocap_right_wrist_pitch": ("float32", (n_rows,)),
         "mocap_right_wrist_yaw": ("float32", (n_rows,)),
         "frame_split_id": ("int8", (n_rows,)),
+        "image_webcam_frame_index": ("int64", (n_rows,)),
         "episode_index": ("int64", (n_rows,)),
         "subject_id": ("int32", (n_rows,)),
         "timestamp": ("float64", (n_rows,)),
