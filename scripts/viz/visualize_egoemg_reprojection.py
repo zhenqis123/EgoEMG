@@ -116,14 +116,14 @@ def main() -> None:
     md = np.load(memmap_dir / "metadata.npz", allow_pickle=True)
     ep_start = md["episode_start_idx"]
     ep_length = md["episode_length"]
-    ep_webcam_path = decode_bytes(md["episode_webcam_video_path"])
+    ep_webcam_path = decode_bytes(md["episode_head_video_path"])
 
     # Open memmap arrays
     cam_tf_mm = np.memmap(
-        memmap_dir / fields["mocap_webcam_transform"]["filename"],
-        dtype=fields["mocap_webcam_transform"]["dtype"],
+        memmap_dir / fields["mocap_head_transform"]["filename"],
+        dtype=fields["mocap_head_transform"]["dtype"],
         mode="r",
-        shape=tuple(fields["mocap_webcam_transform"]["shape"]),
+        shape=tuple(fields["mocap_head_transform"]["shape"]),
     )
     kp_left_mm = np.memmap(
         memmap_dir / fields["mocap_left_keypoints"]["filename"],
@@ -138,10 +138,10 @@ def main() -> None:
         shape=tuple(fields["mocap_right_keypoints"]["shape"]),
     )
     img_fi_mm = np.memmap(
-        memmap_dir / fields["image_webcam_frame_index"]["filename"],
-        dtype=fields["image_webcam_frame_index"]["dtype"],
+        memmap_dir / fields["image_head_frame_index"]["filename"],
+        dtype=fields["image_head_frame_index"]["dtype"],
         mode="r",
-        shape=tuple(fields["image_webcam_frame_index"]["shape"]),
+        shape=tuple(fields["image_head_frame_index"]["shape"]),
     )
 
     def _read_frame(video_path: Path, frame_idx: int) -> np.ndarray:

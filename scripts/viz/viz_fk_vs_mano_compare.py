@@ -208,7 +208,7 @@ def main():
     parser.add_argument("--window-length", type=int, default=7790)
     parser.add_argument("--stride", type=int, default=7790)
     parser.add_argument("--add-video-fields", action="store_true",
-                        help="Load image_webcam_frame_index for richer filenames.")
+                        help="Load image_head_frame_index for richer filenames.")
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--episode", type=int, default=None)
@@ -307,9 +307,9 @@ def main():
         # Save crop image
         if args.per_episode_crops_dir is not None:
             # For crop LMDB, we need the actual video frame index, not window start.
-            # Pre-crops use the image_webcam_frame_index as key.
-            if "image_webcam_frame_index" in sample:
-                vid_frame = int(np.asarray(sample["image_webcam_frame_index"])[center])
+            # Pre-crops use the image_head_frame_index as key.
+            if "image_head_frame_index" in sample:
+                vid_frame = int(np.asarray(sample["image_head_frame_index"])[center])
             else:
                 vid_frame = win_start  # fallback
             crop_img = load_crop_image(args.per_episode_crops_dir, ep_id, vid_frame, hand_code)

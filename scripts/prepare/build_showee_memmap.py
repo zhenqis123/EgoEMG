@@ -323,13 +323,13 @@ def _write_episode(
             frame[f"mocap_{hand}_wrist_orientation"][destination] = mocap_h5[
                 f"{hand}_wrist/quaternion"
             ][:][mocap_idx]
-        frame["mocap_webcam_position"][destination] = (
+        frame["mocap_head_position"][destination] = (
             mocap_h5["head/position"][:][mocap_idx] / 1000.0
         )
-        frame["mocap_webcam_orientation"][destination] = mocap_h5[
+        frame["mocap_head_orientation"][destination] = mocap_h5[
             "head/quaternion"
         ][:][mocap_idx]
-        frame["mocap_webcam_tracked"][destination] = mocap_h5["head/is_tracked"][:][
+        frame["mocap_head_tracked"][destination] = mocap_h5["head/is_tracked"][:][
             mocap_idx
         ]
 
@@ -340,18 +340,18 @@ def _write_episode(
     zed_delta = np.rint((zed_us[zed_idx] - target_us) / 1000.0).astype(np.int32)
     if webcam_info is None:
         webcam_path = ""
-        frame["image_webcam_frame_index"][destination] = -1
-        frame["image_webcam_delta_ms"][destination] = np.iinfo(np.int32).max
-        frame["image_webcam_stale"][destination] = True
+        frame["image_head_frame_index"][destination] = -1
+        frame["image_head_delta_ms"][destination] = np.iinfo(np.int32).max
+        frame["image_head_stale"][destination] = True
     else:
         webcam_path, webcam_us = webcam_info
         webcam_idx = _nearest_indices(webcam_us, target_us)
         webcam_delta = np.rint(
             (webcam_us[webcam_idx] - target_us) / 1000.0
         ).astype(np.int32)
-        frame["image_webcam_frame_index"][destination] = webcam_idx
-        frame["image_webcam_delta_ms"][destination] = webcam_delta
-        frame["image_webcam_stale"][destination] = np.abs(webcam_delta) > 50
+        frame["image_head_frame_index"][destination] = webcam_idx
+        frame["image_head_delta_ms"][destination] = webcam_delta
+        frame["image_head_stale"][destination] = np.abs(webcam_delta) > 50
     frame["image_zed_frame_index"][destination] = zed_idx
     frame["image_zed_delta_ms"][destination] = zed_delta
     frame["image_zed_stale"][destination] = np.abs(zed_delta) > 50
@@ -458,15 +458,15 @@ def main() -> None:
         "mocap_left_wrist_orientation": ("float32", (n, 4)),
         "mocap_right_wrist_position": ("float32", (n, 3)),
         "mocap_right_wrist_orientation": ("float32", (n, 4)),
-        "mocap_webcam_position": ("float32", (n, 3)),
-        "mocap_webcam_orientation": ("float32", (n, 4)),
-        "mocap_webcam_tracked": ("bool", (n,)),
+        "mocap_head_position": ("float32", (n, 3)),
+        "mocap_head_orientation": ("float32", (n, 4)),
+        "mocap_head_tracked": ("bool", (n,)),
         "image_zed_frame_index": ("int32", (n,)),
-        "image_webcam_frame_index": ("int32", (n,)),
+        "image_head_frame_index": ("int32", (n,)),
         "image_zed_stale": ("bool", (n,)),
         "image_zed_delta_ms": ("int32", (n,)),
-        "image_webcam_stale": ("bool", (n,)),
-        "image_webcam_delta_ms": ("int32", (n,)),
+        "image_head_stale": ("bool", (n,)),
+        "image_head_delta_ms": ("int32", (n,)),
         "generated_mano_left_pose": ("float32", (n, 48)),
         "generated_mano_right_pose": ("float32", (n, 48)),
         "generated_label_valid": ("bool", (n, 2)),
@@ -557,7 +557,7 @@ def main() -> None:
         ),
         episode_source_parquet=strings([plan.relative_path for plan in plans]),
         episode_zed_video_path=strings(zed_paths),
-        episode_webcam_video_path=strings(webcam_paths),
+        episode_head_video_path=strings(webcam_paths),
         episode_start_idx=np.asarray(starts, dtype=np.int64),
         episode_end_idx=np.asarray(ends, dtype=np.int64),
         episode_length=np.asarray([plan.length for plan in plans], dtype=np.int64),

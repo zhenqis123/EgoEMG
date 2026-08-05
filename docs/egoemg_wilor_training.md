@@ -9,13 +9,13 @@ implementation constraints that keep startup and decoding fast.
 The training entrypoint expects three data roots:
 
 - `data_location`: EgoEMG memmap directory, for example `data/EgoEMG_unified_memmap`.
-- `video_root`: raw EgoEMG dataset root containing the original webcam paths and
+- `video_root`: raw EgoEMG dataset root containing the original head-view paths and
   reprojection assets, for example `data/EgoEMG`.
-- `allintra_root`: all-intra re-encoded webcam videos, for example
+- `allintra_root`: all-intra re-encoded head-view videos, for example
   `data/EgoEMG_allintra`.
 
 `EgoEmgVisionDataset` reads labels and transforms from the memmap, but reads
-webcam frames from all-intra videos only. Video decoding is done with `decord`
+head-view frames from all-intra videos only. Video decoding is done with `decord`
 through `egoemg.video_io.DecordVideoReaderCache`. Missing all-intra videos are
 treated as errors; there is intentionally no OpenCV or original-video fallback
 in this path.

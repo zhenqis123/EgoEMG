@@ -155,7 +155,7 @@ def get_episode_intrinsics(
         return _EPISODE_INTRINSICS_CACHE[ep_idx]
 
     # Read first frame of the episode to get dimensions
-    raw_video_rel = dataset._episode_webcam_video_path[ep_idx]
+    raw_video_rel = dataset._episode_head_video_path[ep_idx]
     if isinstance(raw_video_rel, (bytes, np.bytes_)):
         raw_video_rel = raw_video_rel.decode("utf-8").rstrip("\x00")
     video_path = str(video_root / str(raw_video_rel).replace(".mp4", "_allintra.mp4"))
@@ -367,9 +367,9 @@ def evaluate_all_samples(
             })
 
     # ── Compute occlusion per sample ────────────────────────────────────────
-    tracked_mm = _load_mm(memmap_dir, "mocap_webcam_tracked")
-    stale_mm = _load_mm(memmap_dir, "image_webcam_stale")
-    cam_transform_mm = _load_mm(memmap_dir, "mocap_webcam_transform")
+    tracked_mm = _load_mm(memmap_dir, "mocap_head_tracked")
+    stale_mm = _load_mm(memmap_dir, "image_head_stale")
+    cam_transform_mm = _load_mm(memmap_dir, "mocap_head_transform")
 
     for r in tqdm(results, desc="Occlusion"):
         ci = r["center_idx"]

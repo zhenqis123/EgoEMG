@@ -1,10 +1,10 @@
-"""EgoEMG visualization: MANO mesh overlay on webcam frames.
+"""EgoEMG visualization: MANO mesh overlay on head-view frames.
 
 Correct projection pipeline:
 1. Decode raw MANO vertices from pose/beta with MANO-right semantics.
 2. For left hand, mirror the raw MANO geometry into left-hand chirality.
 3. Apply precomputed `world_R` / `world_t` to obtain world-frame vertices.
-4. Read `T_W_Camera` from `mocap_webcam_transform` and invert to `T_C_W`.
+4. Read `T_W_Camera` from `mocap_head_transform` and invert to `T_C_W`.
 5. Project with calibration intrinsics, then map calib pixels back to video pixels.
 
 Important:

@@ -4,7 +4,7 @@ Random-sample visualization of batch IK results.
 
 For each sampled frame, saves:
   - a GLB with MANO mesh (blue) + UmeTrack mesh (red) for 3D comparison
-  - the webcam frame with crop rectangle overlay
+  - the head-view frame with crop rectangle overlay
 
 Usage:
   python scripts/viz/visualize_ik_results.py --num-samples 8 --hand right
@@ -73,10 +73,10 @@ def main():
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--data-root", default="data/EgoEMG",
-                        help="Root of EgoEMG video data (for webcam frames).")
+                        help="Root of EgoEMG video data (for head-view frames).")
     parser.add_argument("--allintra-root",
                         default="data/EgoEMG_allintra",
-                        help="Root of all-intra re-encoded webcam videos.")
+                        help="Root of all-intra re-encoded head-view videos.")
     args = parser.parse_args()
 
     device = torch.device(args.device)
@@ -122,8 +122,8 @@ def main():
 
     # ── Setup video readers ─────────────────────────────────────────────
     ep_idx_mm = load_mm(manifest, args.memmap_root, "episode_index")
-    frame_idx_mm = load_mm(manifest, args.memmap_root, "image_webcam_frame_index")
-    video_paths = _decode_bytes(md["episode_webcam_video_path"])
+    frame_idx_mm = load_mm(manifest, args.memmap_root, "image_head_frame_index")
+    video_paths = _decode_bytes(md["episode_head_video_path"])
     ep_start_idx = np.asarray(md["episode_start_idx"], dtype=np.int64)
     ep_end_idx = np.asarray(md["episode_end_idx"], dtype=np.int64)
     beta_idx_arr = md["episode_beta_idx"]

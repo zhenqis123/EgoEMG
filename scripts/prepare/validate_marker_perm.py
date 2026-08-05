@@ -73,9 +73,9 @@ def main():
     ep_ends = np.asarray(md["episode_end_idx"], dtype=np.int64)
 
     cam_tf_mm = np.memmap(
-        MEMMAP_DIR / fields["mocap_webcam_transform"]["filename"],
-        dtype=fields["mocap_webcam_transform"]["dtype"], mode="r",
-        shape=tuple(fields["mocap_webcam_transform"]["shape"]),
+        MEMMAP_DIR / fields["mocap_head_transform"]["filename"],
+        dtype=fields["mocap_head_transform"]["dtype"], mode="r",
+        shape=tuple(fields["mocap_head_transform"]["shape"]),
     )
 
     all_perms = list(permutations([0, 1, 2]))

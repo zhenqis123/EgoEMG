@@ -84,8 +84,8 @@ def main():
     manifest = json.load(open(f"{mm_dir}/manifest.json"))
     md = np.load(f"{mm_dir}/metadata.npz", allow_pickle=False)
 
-    cam_tracked_mm = load_mm(manifest, mm_dir, "mocap_webcam_tracked")
-    cam_transform_mm = load_mm(manifest, mm_dir, "mocap_webcam_transform")
+    cam_tracked_mm = load_mm(manifest, mm_dir, "mocap_head_tracked")
+    cam_transform_mm = load_mm(manifest, mm_dir, "mocap_head_transform")
     mano_pose_mm = load_mm(manifest, mm_dir, f"generated_mano_{HAND}_pose")
     mano_world_mm = load_mm(manifest, mm_dir, f"mocap_mano_{HAND}_world_transform")
     mano_beta_mm = load_episode_mm(manifest, mm_dir, f"generated_mano_{HAND}_beta")

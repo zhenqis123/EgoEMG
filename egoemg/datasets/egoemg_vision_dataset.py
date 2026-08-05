@@ -68,14 +68,14 @@ MODALITY_GROUPS: dict[str, tuple[str, ...]] = {
         "mocap_right_wrist_yaw",
     ),
     "camera": (
-        "mocap_webcam_transform",
-        "mocap_webcam_tracked",
+        "mocap_head_transform",
+        "mocap_head_tracked",
         "mocap_mano_left_world_transform",
         "mocap_mano_right_world_transform",
     ),
     "video_index": (
-        "image_webcam_frame_index",
-        "image_webcam_stale",
+        "image_head_frame_index",
+        "image_head_stale",
     ),
     "split": ("frame_split_id",),
 }
@@ -159,8 +159,8 @@ def build_egoemg_vision_index(
 
     frame_split_mm = _load_memmap(memmap_dir, manifest["fields"]["frame_split_id"])
     label_valid_mm = _load_memmap(memmap_dir, manifest["fields"]["generated_label_valid"])
-    tracked_mm = _load_memmap(memmap_dir, manifest["fields"]["mocap_webcam_tracked"])
-    stale_mm = _load_memmap(memmap_dir, manifest["fields"]["image_webcam_stale"])
+    tracked_mm = _load_memmap(memmap_dir, manifest["fields"]["mocap_head_tracked"])
+    stale_mm = _load_memmap(memmap_dir, manifest["fields"]["image_head_stale"])
 
     hands = ("left", "right")
     shard_counts: dict[tuple[int, str], np.ndarray] = {
@@ -688,7 +688,7 @@ def _build_intrinsics_and_frame_mapper(
     video_h: int,
     first_frame_bgr: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
-    # EgoEMG webcam videos are 1280x720 with side bars. WiLoR supervision needs
+    # EgoEMG head-view videos are 1280x720 with side bars. WiLoR supervision needs
     # projections in raw video pixels, so we project using the processed calib
     # frame and map back to raw video coordinates.
     gray = cv2.cvtColor(first_frame_bgr, cv2.COLOR_BGR2GRAY)
@@ -805,7 +805,7 @@ class EgoEmgVisionDataset(Dataset):
             self._episode_id = _decode_bytes(metadata["episode_id"])
             self._episode_subject = _decode_bytes(metadata["episode_subject"])
             self._episode_subject_id = metadata["episode_subject_id"]
-            self._episode_webcam_video_path = _decode_bytes(metadata["episode_webcam_video_path"])
+            self._episode_head_video_path = _decode_bytes(metadata["episode_head_video_path"])
             self._episode_start_idx = metadata["episode_start_idx"]
             self._episode_end_idx = metadata["episode_end_idx"]
             self._episode_beta_idx = metadata["episode_beta_idx"]
@@ -979,7 +979,7 @@ class EgoEmgVisionDataset(Dataset):
             "_episode_id": self._episode_id,
             "_episode_subject": self._episode_subject,
             "_episode_subject_id": self._episode_subject_id,
-            "_episode_webcam_video_path": self._episode_webcam_video_path,
+            "_episode_head_video_path": self._episode_head_video_path,
             "_episode_start_idx": self._episode_start_idx,
             "_episode_end_idx": self._episode_end_idx,
             "_episode_beta_idx": self._episode_beta_idx,
@@ -1177,12 +1177,12 @@ class EgoEmgVisionDataset(Dataset):
         hand = "left" if hand_idx == 0 else "right"
         is_left = hand == "left"
         video_frame_idx = int(
-            self._frame_memmaps["image_webcam_frame_index"][frame_idx]
+            self._frame_memmaps["image_head_frame_index"][frame_idx]
         )
 
         T_W_C = np.eye(4, dtype=np.float64)
         t12_cam = np.asarray(
-            self._frame_memmaps["mocap_webcam_transform"][frame_idx],
+            self._frame_memmaps["mocap_head_transform"][frame_idx],
             dtype=np.float64,
         )
         T_W_C[:3, :3] = t12_cam[:9].reshape(3, 3)
@@ -1476,7 +1476,7 @@ class EgoEmgVisionDataset(Dataset):
 
         labels = self._read_memmap_labels(frame_idx, ep_idx, hand_idx)
         video_path = self._resolve_video_path(
-            self._episode_webcam_video_path[ep_idx]
+            self._episode_head_video_path[ep_idx]
         )
         frame_bgr = self._read_frame(video_path, labels["video_frame_idx"])
         K, dist, intrinsics_info = self._get_intrinsics(frame_bgr)
@@ -1639,7 +1639,7 @@ class EgoEmgVisionDataset(Dataset):
         kp2d_patch[:, :-1] = kp2d_patch[:, :-1] / self.patch_size - 0.5
         img_patch = self._normalize_image(img_patch_bgr, color_scale)
         video_path = self._resolve_video_path(
-            self._episode_webcam_video_path[ep_idx]
+            self._episode_head_video_path[ep_idx]
         )
         cam_info = {
             "video_w": video_w, "video_h": video_h,

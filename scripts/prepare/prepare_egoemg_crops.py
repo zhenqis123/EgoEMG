@@ -83,7 +83,7 @@ def _check_hand_valid(
     if not bool(frame_memmaps["generated_label_valid"][frame_idx, hand_idx]):
         return False
     T_W_C = np.eye(4, dtype=np.float64)
-    t12 = np.asarray(frame_memmaps["mocap_webcam_transform"][frame_idx], dtype=np.float64)
+    t12 = np.asarray(frame_memmaps["mocap_head_transform"][frame_idx], dtype=np.float64)
     T_W_C[:3, :3] = t12[:9].reshape(3, 3)
     T_W_C[:3, 3] = t12[9:12]
     marker_world = np.asarray(
@@ -109,7 +109,7 @@ def _crop_hand(
     """Crop a hand patch from the frame. Returns BGR image patch."""
     video_h, video_w = frame_bgr.shape[:2]
     T_W_C = np.eye(4, dtype=np.float64)
-    t12 = np.asarray(frame_memmaps["mocap_webcam_transform"][frame_idx], dtype=np.float64)
+    t12 = np.asarray(frame_memmaps["mocap_head_transform"][frame_idx], dtype=np.float64)
     T_W_C[:3, :3] = t12[:9].reshape(3, 3)
     T_W_C[:3, 3] = t12[9:12]
     marker_world = np.asarray(
@@ -174,7 +174,7 @@ def _process_episode(
     lmdb_path = output_dir / f"{ep_id}.lmdb"
     done_path = output_dir / f"{ep_id}.done"
 
-    vfi_memmap = frame_memmaps["image_webcam_frame_index"]
+    vfi_memmap = frame_memmaps["image_head_frame_index"]
     ep_vfi = np.asarray(vfi_memmap[start_idx:end_idx], dtype=np.int32)
 
     vfi_to_frame: dict[int, int] = {}
@@ -294,7 +294,7 @@ def main():
         manifest = json.load(f)
     metadata = np.load(args.memmap_dir / "metadata.npz", allow_pickle=False)
     ep_ids = _decode_bytes(metadata["episode_id"])
-    ep_video_paths = _decode_bytes(metadata["episode_webcam_video_path"])
+    ep_video_paths = _decode_bytes(metadata["episode_head_video_path"])
     ep_starts = metadata["episode_start_idx"].astype(np.int64)
     ep_ends = metadata["episode_end_idx"].astype(np.int64)
     num_episodes = len(ep_ids)
@@ -302,7 +302,7 @@ def main():
 
     print("Loading memmaps ...", flush=True)
     fields = [
-        "image_webcam_frame_index", "mocap_webcam_transform",
+        "image_head_frame_index", "mocap_head_transform",
         "generated_label_valid",
         "mocap_left_keypoints", "mocap_right_keypoints",
         "mocap_left_valid", "mocap_right_valid",

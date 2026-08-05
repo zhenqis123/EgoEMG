@@ -7,7 +7,7 @@ This file provides agent-facing guidance for the active repository workflows.
 The repository documentation should focus on two active lines:
 
 - `EMG -> pose`: EMGFormer-based hand pose prediction from EMG.
-- `vision -> pose`: EgoEMG/WiLoR hand pose and MANO supervision from webcam
+- `vision -> pose`: EgoEMG/WiLoR hand pose and MANO supervision from head-view
   frames.
 
 Do not present unrelated model families as primary workflows. If legacy files
@@ -222,7 +222,7 @@ Key files:
 ### Vision-to-Pose Path
 
 ```text
-EgoEMG webcam frame
+EgoEMG head-view frame
   -> all-intra decord frame read
   -> calibrated projection and hand bbox
   -> WiLoR crop and normalization
@@ -246,6 +246,11 @@ Key files:
 - `scripts/viz/visualize_egoemg_vision_dataset.py`: dataset visualization debug.
 - `config/lineage/fusion.yaml`: L1 shared defaults for vision/fusion
   experiments (see `docs/config_architecture.md`).
+
+Known dataset issues (placeholder IMU, unreproducible filters, missing
+raw files, engineering leftovers) are tracked in
+`docs/data_known_issues.md` — check it before assuming a field's data is
+real.
 
 ## Dataset Notes
 

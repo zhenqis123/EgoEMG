@@ -61,7 +61,7 @@ def main() -> None:
 
     frame_split = create_field(root, manifest, "frame_split_id", "int32", (total,))
     camera_transform = create_field(
-        root, manifest, "mocap_webcam_transform", "float32", (total, 12)
+        root, manifest, "mocap_head_transform", "float32", (total, 12)
     )
     wrist_fields = {}
     for hand in ("left", "right"):
@@ -75,8 +75,8 @@ def main() -> None:
             root, manifest, f"mocap_{hand}_wrist_angles_valid", "bool", (total,)
         )
 
-    pos_info = manifest["fields"]["mocap_webcam_position"]
-    quat_info = manifest["fields"]["mocap_webcam_orientation"]
+    pos_info = manifest["fields"]["mocap_head_position"]
+    quat_info = manifest["fields"]["mocap_head_orientation"]
     webcam_position = np.memmap(
         root / pos_info["filename"], mode="r+", dtype=pos_info["dtype"], shape=tuple(pos_info["shape"])
     )
@@ -130,7 +130,7 @@ def main() -> None:
         "test": ["0071", "0072"],
     }
     manifest["wrist_angle_policy"] = "zero values with valid=false (not derivable with verified EgoEMG convention)"
-    manifest["mocap_webcam_pose_source"] = "head/cam_position + head/cam_quaternion (xyzw)"
+    manifest["mocap_head_pose_source"] = "head/cam_position + head/cam_quaternion (xyzw)"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
     print(f"Done: {root}")
 

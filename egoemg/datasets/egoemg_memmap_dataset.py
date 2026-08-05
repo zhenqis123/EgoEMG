@@ -101,7 +101,13 @@ MODALITY_GROUPS: dict[str, tuple[str, ...]] = {
         "emg_left_filtered_paper",
         "emg_right_filtered_paper",
     ),
-    "imu": ("imu",),
+    "imu": (
+        "imu",
+        "imu_right",
+        "imu_head",
+        "imu_wrist_left",
+        "imu_wrist_right",
+    ),
     "mocap_hands": (
         "mocap_left_keypoints",
         "mocap_right_keypoints",
@@ -122,19 +128,25 @@ MODALITY_GROUPS: dict[str, tuple[str, ...]] = {
         "mocap_right_wrist_angles_valid",
         "mocap_right_wrist_rigid_markers",
     ),
-    "webcam_mocap": (
-        "mocap_webcam_position",
-        "mocap_webcam_orientation",
-        "mocap_webcam_tracked",
-        "mocap_webcam_rigid_markers",
+    "head_mocap": (
+        "mocap_head_position",
+        "mocap_head_orientation",
+        "mocap_head_tracked",
+        "mocap_head_rigid_markers",
     ),
     "video_index": (
         "image_zed_frame_index",
-        "image_webcam_frame_index",
+        "image_head_frame_index",
+        "image_wrist_left_frame_index",
+        "image_wrist_right_frame_index",
         "image_zed_stale",
         "image_zed_delta_ms",
-        "image_webcam_stale",
-        "image_webcam_delta_ms",
+        "image_head_stale",
+        "image_head_delta_ms",
+        "image_wrist_left_stale",
+        "image_wrist_left_delta_ms",
+        "image_wrist_right_stale",
+        "image_wrist_right_delta_ms",
     ),
     "labels": (
         "label_gesture_class",
@@ -167,8 +179,10 @@ MODALITY_GROUPS: dict[str, tuple[str, ...]] = {
 }
 
 VIDEO_STREAM_PATH_KEYS = {
+    "head": "episode_head_video_path",
+    "wrist_left": "episode_wrist_left_video_path",
+    "wrist_right": "episode_wrist_right_video_path",
     "zed": "episode_zed_video_path",
-    "webcam": "episode_webcam_video_path",
 }
 
 
@@ -321,18 +335,18 @@ class EgoEmgMemmapDataset(Dataset):
         if self._vision_enabled:
             if self.target_hand is None:
                 raise ValueError("vision_num_frames>0 requires target_hand to be set")
-            self._frame_fields_to_load |= {"image_webcam_frame_index"}
+            self._frame_fields_to_load |= {"image_head_frame_index"}
             # Only add mocap fields when not using pre-crops (needed for bbox computation)
             if self.per_episode_crops_dir is None:
                 self._frame_fields_to_load |= {
-                    "mocap_webcam_transform",
-                    "mocap_webcam_tracked",
+                    "mocap_head_transform",
+                    "mocap_head_tracked",
                     "generated_label_valid",
                     f"mocap_{self.target_hand}_keypoints",
                     f"mocap_{self.target_hand}_valid",
                 }
         if self._cached_vit_enabled:
-            self._frame_fields_to_load |= {"image_webcam_frame_index"}
+            self._frame_fields_to_load |= {"image_head_frame_index"}
         if self.allowed_splits and self._frame_split_available:
             self._skip_fields.discard("frame_split_id")
         self._skip_fields |= {
@@ -402,7 +416,13 @@ class EgoEmgMemmapDataset(Dataset):
         self._episode_subject_id = md["episode_subject_id"]
         self._episode_source_parquet = _decode_bytes(md["episode_source_parquet"])
         self._episode_zed_video_path = _decode_bytes(md["episode_zed_video_path"])
-        self._episode_webcam_video_path = _decode_bytes(md["episode_webcam_video_path"])
+        self._episode_head_video_path = _decode_bytes(md["episode_head_video_path"])
+        self._episode_wrist_left_video_path = _decode_bytes(
+            md["episode_wrist_left_video_path"]
+        ) if "episode_wrist_left_video_path" in md else [""] * len(self._episode_id)
+        self._episode_wrist_right_video_path = _decode_bytes(
+            md["episode_wrist_right_video_path"]
+        ) if "episode_wrist_right_video_path" in md else [""] * len(self._episode_id)
         self._episode_start_idx = md["episode_start_idx"]
         self._episode_end_idx = md["episode_end_idx"]
         self._episode_length = md["episode_length"]
@@ -577,6 +597,13 @@ class EgoEmgMemmapDataset(Dataset):
             f"mocap_{target_hand}_wrist_pitch",
             f"mocap_{target_hand}_wrist_yaw",
             f"mocap_{target_hand}_wrist_angles_valid",
+        }
+        # Stream frame indices are per-view, not per-target-hand data:
+        # keep both wrist views even when only one hand is supervised.
+        needed |= {
+            "image_wrist_left_frame_index", "image_wrist_left_stale",
+            "image_wrist_left_delta_ms", "image_wrist_right_frame_index",
+            "image_wrist_right_stale", "image_wrist_right_delta_ms",
         }
 
         # Remove hand-tagged fields not in the needed set.
@@ -1015,10 +1042,10 @@ class EgoEmgMemmapDataset(Dataset):
             else:
                 ep_id = result["episode_id"]
                 # Fast path: center value already read directly from memmap
-                if "_image_webcam_frame_index_center" in result:
-                    center_frame_idx = result["_image_webcam_frame_index_center"]
+                if "_image_head_frame_index_center" in result:
+                    center_frame_idx = result["_image_head_frame_index_center"]
                 else:
-                    center_frame_idx = int(result["image_webcam_frame_index"][result["window_length"] // 2])
+                    center_frame_idx = int(result["image_head_frame_index"][result["window_length"] // 2])
                 hand_code = "L" if hand == "left" else "R"
                 feature, valid = self._get_cached_vit_lmdb(ep_id, center_frame_idx, hand_code)
             return {
@@ -1031,7 +1058,7 @@ class EgoEmgMemmapDataset(Dataset):
 
         local_indices = self._vision_frame_local_indices(result["window_length"])
         video_frame_indices = np.asarray(
-            result["image_webcam_frame_index"], dtype=np.int64
+            result["image_head_frame_index"], dtype=np.int64
         )[local_indices]
         episode_id = result["episode_id"]
         hand_code = "L" if hand == "left" else "R"
@@ -1063,7 +1090,7 @@ class EgoEmgMemmapDataset(Dataset):
                 "vision_frame_indices": np.asarray(video_frame_indices, dtype=np.int64),
             }
 
-        video_path = self._resolve_video_path(result["episode_webcam_video_path"])
+        video_path = self._resolve_video_path(result["episode_head_video_path"])
         frames_rgb = self._decode_video_frames(video_path, video_frame_indices)
         frames_bgr = frames_rgb[:, :, :, ::-1].copy()
         K_use, dist_use, intrinsics_info = self._vision_intrinsics(frames_bgr[0])
@@ -1076,8 +1103,8 @@ class EgoEmgMemmapDataset(Dataset):
 
         marker_world_seq = np.asarray(result[f"mocap_{hand}_keypoints"], dtype=np.float64)
         marker_valid_seq = np.asarray(result[f"mocap_{hand}_valid"], dtype=bool)
-        cam_transform_seq = np.asarray(result["mocap_webcam_transform"], dtype=np.float64)
-        tracked_seq = np.asarray(result["mocap_webcam_tracked"], dtype=bool)
+        cam_transform_seq = np.asarray(result["mocap_head_transform"], dtype=np.float64)
+        tracked_seq = np.asarray(result["mocap_head_tracked"], dtype=bool)
         label_valid_seq = np.asarray(result["generated_label_valid"], dtype=bool)[:, hand_idx]
 
         for frame_bgr, local_idx, video_frame_idx in zip(
@@ -1238,7 +1265,7 @@ class EgoEmgMemmapDataset(Dataset):
         """
         from tqdm import tqdm
 
-        wc_fi_mm = self._frame_memmaps["image_webcam_frame_index"]
+        wc_fi_mm = self._frame_memmaps["image_head_frame_index"]
         hand = self.target_hand
         hand_code = "L" if hand == "left" else "R"
         hand_idx = 0 if hand == "left" else 1
@@ -1377,7 +1404,7 @@ class EgoEmgMemmapDataset(Dataset):
         hand_code = "L" if hand == "left" else "R"
 
         # ── Point-read center frame index from memmap (8 bytes) ─────────
-        fi_mm = self._frame_memmaps["image_webcam_frame_index"]
+        fi_mm = self._frame_memmaps["image_head_frame_index"]
         video_frame_idx = int(fi_mm[center_idx])
 
         # ── Point-read joint angles at center frame (20 float32 = 80 bytes) ─
@@ -1481,7 +1508,7 @@ class EgoEmgMemmapDataset(Dataset):
         emg = emg.T  # (C, T) where C=8 for target_hand or 16 for emg2pose layouts
 
         # ── Point-read center frame index (8 bytes) ─────────────────────
-        fi_mm = self._frame_memmaps["image_webcam_frame_index"]
+        fi_mm = self._frame_memmaps["image_head_frame_index"]
         video_frame_idx = int(fi_mm[center_idx])
 
         # ── Point-read joint angles at center (20 float32 = 80 bytes) ───
@@ -1727,10 +1754,10 @@ class EgoEmgMemmapDataset(Dataset):
 
         result: dict[str, Any] = {}
         for name, mm in self._frame_memmaps.items():
-            if name == "image_webcam_frame_index" and self._cached_vit_enabled:
+            if name == "image_head_frame_index" and self._cached_vit_enabled:
                 # Only the center value is needed for ViT feature lookup.
                 # Reading the full 7790-element array is wasteful.
-                result["_image_webcam_frame_index_center"] = int(
+                result["_image_head_frame_index_center"] = int(
                     mm[start + self.window_length // 2]
                 )
                 continue
@@ -1745,7 +1772,11 @@ class EgoEmgMemmapDataset(Dataset):
         result["episode_subject_id"] = int(self._episode_subject_id[ep_idx])
         result["episode_source_parquet"] = self._episode_source_parquet[ep_idx]
         result["episode_zed_video_path"] = self._episode_zed_video_path[ep_idx]
-        result["episode_webcam_video_path"] = self._episode_webcam_video_path[ep_idx]
+        result["episode_head_video_path"] = self._episode_head_video_path[ep_idx]
+        result["episode_wrist_left_video_path"] = \
+            self._episode_wrist_left_video_path[ep_idx]
+        result["episode_wrist_right_video_path"] = \
+            self._episode_wrist_right_video_path[ep_idx]
         result["window_start_idx"] = start
         result["window_end_idx"] = end
         result["window_length"] = self.window_length
@@ -1892,8 +1923,19 @@ class EgoEmgMemmapDataset(Dataset):
 
         # Remove raw hand-specific memmap fields to keep collation keys
         # consistent when left-hand and right-hand datasets are concatenated.
+        # The wrist-view stream fields are per-view indices, not per-hand
+        # data, so they must survive the cleanup (their names contain
+        # "_left"/"_right").
+        stream_keys = {
+            "image_wrist_left_frame_index", "image_wrist_left_stale",
+            "image_wrist_left_delta_ms", "image_wrist_right_frame_index",
+            "image_wrist_right_stale", "image_wrist_right_delta_ms",
+            "episode_wrist_left_video_path", "episode_wrist_right_video_path",
+            "wrist_left_video_path", "wrist_right_video_path",
+            "wrist_left_video_frames", "wrist_right_video_frames",
+        }
         for key in list(result.keys()):
-            if "_left" in key or "_right" in key:
+            if ("_left" in key or "_right" in key) and key not in stream_keys:
                 result.pop(key, None)
 
         # Fill default values for optional fields that were requested via modalities

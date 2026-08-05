@@ -387,12 +387,12 @@ def main() -> None:
     manifest = json.load(open(f"{mm_dir}/manifest.json"))
     md = np.load(f"{mm_dir}/metadata.npz", allow_pickle=False)
 
-    cam_tracked_mm = load_mm(manifest, mm_dir, "mocap_webcam_tracked")
-    cam_transform_mm = load_mm(manifest, mm_dir, "mocap_webcam_transform")
-    frame_idx_mm = load_mm(manifest, mm_dir, "image_webcam_frame_index")
+    cam_tracked_mm = load_mm(manifest, mm_dir, "mocap_head_tracked")
+    cam_transform_mm = load_mm(manifest, mm_dir, "mocap_head_transform")
+    frame_idx_mm = load_mm(manifest, mm_dir, "image_head_frame_index")
     ep_idx_mm = load_mm(manifest, mm_dir, "episode_index")
 
-    video_paths = decode_bytes(md["episode_webcam_video_path"])
+    video_paths = decode_bytes(md["episode_head_video_path"])
 
     ego_root = Path(args.data_root).resolve()
     allintra_root = Path(args.allintra_root).resolve()

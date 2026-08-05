@@ -98,7 +98,7 @@ def _get_intrinsics(video_w: int, video_h: int):
 
 
 def get_camera_transform(abs_idx: int) -> np.ndarray:
-    mm = _load_mm("mocap_webcam_transform")
+    mm = _load_mm("mocap_head_transform")
     t12 = np.asarray(mm[abs_idx], dtype=np.float64)
     T = np.eye(4, dtype=np.float64)
     T[:3, :3] = t12[:9].reshape(3, 3)
@@ -221,7 +221,7 @@ def main():
 
     print(f"Processing {len(target_eps)} episodes, stride={args.stride} (output {args.fps}fps)")
 
-    cam_tracked_mm = _load_mm("mocap_webcam_tracked")
+    cam_tracked_mm = _load_mm("mocap_head_tracked")
 
     for ep_idx, ep_id in target_eps:
         ep_start = int(ep_start_idx[ep_idx])
@@ -236,10 +236,10 @@ def main():
 
         # Open video for this episode
         video_rel = [x.decode("utf-8").rstrip("\x00") if isinstance(x, (bytes, np.bytes_)) else str(x)
-                     for x in md["episode_webcam_video_path"]][ep_idx]
+                     for x in md["episode_head_video_path"]][ep_idx]
         video_path = Path(VIDEO_ROOT) / video_rel
         cap = cv2.VideoCapture(str(video_path))
-        webcam_frame_idx_mm = _load_mm("image_webcam_frame_index")
+        webcam_frame_idx_mm = _load_mm("image_head_frame_index")
 
         # Get frame dimensions from first frame
         ret, test_frame = cap.read()

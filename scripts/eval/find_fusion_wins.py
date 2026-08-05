@@ -670,14 +670,14 @@ def visualize_sample(
     ep_id = str(ep_id)
 
     # Video path
-    raw_video_rel = dataset._episode_webcam_video_path[ep_idx]
+    raw_video_rel = dataset._episode_head_video_path[ep_idx]
     if isinstance(raw_video_rel, (bytes, np.bytes_)):
         raw_video_rel = raw_video_rel.decode("utf-8").rstrip("\x00")
     video_path = str(video_root / str(raw_video_rel).replace(".mp4", "_allintra.mp4"))
 
     # Frame index (load from memmap — may not be in dataset's modality groups)
     if vf_idx is None and center_idx is not None:
-        fi_mm = _load_mm(memmap_dir, "image_webcam_frame_index")
+        fi_mm = _load_mm(memmap_dir, "image_head_frame_index")
         vf_idx = int(fi_mm[center_idx])
 
     # ── Read video frame ──────────────────────────────────────────────────
@@ -708,7 +708,7 @@ def visualize_sample(
         frame_bgr, K_raw, dist_raw, calib_w, calib_h)
 
     # ── Camera transform (direct memmap load) ─────────────────────────────
-    cam_transform_mm = _load_mm(memmap_dir, "mocap_webcam_transform")
+    cam_transform_mm = _load_mm(memmap_dir, "mocap_head_transform")
     t12 = np.asarray(cam_transform_mm[center_idx], dtype=np.float64)
     T_W_C = np.eye(4, dtype=np.float64)
     T_W_C[:3, :3] = t12[:9].reshape(3, 3)
@@ -1300,8 +1300,8 @@ def main():
     inner_model._forward_center_supervised = original_forward_cs
 
     # ── Filter to only samples with valid mocap (matching verify_training_with_emg.py) ──
-    tracked_mm = _load_mm(Path(args.data_location), "mocap_webcam_tracked")
-    stale_mm = _load_mm(Path(args.data_location), "image_webcam_stale")
+    tracked_mm = _load_mm(Path(args.data_location), "mocap_head_tracked")
+    stale_mm = _load_mm(Path(args.data_location), "image_head_stale")
     tracked_count = 0
     filtered_results: list[dict] = []
     for r in all_results:

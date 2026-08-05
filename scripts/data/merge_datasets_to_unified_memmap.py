@@ -55,6 +55,26 @@ SRC_EGOEMG = 0
 SRC_SHOWEE = 1
 SRC_INCRE = 2
 
+# The head-mounted camera is named "head view" in the released unified
+# schema; source memmaps built earlier still use the legacy "webcam"
+# names.  Normalize source field names during the union so a re-merge
+# produces the released schema.
+LEGACY_WEBCAM_TO_HEAD = {
+    "image_webcam_frame_index": "image_head_frame_index",
+    "image_webcam_stale": "image_head_stale",
+    "image_webcam_delta_ms": "image_head_delta_ms",
+    "mocap_webcam_position": "mocap_head_position",
+    "mocap_webcam_orientation": "mocap_head_orientation",
+    "mocap_webcam_tracked": "mocap_head_tracked",
+    "mocap_webcam_rigid_markers": "mocap_head_rigid_markers",
+    "mocap_webcam_transform": "mocap_head_transform",
+}
+
+
+def normalize_field_name(name: str) -> str:
+    return LEGACY_WEBCAM_TO_HEAD.get(name, name)
+
+
 # Fields whose "missing" semantics should be a non-zero invalid sentinel
 # rather than a plain zero-fill.  Keyed by (field) -> fill value.
 # - bool fields default to False (zero) which is the "invalid" sense for all
@@ -66,13 +86,13 @@ SRC_INCRE = 2
 # Per-frame fields that are STALE-True when vision is unavailable (Incre).
 VISION_STALE_TRUE_FIELDS = {
     "image_zed_stale",
-    "image_webcam_stale",
+    "image_head_stale",
 }
 # Per-frame bool fields that are validity flags (default False = invalid).
 VISION_VALID_FALSE_FIELDS = {
     "mocap_left_valid", "mocap_right_valid",
     "mocap_left_wrist_angles_valid", "mocap_right_wrist_angles_valid",
-    "mocap_webcam_tracked",
+    "mocap_head_tracked",
 }
 
 
@@ -99,6 +119,7 @@ def collect_union_frame_fields(sources: list[dict]) -> list[str]:
     seen = []
     for src in sources:
         for name in src["frame_fields"]:
+            name = normalize_field_name(name)
             if name not in seen:
                 seen.append(name)
     # Put dataset_source_id at the end (we synthesize it).
@@ -107,11 +128,22 @@ def collect_union_frame_fields(sources: list[dict]) -> list[str]:
     return seen
 
 
+def source_field_name(src: dict, union_name: str) -> str | None:
+    """The source-side field name for a union field (legacy names allowed)."""
+    if union_name in src["frame_fields"]:
+        return union_name
+    for legacy, head in LEGACY_WEBCAM_TO_HEAD.items():
+        if head == union_name and legacy in src["frame_fields"]:
+            return legacy
+    return None
+
+
 def field_dtype_shape(src: dict, name: str):
     """Return (dtype, per_row_shape_tuple) for a frame field, or None if absent."""
-    fi = src["frame_fields"].get(name)
-    if fi is None:
+    src_name = source_field_name(src, name)
+    if src_name is None:
         return None
+    fi = src["frame_fields"][src_name]
     return np.dtype(fi["dtype"]), tuple(fi["shape"][1:])
 
 
@@ -150,8 +182,9 @@ def write_frame_field(
         info = field_dtype_shape(src, name)
         if info is not None and not (is_split_id and sid != SRC_EGOEMG):
             sdtype, sshape = info
+            src_name = source_field_name(src, name)
             src_mmap = np.memmap(
-                src["path"] / f"{name}.dat", dtype=sdtype, mode="r",
+                src["path"] / f"{src_name}.dat", dtype=sdtype, mode="r",
                 shape=(n,) + sshape,
             )
             if sshape != per_row_shape:
@@ -348,8 +381,13 @@ def main():
             # Video paths: carry through; Incre's are empty (no vision).
             ep_zed.append(str(meta["episode_zed_video_path"][e])
                           if "episode_zed_video_path" in meta else "")
-            ep_webcam.append(str(meta["episode_webcam_video_path"][e])
-                             if "episode_webcam_video_path" in meta else "")
+            # Source memmaps use the legacy "webcam" metadata key; the unified
+            # schema names the stream "head".
+            ep_webcam.append(
+                str(meta["episode_head_video_path"][e])
+                if "episode_head_video_path" in meta
+                else str(meta["episode_webcam_video_path"][e])
+                if "episode_webcam_video_path" in meta else "")
             ep_start.append(row_off + int(starts[e]))
             ep_end.append(row_off + int(ends[e]))
             ep_len.append(int(lengths[e]))
@@ -367,7 +405,7 @@ def main():
         "episode_chunk_id": _enc(ep_ids),
         "episode_source_parquet": _enc(ep_source_parquet),
         "episode_zed_video_path": _enc(ep_zed),
-        "episode_webcam_video_path": _enc(ep_webcam),
+        "episode_head_video_path": _enc(ep_webcam),
         "episode_start_idx": np.array(ep_start, dtype=np.int64),
         "episode_end_idx": np.array(ep_end, dtype=np.int64),
         "episode_length": np.array(ep_len, dtype=np.int64),

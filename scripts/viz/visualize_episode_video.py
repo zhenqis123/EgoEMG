@@ -168,7 +168,7 @@ def main():
     ep_ids = [v.decode() if isinstance(v, bytes) else str(v) for v in md["episode_id"]]
     ep_starts = np.asarray(md["episode_start_idx"], dtype=np.int64)
     ep_ends = np.asarray(md["episode_end_idx"], dtype=np.int64)
-    ep_paths = [v.decode() for v in md["episode_webcam_video_path"]]
+    ep_paths = [v.decode() for v in md["episode_head_video_path"]]
 
     ep_idx = ep_ids.index(args.episode_id)
     start = int(ep_starts[ep_idx])
@@ -181,9 +181,9 @@ def main():
 
     # Open memmaps
     cam_tf_mm = np.memmap(
-        memmap_dir / fields["mocap_webcam_transform"]["filename"],
-        dtype=fields["mocap_webcam_transform"]["dtype"], mode="r",
-        shape=tuple(fields["mocap_webcam_transform"]["shape"]),
+        memmap_dir / fields["mocap_head_transform"]["filename"],
+        dtype=fields["mocap_head_transform"]["dtype"], mode="r",
+        shape=tuple(fields["mocap_head_transform"]["shape"]),
     )
     kp_left_mm = np.memmap(
         memmap_dir / fields["mocap_left_keypoints"]["filename"],
@@ -206,9 +206,9 @@ def main():
         shape=tuple(fields["mocap_right_valid"]["shape"]),
     )
     frame_idx_mm = np.memmap(
-        memmap_dir / fields["image_webcam_frame_index"]["filename"],
-        dtype=fields["image_webcam_frame_index"]["dtype"], mode="r",
-        shape=tuple(fields["image_webcam_frame_index"]["shape"]),
+        memmap_dir / fields["image_head_frame_index"]["filename"],
+        dtype=fields["image_head_frame_index"]["dtype"], mode="r",
+        shape=tuple(fields["image_head_frame_index"]["shape"]),
     )
 
     with open(calib_json) as f:
