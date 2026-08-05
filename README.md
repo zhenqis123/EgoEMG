@@ -94,6 +94,12 @@ export EMG2POSE_ROOT=/absolute/path/to/data_root
 > `bash scripts/download/assemble_emg2pose_parts.sh <memmap_dir>` after
 > downloading (the Google Drive copies are already assembled).
 
+**Manual download (Baidu Netdisk, permanent link):**
+<https://pan.baidu.com/s/1aG2e-mHJkmP4KiYtYRcReA> — 提取码 `8059`.
+This link hosts the entire `EgoEMG_release/` tree (unified memmap, all-intra
+videos, pre-crop patches, and all checkpoints). Downloading via the `baidupcs`
+CLI (`baidupcs download /EgoEMG_release/...`) does not need the code.
+
 ## 🏆 Pre-trained Checkpoints
 
 Ten pretrained checkpoints are provided and mirrored on Google Drive and Baidu
@@ -120,6 +126,9 @@ bash scripts/download/download_checkpoints.sh
 # or from Baidu Netdisk (requires `baidupcs` login)
 bash scripts/download/download_checkpoints.sh baidupcs
 ```
+
+The checkpoints are also included in the Baidu Netdisk share link above
+(<https://pan.baidu.com/s/1aG2e-mHJkmP4KiYtYRcReA>, 提取码 `8059`).
 
 ## ⚙️ Setup
 
