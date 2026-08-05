@@ -1,0 +1,17 @@
+# @package _global_
+to_tensor:
+  _target_: emg2pose.transforms.ExtractToTensor
+  field: emg
+channel_downsampling:
+  _target_: emg2pose.transforms.ChannelDownsampling
+  downsampling: 2
+
+
+transforms:
+  train:
+    - ${to_tensor}
+    - ${channel_downsampling}
+  val:
+    - ${to_tensor}
+    - ${channel_downsampling}
+  test: ${transforms.val}

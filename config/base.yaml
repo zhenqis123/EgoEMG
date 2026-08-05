@@ -1,0 +1,62 @@
+defaults:
+  - _self_
+  - datamodule: default
+  - optimizer: adam
+  - data_split: full_split
+  - transforms: rotation_augmentation
+  - experiment: tracking_vemg2pose
+
+data_location: ~/emg2pose_data
+
+seed: 42
+
+batch_size: 64
+num_workers: 0  # Number of workers for dataloading
+
+train: True  # Whether to run training
+eval: True  # Whether to run evaluation on validation and test splits
+checkpoint: null  # Optional path to checkpoint file
+
+monitor_metric: val_loss
+monitor_mode: min
+
+loss_weights:
+  mae: 1
+  fingertip_distance: 0.01
+
+trainer:
+  max_epochs: 500
+
+# By default: static learning rate
+lr_scheduler:
+  null
+
+callbacks:
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    save_last: True
+    verbose: True
+  - _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    patience: 50
+    check_on_train_epoch_end: False
+    verbose: True
+
+# Customize hydra directory outputs
+# see: https://hydra.cc/docs/0.11/configure_hydra/workdir/
+hydra:
+  run:
+    dir: logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: ${hydra.run.dir}
+    subdir: ${hydra.job.num}_${hydra.job.override_dirname}/seed=${seed}
+  output_subdir: hydra_configs
+  job:
+    name: emg2pose
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed

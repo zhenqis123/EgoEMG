@@ -1,0 +1,9 @@
+train:
+- 2022-12-06-1670313600-e3096-cv-emg-pose-train@2-recording-1_left
+- 2022-12-06-1670313600-e3096-cv-emg-pose-train@2-recording-1_right
+val:
+- 2022-12-06-1670313600-e3096-cv-emg-pose-train@2-recording-2_left
+- 2022-12-06-1670313600-e3096-cv-emg-pose-train@2-recording-2_right
+test:
+- 2022-12-06-1670313600-e3096-cv-emg-pose-train@2-recording-3_left
+- 2022-12-06-1670313600-e3096-cv-emg-pose-train@2-recording-3_right
