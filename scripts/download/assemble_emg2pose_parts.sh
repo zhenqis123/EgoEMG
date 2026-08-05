@@ -1,5 +1,5 @@
 #!/bin/bash
-# Reassemble the split memmap files of emg2pose_v3_memmap.
+# Reassemble the split memmap files of dataset_emg2pose_benchmark.
 #
 # Baidu Netdisk caps single files at 128 GB, so `emg.dat` (~181 GB) and
 # `joint_angles.dat` (~227 GB) are distributed as 100 GB `*.part_XX` chunks
