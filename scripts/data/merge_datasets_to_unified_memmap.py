@@ -30,8 +30,8 @@ across sources to avoid namespace collisions (EgoEMG episodes 0..40, ShowEE
 
 Usage:
     python scripts/data/merge_datasets_to_unified_memmap.py \
-        --egoemg data/EgoEMG_v2_memmap \
-        --showee data/ShowEE_202607_memmap \
+        --egoemg /path/to/egoemg_v2_memmap \
+        --showee /path/to/showee_memmap \
         --incre  data/EgoEMG_incre/data_right_merged \
         --out    data/EgoEMG_unified_memmap
 

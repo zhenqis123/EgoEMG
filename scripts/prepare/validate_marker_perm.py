@@ -15,7 +15,7 @@ import pyarrow.parquet as pq
 from scipy.spatial.transform import Rotation
 
 DATA_DIR = Path("./data/EgoEMG/data")
-MEMMAP_DIR = Path("data/EgoEMG_v2_memmap")
+MEMMAP_DIR = Path("data/EgoEMG_unified_memmap")
 
 R_M2C_MEAN = np.array([
     [ 8.25415214e-01, -5.64515920e-01, -3.39126844e-03],

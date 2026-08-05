@@ -29,7 +29,7 @@ IMAGENET_STD = 255.0 * np.array([0.229, 0.224, 0.225], dtype=np.float32)
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--memmap-dir", type=Path, default=Path("data/ShowEE_202607_memmap")
+        "--memmap-dir", type=Path, default=Path("data/EgoEMG_unified_memmap")
     )
     parser.add_argument(
         "--crops-dir", type=Path, default=Path("data/ShowEE_202607_crops")

@@ -11,7 +11,7 @@ Usage:
     python scripts/eval/evaluate_occlusion_fusion.py \
         --config-name experiment/fusion/vision_resnet_small_emgfusion_center \
         --checkpoint /path/to/fusion.ckpt \
-        --data-location /path/to/EgoEMG_v2_memmap \
+        --data-location /path/to/EgoEMG_unified_memmap \
         --video-root /path/to/EgoEMG_allintra \
         --output-csv occlusion_fusion_results.csv
 """
@@ -456,7 +456,7 @@ def main():
     parser.add_argument("--config-name",
                         default="experiment/fusion/vision_resnet_small_emgfusion_center")
     parser.add_argument("--checkpoint", required=True)
-    parser.add_argument("--data-location", default="data/EgoEMG_v2_memmap")
+    parser.add_argument("--data-location", default="data/EgoEMG_unified_memmap")
     parser.add_argument("--video-root", default="data/EgoEMG_allintra")
     parser.add_argument("--output-csv", default="./occlusion_fusion_results.csv")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
