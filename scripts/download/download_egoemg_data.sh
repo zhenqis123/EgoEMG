@@ -1,13 +1,13 @@
 #!/bin/bash
 # Download the EgoEMG dataset package for the EgoEMG benchmark.
 #
-# The small preview package (EgoEMG-dataset-small) contains a self-contained
+# The small preview package (dataset_egoemg_preview) contains a self-contained
 # single-episode subset: memmap_data, webcam all-intra video, pre-crop LMDB
 # shards, metadata/calibration, and a visualization tool.
 #
 # Two mirrored sources are supported:
 #   gdrive    (default) Google Drive folder, via gdown
-#   baidupcs  Baidu Netdisk path /EgoEMG_release/EgoEMG-dataset-small (requires login)
+#   baidupcs  Baidu Netdisk path /EgoEMG_release/dataset_egoemg_preview (requires login)
 #
 # Usage:
 #   bash scripts/download/download_egoemg_data.sh [--source gdrive|baidupcs] [outdir]
@@ -25,7 +25,7 @@ while [[ $# -gt 0 ]]; do
       OUT_DIR="$1"; shift ;;
   esac
 done
-OUT_DIR="${OUT_DIR:-data/EgoEMG-dataset-small}"
+OUT_DIR="${OUT_DIR:-data/dataset_egoemg_preview}"
 mkdir -p "$OUT_DIR"
 
 case "$SOURCE" in
@@ -35,8 +35,8 @@ case "$SOURCE" in
     gdown --folder "https://drive.google.com/drive/folders/${GDRIVE_FOLDER_ID}" -O "$OUT_DIR"
     ;;
   baidupcs)
-    echo "Downloading EgoEMG dataset from Baidu Netdisk (/EgoEMG_release/EgoEMG-dataset-small) ..."
-    baidupcs download /EgoEMG_release/EgoEMG-dataset-small
+    echo "Downloading EgoEMG dataset from Baidu Netdisk (/EgoEMG_release/dataset_egoemg_preview) ..."
+    baidupcs download /EgoEMG_release/dataset_egoemg_preview
     echo "Saved under ./download/ by default; move the package into $OUT_DIR if needed."
     ;;
   *)

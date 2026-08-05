@@ -3,7 +3,7 @@
 #
 # Baidu Netdisk caps single files at 128 GB, so `emg.dat` (~181 GB) and
 # `joint_angles.dat` (~227 GB) are distributed as 100 GB `*.part_XX` chunks
-# under /EgoEMG_release/emg2pose_v3_memmap/ on Baidu Netdisk. After
+# under /EgoEMG_release/dataset_emg2pose_benchmark/ on Baidu Netdisk. After
 # downloading the directory, run this script inside it to restore the
 # original files (identical to the Google Drive copies).
 #

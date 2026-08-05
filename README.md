@@ -57,7 +57,7 @@ and motion-capture annotations.
 
 ### Preview package
 
-The self-contained `EgoEMG-dataset-small` preview contains one episode of
+The self-contained `dataset_egoemg_preview` package contains one episode of
 memmap data, all-intra webcam video, pre-cropped LMDB patches, and
 metadata/calibration. Download it for a quick data-layout inspection:
 
@@ -89,8 +89,8 @@ export EMG2POSE_ROOT=/absolute/path/to/data_root
 ```
 
 > **Baidu Netdisk note**: single files are capped at 128 GB there, so the two
-> largest files of `emg2pose_v3_memmap` (`emg.dat`, `joint_angles.dat`) are
-> distributed as 100 GB `*.part_XX` chunks — reassemble them with
+> largest files of `dataset_emg2pose_benchmark` (`emg.dat`, `joint_angles.dat`)
+> are distributed as 100 GB `*.part_XX` chunks — reassemble them with
 > `bash scripts/download/assemble_emg2pose_parts.sh <memmap_dir>` after
 > downloading (the Google Drive copies are already assembled).
 
@@ -99,6 +99,8 @@ export EMG2POSE_ROOT=/absolute/path/to/data_root
 This link hosts the entire `EgoEMG_release/` tree (unified memmap, all-intra
 videos, pre-crop patches, and all checkpoints). Downloading via the `baidupcs`
 CLI (`baidupcs download /EgoEMG_release/...`) does not need the code.
+The root `README.txt` inside the share maps each remote directory to its
+local `data/` layout (e.g. `dataset_egoemg_unified` → `data/EgoEMG_unified_memmap`).
 
 ## 🏆 Pre-trained Checkpoints
 
