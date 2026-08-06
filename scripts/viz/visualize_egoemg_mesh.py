@@ -14,8 +14,8 @@ Also saves per-frame outputs under frame_XXXXXXXX/:
 
 Usage:
     PYOPENGL_PLATFORM=osmesa python scripts/viz/visualize_egoemg_mesh.py \
-        --memmap_dir data/EgoEMG_memmap \
-        --data_root data/EgoEMG \
+        --memmap-dir data/EgoEMG_unified_memmap \
+        --allintra-root data/EgoEMG_allintra \
         --output /tmp/egoemg_mesh_samples \
         --n_samples 10
 """
@@ -361,13 +361,13 @@ def get_mano_verts_local(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--memmap_dir", default="data/EgoEMG_memmap")
-    parser.add_argument("--data_root", default="data/EgoEMG")
+    parser.add_argument("--memmap-dir", default="data/EgoEMG_unified_memmap")
+    parser.add_argument("--data-root", default="data")
     parser.add_argument(
-        "--allintra_root",
+        "--allintra-root",
         default="data/EgoEMG_allintra",
     )
-    parser.add_argument("--allintra_suffix", default="_allintra")
+    parser.add_argument("--allintra-suffix", default="_allintra")
     parser.add_argument(
         "--mano_model_path",
         default="../WiLoR/mano_data/models",
