@@ -192,7 +192,7 @@ projected labels, and normalized training patch. It is headless and writes one
 PNG per selected sample.
 
 ```shell
-python scripts/viz/visualize_egoemg_vision_dataset.py \
+python scripts/viz/visualize_dataset.py vision \
   --memmap-dir ${EMG2POSE_ROOT}/data/EgoEMG_unified_memmap \
   --video-root ${EMG2POSE_ROOT}/data/EgoEMG \
   --allintra-root ${EMG2POSE_ROOT}/data/EgoEMG_allintra \

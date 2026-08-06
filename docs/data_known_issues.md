@@ -129,7 +129,8 @@
 - **未提交 git**：`scripts/prepare/` 下新增脚本（`fix_showee_session_frame_indices`、
   `rebuild_session_metadata`、`rename_webcam_to_head`、`build_showee_session_videos`、
   `build_showee_wrist_zed_indices`、`finalize_release_metadata`、
-  `repair_unfinalized_mp4`、`fill_showee_incre_imu`）、`scripts/viz/verify_showee_session_alignment.py`。
+  `repair_unfinalized_mp4`、`fill_showee_incre_imu`）、
+  `scripts/viz/visualize_dataset.py`（统一数据集可视化入口）。
 - **备份文件清理**：两个 memmap 的 `.bak`/`.orig928`/`.npz.bak2/3`/`.json.bak`、
   损坏 mkv 的 `.mkv.broken`（3 个，确认修复后可删）。
 - **/tmp 旧 readme 草稿**：`videos_readme2.txt`/`crops_readme2.txt` 等描述旧的

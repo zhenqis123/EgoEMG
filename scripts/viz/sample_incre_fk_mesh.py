@@ -100,7 +100,7 @@ def main() -> None:
             verts_local, faces = skin_mesh_from_angles(
                 joint_angles=ja[:20], flip=False,
             )
-            # Scale to reasonable hand size (same as visualize_egoemg_mesh.py)
+            # Scale to reasonable hand size (same as the mesh viz mode)
             verts_local = verts_local.copy()
             fk_span = np.median(verts_local.max(axis=0) - verts_local.min(axis=0))
             if fk_span > 1e-6:

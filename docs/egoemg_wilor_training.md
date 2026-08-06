@@ -51,11 +51,11 @@ samples emitted by `EgoEmgVisionDataset`, including the raw-frame supervision,
 training crop, bbox, and normalized patch keypoints.
 
 ```bash
-python scripts/viz/visualize_egoemg_vision_dataset.py \
+python scripts/viz/visualize_dataset.py vision \
     --memmap-dir data/EgoEMG_unified_memmap \
     --video-root data/EgoEMG \
     --allintra-root data/EgoEMG_allintra \
-    --vision-index-dir data/EgoEMG_unified_memmap/vision_index \
+    --auto-build-index \
     --output-dir /tmp/egoemg_vision_dataset_viz \
     --num-samples 16 \
     --target-hand both
@@ -64,11 +64,11 @@ python scripts/viz/visualize_egoemg_vision_dataset.py \
 For quick startup profiling, reduce to one or two samples:
 
 ```bash
-python scripts/viz/visualize_egoemg_vision_dataset.py \
+python scripts/viz/visualize_dataset.py vision \
     --memmap-dir data/EgoEMG_unified_memmap \
     --video-root data/EgoEMG \
     --allintra-root data/EgoEMG_allintra \
-    --vision-index-dir data/EgoEMG_unified_memmap/vision_index \
+    --auto-build-index \
     --output-dir /tmp/egoemg_vision_dataset_viz \
     --num-samples 1 \
     --target-hand both
@@ -212,8 +212,8 @@ Hydra writes outputs under the run directory. Checkpoints are saved under
 
 - `scripts/data/build_egoemg_vision_index.py`: one-time sidecar index generation.
 - `scripts/prepare/reencode_egoemg_webcam_allintra.py`: all-intra webcam conversion.
-- `scripts/viz/visualize_egoemg_vision_dataset.py`: dataset sample debug.
-- `scripts/visualize_egoemg_mesh.py`: world-space MANO mesh projection debug.
+- `scripts/viz/visualize_dataset.py`: unified dataset visualization debug.
+- `scripts/viz/visualize_dataset.py mesh`: world-space MANO mesh projection debug.
 - `egoemg/train.py`: the unified training entrypoint; vision/fusion training
   is launched with `experiment=fusion/...` or a vision-only experiment config.
 

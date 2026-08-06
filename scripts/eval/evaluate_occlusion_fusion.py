@@ -176,7 +176,7 @@ def get_episode_intrinsics(
     calib_h = int(calib["image_height"])
 
     # Build K for video frame dimensions (simple scaling, matching
-    # compute_video_intrinsics in visualize_egoemg_mesh.py).
+    # intrinsics_info_to_video_K in egoemg/visualization/viz_utils.py).
     # GoPro 8x7 crop: active_x0 = (video_w - video_h * calib_w / calib_h) / 2
     calib_aspect = calib_w / calib_h
     video_aspect = video_w / video_h
