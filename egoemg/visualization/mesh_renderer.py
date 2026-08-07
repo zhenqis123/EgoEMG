@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 
-os.environ["PYOPENGL_PLATFORM"] = "osmesa"
+os.environ.setdefault("PYOPENGL_PLATFORM", "osmesa")
 
 import cv2
 import numpy as np

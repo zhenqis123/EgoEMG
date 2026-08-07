@@ -6,13 +6,12 @@ This document covers all visualization capabilities in the EMG2Pose codebase, or
 
 | Goal | Script / Module | Output |
 |------|----------------|--------|
-| **Unified dataset viz** (8 modes) | `scripts/viz/visualize_dataset.py` | see below |
+| **Unified dataset viz** (4 modes) | `scripts/viz/visualize_dataset.py` | see below |
 | MANO inference results viz | `scripts/viz/viz_mano_results.py` | `.glb` |
-| Plotly 3D hand mesh animation | `egoemg/visualization.py` | `.html` |
-| EMG2Pose / PiMforce interactive viz | `scripts/visualization/visualize_emg2pose_dataset.py` | `.html` |
-| Ninapro angle animation | `scripts/visualization/visualize_ninapro_angles.py` | `.html` |
-| PiMforce per-joint plots | `scripts/visualization/visualize_pimforce_joints.py` | `.png` |
-| Paper figures | `scripts/paper/generate_paper_figures.py` | `.pdf` / `.png` |
+| Batch IK result comparison | `scripts/viz/visualize_ik_results.py` | `.glb` / `.png` |
+| Ninapro angle animation | `scripts/viz/visualize_ninapro_angles.py` | `.html` |
+| PiMforce per-joint plots | `scripts/viz/visualize_pimforce_joints.py` | `.png` |
+| EMG / Optuna diagnostics | `scripts/viz/plot_*.py` | `.png` |
 
 ---
 
@@ -39,8 +38,7 @@ joint_angles (B,C,T) → skin_vertices() (UmeTrack LBS) → plotly.Mesh3d → an
 - `fig_to_array(fig)` — renders Plotly figure to numpy image array
 
 **Used by:**
-- `scripts/visualization/visualize_emg2pose_dataset.py` — interactive dataset viz with optional model inference
-- `scripts/visualization/visualize_ninapro_angles.py` — Ninapro glove angle animation
+- `scripts/viz/visualize_ninapro_angles.py` — Ninapro glove angle animation
 - `egoemg/lightning.py` — `LandmarkDistances` metric uses forward kinematics for fingertip distance
 
 **Dependencies:** `plotly`, `egoemg.UmeTrack` (hand_skinning, HandModel)
@@ -58,7 +56,7 @@ mano_pose (48) + mano_beta (10) → manotorch.ManoLayer → verts (778,3) + face
 ```
 
 **Key files:**
-- `scripts/viz/visualize_dataset.py mano` — GT MANO from dataset
+- `scripts/viz/visualize_dataset.py mesh --glb-only` — GT MANO GLBs from dataset (no video)
 - `scripts/viz/viz_mano_results.py` — model inference results
 - `scripts/mano/infer_mano_for_egoemg.py` — MANO parameter generation
 
@@ -119,32 +117,28 @@ argument; every mode accepts the shared options
 `--device`, `--seed`).
 
 ```bash
-# vision: EgoEmgVisionDataset samples (raw frame + patch panels) -> PNG
-python scripts/viz/visualize_dataset.py vision --num-samples 16 --target-hand both \
-    --auto-build-index
+# vision: video replay with MANO/FK mesh projection,
+# mocap markers and per-hand bboxes overlaid -> MP4
+python scripts/viz/visualize_dataset.py vision --episode-id episode_000000 \
+    --stride 10 --max-frames 300
 
 # timeline: EMG / joint angles / MANO multi-panel time series -> PNG
 python scripts/viz/visualize_dataset.py timeline --episode 3 --hand right --window 2000
 
-# mano: GT MANO mesh + mocap markers, Kabsch-aligned -> GLB
-python scripts/viz/visualize_dataset.py mano --episode 3 --hand right --num-frames 2
-
 # mesh: MANO/FK mesh overlay on head-view frames -> PNG + GLB + occlusion metrics
 python scripts/viz/visualize_dataset.py mesh --n-samples 10 --render-mode mesh
 
-# markers: mocap marker reprojection over a full episode -> MP4
-python scripts/viz/visualize_dataset.py markers --episode-id episode_000006
-
-# crops: pre-cropped hand patches grid -> JPG
-python scripts/viz/visualize_dataset.py crops --episodes 0 --num-frames 16
+# mesh --glb-only: GT MANO + FK world-space GLBs with mocap/MANO-surface
+# markers, no videos needed (supersedes the former `mano` mode)
+python scripts/viz/visualize_dataset.py mesh --glb-only --n-samples 10
 
 # fk_vs_mano: UmeTrack FK vs MANO mesh comparison -> GLB
 python scripts/viz/visualize_dataset.py fk_vs_mano --num-samples 10
 
-# align: ShowEE session frame-alignment check -> PNG
-python scripts/viz/visualize_dataset.py align --session-index 41 \
-    --calibration-path /path/to/showee_calibration.json
 ```
+
+`vision` reads the unified memmap, so it supports both EgoEMG and ShowEE
+episodes as long as the selected episode has a corresponding all-intra video.
 
 The world-space MANO mesh path (used by the `mesh` mode) is:
 
@@ -154,6 +148,40 @@ The world-space MANO mesh path (used by the `mesh` mode) is:
 4. Project with `mocap_head_transform` and calibration intrinsics
 
 Do not use wrist pose/orientation to place the mesh in world coordinates.
+**GPU rendering (pyrender EGL):** `--render-mode mesh` uses pyrender and
+prefers the EGL (GPU) backend. EGL needs access to `/dev/dri` nodes —
+grant it once (needs sudo), then set `PYOPENGL_PLATFORM=egl`:
+
+```bash
+# The emg2pose_env activation hook selects the host GLVND dispatcher,
+# which is required on this machine for NVIDIA EGL rendering.
+conda activate emg2pose_env
+
+# permanent: add your user to the video/render groups (re-login to apply)
+sudo usermod -aG video,render $USER
+# immediate effect in the current session (no re-login needed):
+sudo setfacl -m u:$USER:rw /dev/dri/card* /dev/dri/renderD*
+
+python scripts/viz/visualize_dataset.py vision \
+    --episode-id episode_000000 --render-mode mesh ...
+```
+
+Verify it is really on the GPU (RTX 4090, not osmesa software fallback):
+
+```bash
+conda activate emg2pose_env
+python -c "
+from OpenGL import GL
+import numpy as np, pyrender as pr
+r = pr.OffscreenRenderer(128, 128)
+print(GL.glGetString(GL.GL_RENDERER))   # -> b'NVIDIA GeForce RTX 4090/PCIe/SSE2'
+r.delete()"
+```
+
+The script patches pyrender's EGL device-enumeration bindings (a PyOpenGL
+3.1.10 omission) and falls back to osmesa (software, identical output) with
+a `[pyrender]` message when EGL is unavailable.
+
 MANO model path: explicit `--mano-model-path` > `WILOR_PATH` env > sibling
 `WiLoR/mano_data/models`.
 
@@ -180,9 +208,11 @@ Visualizes results from the WiLoR/Markers2MANO pipeline. Loads parquet episodes 
 |----------------|-------------------|
 | `visualize_dataset.py` | `cv2`, `numpy`, `trimesh`, `matplotlib`, `smplx`, `pyrender` (lazy) |
 | `viz_mano_results.py` | `trimesh`, `manotorch`, `markers2mano`, `pyarrow` |
-| `visualization/visualize_emg2pose_dataset.py` | `plotly`, Hydra, Lightning |
-| `visualization/visualize_ninapro_angles.py` | `plotly`, `scipy.io` |
-| `visualization/visualize_pimforce_joints.py` | `matplotlib` |
+| `visualize_ik_results.py` | `trimesh`, `manotorch`, `pyarrow` |
+| `visualize_ninapro_angles.py` | `plotly`, `scipy.io` |
+| `visualize_pimforce_joints.py` | `matplotlib` |
+| `plot_emg_value_distribution.py` | `matplotlib`, `numpy` |
+| `plot_optuna_val_mae_curve.py` | `matplotlib`, `optuna` |
 | `egoemg/visualization.py` | `plotly`, UmeTrack, `joblib`, `PIL` |
 | `egoemg/visualization/egoemg_vis.py` | `smplx`, `cv2`, `numpy` |
 | `egoemg/visualization/mesh_renderer.py` | `cv2` only |

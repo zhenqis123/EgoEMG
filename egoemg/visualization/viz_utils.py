@@ -135,6 +135,17 @@ def t12_to_matrix(t12: np.ndarray) -> np.ndarray:
     return T
 
 
+def t12_world_rt(t12: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """12-float world transform [R(3x3) | t(3)] -> (R, t).
+
+    Same layout as ``t12_to_matrix``; applied as
+    ``verts_world = verts_local @ R.T + t`` (see
+    :func:`verts_world_from_local`).
+    """
+    t12 = np.asarray(t12, dtype=np.float64).reshape(-1)
+    return t12[:9].reshape(3, 3), t12[9:12]
+
+
 def verts_world_from_local(
     verts_local: np.ndarray,
     world_R: np.ndarray,
@@ -193,6 +204,107 @@ def project_and_map(
     proj, depth_valid = project_world_points(points_world, T_W_C, K, dist)
     raw = map_processed_points_to_raw(proj, intrinsics_info)
     return raw, depth_valid
+
+
+def project_pinhole(
+    points_world: np.ndarray,
+    T_W_C: np.ndarray,
+    K: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """World -> pixels via an ideal pinhole camera (no distortion).
+
+    Matches pyrender rendering on a frame undistorted with the same
+    intrinsics (``cv2.undistort(frame, K, dist, None, K)``), so overlay
+    layers drawn with this projector align pixel-exactly with a
+    pyrender mesh.  Returns (px (N, 2), valid (N,) with Z > 0).
+    """
+    pts = np.asarray(points_world, dtype=np.float64)
+    T_C_W = np.linalg.inv(T_W_C)
+    vc = (T_C_W[:3, :3] @ pts.T).T + T_C_W[:3, 3]
+    valid = vc[:, 2] > 1e-8
+    px = np.full((len(pts), 2), -1.0, dtype=np.float64)
+    px[valid, 0] = K[0, 0] * vc[valid, 0] / vc[valid, 2] + K[0, 2]
+    px[valid, 1] = K[1, 1] * vc[valid, 1] / vc[valid, 2] + K[1, 2]
+    return px, valid
+
+
+def _project_draw_keypoints(
+    image_bgr: np.ndarray,
+    points_world: np.ndarray,
+    valid: np.ndarray,
+    color_bgr: tuple[int, int, int],
+    projector: Any,
+    *,
+    radius: int = 3,
+    edges: Sequence[tuple[int, int]] | None = None,
+    label: str | None = None,
+) -> np.ndarray:
+    """Shared body of project_draw_keypoints / _pinhole variant."""
+    kp = np.asarray(points_world, dtype=np.float64)
+    kp_valid = np.asarray(valid, dtype=bool) & np.isfinite(kp).all(axis=1)
+    if not kp_valid.any():
+        return image_bgr
+    pts_px, depth_valid = projector(kp)
+    video_h, video_w = image_bgr.shape[:2]
+    in_image = (
+        (pts_px[:, 0] >= 0) & (pts_px[:, 0] < video_w)
+        & (pts_px[:, 1] >= 0) & (pts_px[:, 1] < video_h))
+    good = kp_valid & depth_valid & in_image
+    if not good.any():
+        return image_bgr
+    return draw_skeleton(
+        image_bgr, pts_px, good, color_bgr,
+        label=label, radius=radius,
+        edges=SKELETON_EDGES if edges is None else edges)
+
+
+def project_draw_keypoints(
+    image_bgr: np.ndarray,
+    points_world: np.ndarray,
+    valid: np.ndarray,
+    T_W_C: np.ndarray,
+    K: np.ndarray,
+    dist: np.ndarray,
+    intrinsics_info: dict[str, Any],
+    color_bgr: tuple[int, int, int],
+    *,
+    radius: int = 3,
+    edges: Sequence[tuple[int, int]] | None = None,
+    label: str | None = None,
+) -> np.ndarray:
+    """Project world-space keypoints onto the raw (distorted) image.
+
+    A point is drawn only when it is marked ``valid``, finite,
+    depth-valid and inside the image.  ``edges=None`` uses
+    SKELETON_EDGES; pass ``edges=[]`` to draw joints only.
+    """
+    return _project_draw_keypoints(
+        image_bgr, points_world, valid, color_bgr,
+        lambda kp: project_and_map(kp, T_W_C, K, dist, intrinsics_info),
+        radius=radius, edges=edges, label=label)
+
+
+def project_draw_keypoints_pinhole(
+    image_bgr: np.ndarray,
+    points_world: np.ndarray,
+    valid: np.ndarray,
+    T_W_C: np.ndarray,
+    K: np.ndarray,
+    color_bgr: tuple[int, int, int],
+    *,
+    radius: int = 3,
+    edges: Sequence[tuple[int, int]] | None = None,
+    label: str | None = None,
+) -> np.ndarray:
+    """project_draw_keypoints for the undistorted basis (pinhole + K).
+
+    Use together with pyrender rendering on a frame undistorted with
+    the same K so all overlay layers align pixel-exactly.
+    """
+    return _project_draw_keypoints(
+        image_bgr, points_world, valid, color_bgr,
+        lambda kp: project_pinhole(kp, T_W_C, K),
+        radius=radius, edges=edges, label=label)
 
 
 def intrinsics_info_to_video_K(
@@ -263,6 +375,99 @@ def read_frame_bgr(reader: Any, frame_idx: int) -> np.ndarray:
 
 def clamp_frame_idx(reader: Any, frame_idx: int) -> int:
     return max(0, min(int(frame_idx), len(reader) - 1))
+
+
+def open_mp4_writer(
+    path: str | Path,
+    fps: float,
+    size: tuple[int, int],
+) -> Any:
+    """Open an MP4 VideoWriter, falling back avc1 -> mp4v.
+
+    Raises RuntimeError when neither codec is available so a silent
+    zero-byte output can never masquerade as a saved video.
+    """
+    import cv2
+    out_fps = max(1, int(round(fps)))
+    for fourcc in ("avc1", "mp4v"):
+        writer = cv2.VideoWriter(
+            str(path), cv2.VideoWriter_fourcc(*fourcc), out_fps, size)
+        if writer.isOpened():
+            return writer
+    raise RuntimeError(
+        f"VideoWriter cannot open {path} (tried avc1, mp4v); "
+        "install an H.264 encoder for MP4 output")
+
+
+_pyrender_platform_reported = False
+
+
+def ensure_pyrender_egl_bindings() -> None:
+    """Bind the EGL device-enumeration functions PyOpenGL omits.
+
+    PyOpenGL 3.1.10 does not bind ``eglQueryDevicesEXT`` /
+    ``eglGetPlatformDisplayEXT``, so pyrender falls back to
+    ``EGL_DEFAULT_DISPLAY``, which hangs in headless sessions.  Resolve
+    them from the same libEGL the loader uses and patch pyrender's
+    platform module before the first renderer is created.
+    """
+    import ctypes
+    from ctypes import c_char_p, c_int, c_void_p, POINTER, CFUNCTYPE
+
+    global _pyrender_platform_reported
+    from pyrender.platforms import egl as pegl
+    if pegl._eglQueryDevicesEXT is not None:
+        _pyrender_platform_reported = True
+        return
+    lib = ctypes.CDLL("libEGL.so.1")
+    lib.eglGetProcAddress.restype = c_void_p
+    lib.eglGetProcAddress.argtypes = [c_char_p]
+
+    def bind(name: str, restype: Any, *argtypes: Any) -> Any:
+        addr = lib.eglGetProcAddress(name.encode())
+        if not addr:
+            return None
+        return CFUNCTYPE(restype, *argtypes)(addr)
+
+    pegl._eglGetPlatformDisplayEXT = bind(
+        "eglGetPlatformDisplayEXT", c_void_p, c_int, c_void_p, POINTER(c_int))
+    pegl._eglQueryDevicesEXT = bind(
+        "eglQueryDevicesEXT", c_int, c_int, POINTER(pegl._EGLDeviceEXT),
+        POINTER(c_int))
+    pegl._eglQueryDeviceStringEXT = bind(
+        "eglQueryDeviceStringEXT", c_char_p, c_void_p, c_int)
+    if pegl._eglQueryDevicesEXT is None:
+        raise RuntimeError(
+            "eglQueryDevicesEXT unavailable in libEGL; EGL GPU rendering "
+            "cannot work on this machine")
+    if not _pyrender_platform_reported:
+        _pyrender_platform_reported = True
+        print("[pyrender] patched EGL device-enumeration bindings "
+              "(PyOpenGL 3.1.10 omission); platform=egl")
+
+
+def make_pyrender_renderer(width: int, height: int) -> Any:
+    """Create a pyrender OffscreenRenderer: EGL (GPU) preferred.
+
+    EGL needs /dev/dri access (user in the video/render groups) plus the
+    device-enumeration bindings from :func:`ensure_pyrender_egl_bindings`;
+    on any failure it falls back to osmesa (software) and reports which
+    platform is active.  pyrender reads PYOPENGL_PLATFORM at renderer
+    creation, so switching the env var and retrying needs no reload.
+    """
+    import os
+    import pyrender
+    if os.environ.get("PYOPENGL_PLATFORM", "egl") == "egl":
+        try:
+            ensure_pyrender_egl_bindings()
+            renderer = pyrender.OffscreenRenderer(width, height)
+            print(f"[pyrender] EGL (GPU) renderer {width}x{height}")
+            return renderer
+        except Exception as exc:
+            print(f"[pyrender] EGL unavailable ({exc}); "
+                  "falling back to osmesa (software)")
+            os.environ["PYOPENGL_PLATFORM"] = "osmesa"
+    return pyrender.OffscreenRenderer(width, height)
 
 
 # ── G. OpenCV drawing primitives ────────────────────────────────────────────
@@ -589,6 +794,43 @@ def rescale_mesh_span(verts: np.ndarray, target_span: float) -> np.ndarray:
     if span > 1e-8:
         verts = verts * (target_span / span)
     return verts
+
+
+def fk_mesh_world(
+    joint_angles: np.ndarray,
+    R_world: np.ndarray,
+    t_world: np.ndarray,
+    *,
+    mirror_x: bool,
+    anchor_verts: np.ndarray | None = None,
+) -> tuple[np.ndarray, np.ndarray] | None:
+    """Skin an FK mesh from joint angles and place it in world space.
+
+    UmeTrack skins in millimetres with a wrist origin that differs from
+    MANO's: convert to metres and anchor vertex 0 (wrist) to the MANO
+    wrist when ``anchor_verts`` (MANO local verts, same handedness) is
+    given.  Empirically the stored joint angles pair with the mirrored
+    profile for the RIGHT hand and the plain profile for the LEFT hand
+    (nearest-neighbour check against the MANO meshes, mesh-mode smoke);
+    mirror_profile does not flip triangle winding, so mirror_x also
+    flips the faces.  Returns None when the angles are not finite /
+    all-zero (no FK supervision for this row).
+    """
+    ja = np.asarray(joint_angles, dtype=np.float32)
+    if not np.isfinite(ja).all() or np.abs(ja).sum() <= 0:
+        return None
+    try:
+        fk_v, fk_f = skin_mesh_from_angles(joint_angles=ja[:20], flip=mirror_x)
+        fk_f = np.asarray(fk_f)  # mirrored profile returns a torch Tensor
+        fk_v = fk_v.astype(np.float64) / 1000.0  # mm -> m
+        if mirror_x:
+            fk_f = fk_f[:, [0, 2, 1]].copy()
+        if anchor_verts is not None:
+            anchor = np.asarray(anchor_verts, dtype=np.float64)
+            fk_v = fk_v + (anchor[0] - fk_v[0])
+        return verts_world_from_local(fk_v, R_world, t_world), fk_f
+    except Exception:
+        return None
 
 
 # ── J. Dataset factory ──────────────────────────────────────────────────────

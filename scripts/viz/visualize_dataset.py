@@ -7,15 +7,13 @@ Replaces the per-mode dataset viz scripts with one multi-function command::
 
 Modes (dataset itself, ground truth only):
 
-  vision      EgoEmgVisionDataset samples (raw frame + patch panel) -> PNG
+  vision      video replay: MANO mesh projection + mocap markers +
+              bbox overlaid on head-view frames -> MP4
   timeline    EMG / joint angles / MANO multi-panel time series -> PNG
-  mano        GT MANO mesh + mocap markers -> GLB (Kabsch-aligned)
   mesh        MANO/FK mesh overlay on head-view frames -> PNG + GLB +
-              occlusion metrics (pyrender)
-  markers     mocap marker reprojection over a full episode video -> MP4
-  crops       pre-cropped hand patches grid from per-episode LMDB -> JPG
+              occlusion metrics (pyrender); --glb-only exports the
+              mesh + mocap-marker GLBs without any video
   fk_vs_mano  UmeTrack FK vs MANO mesh comparison -> GLB
-  align       ShowEE session frame-alignment check (markers overlay) -> PNG
 
 Shared options (available in every mode):
 
@@ -49,189 +47,6 @@ os.environ.setdefault(
     "MPLCONFIGDIR", str(Path(tempfile.gettempdir()) / "emg2pose_viz_runtime" / "mpl"))
 
 from egoemg.visualization import viz_utils as vu  # noqa: E402
-
-# ── vision mode ─────────────────────────────────────────────────────────────
-
-JOINT_COLOR_BGR = (0, 220, 0)
-MARKER_COLOR_BGR = (0, 255, 255)
-BBOX_COLOR_BGR = (255, 180, 0)
-
-
-def _denormalize_patch_rgb(img_chw: np.ndarray, mean: np.ndarray,
-                           std: np.ndarray) -> np.ndarray:
-    img = img_chw.astype(np.float32).copy()
-    for channel_idx in range(3):
-        img[channel_idx] = img[channel_idx] * float(std[channel_idx]) \
-            + float(mean[channel_idx])
-    img = np.clip(img, 0.0, 255.0).astype(np.uint8)
-    return np.transpose(img, (1, 2, 0))
-
-
-def _patch_keypoints_to_pixels(keypoints_2d: np.ndarray,
-                               patch_size: int) -> np.ndarray:
-    out = keypoints_2d.astype(np.float32).copy()
-    out[:, 0] = (out[:, 0] + 0.5) * float(patch_size)
-    out[:, 1] = (out[:, 1] + 0.5) * float(patch_size)
-    return out
-
-
-def _build_raw_frame_panel(dataset: Any, sample: dict, joint_radius: int,
-                           marker_radius: int, bbox_line_width: int,
-                           ) -> np.ndarray:
-    frame_bgr = np.asarray(sample["frame_bgr"], dtype=np.uint8)
-    is_mirrored = float(sample["raw_right"]) == 0.0
-    video_w = frame_bgr.shape[1]
-
-    if is_mirrored:
-        frame_bgr = np.ascontiguousarray(frame_bgr[:, ::-1])
-
-    def _unmirror_xy(pts: np.ndarray) -> np.ndarray:
-        pts = pts.copy()
-        if is_mirrored:
-            pts[:, 0] = (video_w - 1) - pts[:, 0]
-        return pts
-
-    panel = frame_bgr
-    bbox = np.asarray(sample["bbox"], dtype=np.float32)
-    if is_mirrored:
-        x0, y0, x1, y1 = bbox
-        bbox = np.array([(video_w - 1) - x1, y0, (video_w - 1) - x0, y1],
-                        dtype=np.float32)
-    panel = vu.draw_bbox(panel, bbox, BBOX_COLOR_BGR, bbox_line_width)
-    panel = vu.draw_points(
-        panel,
-        _unmirror_xy(np.asarray(sample["orig_markers_2d"], dtype=np.float32)),
-        MARKER_COLOR_BGR, marker_radius)
-    panel = vu.draw_points(
-        panel,
-        _unmirror_xy(np.asarray(sample["orig_keypoints_2d"], dtype=np.float32)),
-        JOINT_COLOR_BGR, joint_radius)
-
-    joints_valid = int((np.asarray(sample["orig_keypoints_2d"])[:, 2] > 0).sum())
-    markers_valid = int((np.asarray(sample["orig_markers_2d"])[:, 2] > 0).sum())
-    lines = [
-        f"dataset_idx={int(sample['_dataset_index'])} hand={sample['target_hand']}",
-        f"episode={sample['episode_id']} subject={sample['episode_subject']}",
-        f"frame_idx={int(sample['frame_index'])} "
-        f"video_frame={int(sample['video_frame_index'])}",
-        f"bbox_source={sample['bbox_source_name']} "
-        f"joints={joints_valid}/21 markers={markers_valid}/21",
-        f"raw_right={float(sample['raw_right']):.0f} "
-        f"canonical_right={float(sample['raw_right']):.0f}",
-    ]
-    return vu.draw_text_block(panel, lines)
-
-
-def _build_patch_panel(dataset: Any, sample: dict, joint_radius: int,
-                       ) -> np.ndarray:
-    import cv2
-    patch_rgb = _denormalize_patch_rgb(
-        np.asarray(sample["img"], dtype=np.float32), dataset.mean, dataset.std)
-    patch_bgr = cv2.cvtColor(patch_rgb, cv2.COLOR_RGB2BGR)
-    patch_points = _patch_keypoints_to_pixels(
-        np.asarray(sample["keypoints_2d"], dtype=np.float32),
-        int(dataset.patch_size))
-    panel = vu.draw_points(patch_bgr, patch_points, JOINT_COLOR_BGR, joint_radius)
-    patch_valid = int((patch_points[:, 2] > 0).sum())
-    lines = [
-        f"patch_size={int(dataset.patch_size)}",
-        f"keypoints_2d in patch={patch_valid}/21",
-        "coords reconstructed from normalized dataset output",
-    ]
-    return vu.draw_text_block(panel, lines)
-
-
-def _make_canvas(raw_panel: np.ndarray, patch_panel: np.ndarray,
-                 max_panel_width: int) -> np.ndarray:
-    import cv2
-    raw_h = raw_panel.shape[0]
-    scale = raw_h / float(patch_panel.shape[0])
-    patch_w = max(1, int(round(patch_panel.shape[1] * scale)))
-    patch_resized = cv2.resize(
-        patch_panel, (patch_w, raw_h), interpolation=cv2.INTER_NEAREST)
-    spacer = np.full((raw_h, 24, 3), 24, dtype=np.uint8)
-    canvas = np.concatenate([raw_panel, spacer, patch_resized], axis=1)
-    if canvas.shape[1] <= max_panel_width:
-        return canvas
-    scale_out = max_panel_width / float(canvas.shape[1])
-    out_w = max(1, int(round(canvas.shape[1] * scale_out)))
-    out_h = max(1, int(round(canvas.shape[0] * scale_out)))
-    return cv2.resize(canvas, (out_w, out_h), interpolation=cv2.INTER_AREA)
-
-
-def _resolve_indices(dataset_len: int, start_index: int, num_samples: int,
-                     sample_indices: list[int] | None) -> list[int]:
-    if sample_indices:
-        indices = sample_indices
-    else:
-        indices = list(range(start_index, min(start_index + num_samples,
-                                              dataset_len)))
-    for idx in indices:
-        if idx < 0 or idx >= dataset_len:
-            raise IndexError(
-                f"Dataset index out of range: {idx} not in [0, {dataset_len})")
-    return indices
-
-
-def _requested_index_limit(start_index: int, num_samples: int,
-                           sample_indices: list[int] | None) -> int:
-    if sample_indices:
-        return max(sample_indices) + 1
-    return start_index + num_samples
-
-
-def run_vision(args: argparse.Namespace) -> int:
-    import cv2
-    from egoemg.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
-
-    output_dir = Path(args.output_dir).resolve()
-    output_dir.mkdir(parents=True, exist_ok=True)
-    print(f"[vision] Output dir: {output_dir}")
-    requested_limit = _requested_index_limit(
-        args.start_index, args.num_samples, args.sample_indices)
-    dataset = EgoEmgVisionDataset(
-        memmap_dir=Path(args.memmap_dir),
-        video_root=Path(args.video_root),
-        allintra_root=Path(args.allintra_root) if args.allintra_root else None,
-        allintra_suffix=args.allintra_suffix,
-        vision_index_dir=Path(args.vision_index_dir) if args.vision_index_dir else None,
-        auto_build_index=args.auto_build_index,
-        calibration_path=Path(args.calibration_path) if args.calibration_path else None,
-        allowed_episode_ids=args.allowed_episode_ids,
-        allowed_subjects=args.allowed_subjects,
-        allowed_splits=args.allowed_splits,
-        target_hand=args.target_hand,
-        stride=args.stride,
-        index_limit=requested_limit,
-        patch_size=args.patch_size,
-        do_augment=False,
-        return_frame_bgr=True,
-        log_init_timing=True,
-    )
-    indices = _resolve_indices(len(dataset), args.start_index,
-                               args.num_samples, args.sample_indices)
-    for render_i, dataset_idx in enumerate(indices, start=1):
-        sample = dataset[dataset_idx]
-        sample["_dataset_index"] = np.int64(dataset_idx)
-        raw_panel = _build_raw_frame_panel(
-            dataset, sample, joint_radius=args.joint_radius,
-            marker_radius=args.marker_radius,
-            bbox_line_width=args.bbox_line_width)
-        if args.raw_only:
-            canvas = raw_panel
-        else:
-            patch_panel = _build_patch_panel(
-                dataset, sample, joint_radius=args.joint_radius)
-            canvas = _make_canvas(raw_panel, patch_panel,
-                                  max_panel_width=args.max_panel_width)
-        out_path = output_dir / (
-            f"sample_{dataset_idx:06d}_ep_{sample['episode_id']}"
-            f"_frame_{int(sample['frame_index']):08d}_{sample['target_hand']}.png")
-        cv2.imwrite(str(out_path), canvas)
-        print(f"[{render_i}/{len(indices)}] Wrote {out_path}")
-    print("[vision] Done")
-    return 0
-
 
 # ── timeline mode ───────────────────────────────────────────────────────────
 
@@ -319,6 +134,7 @@ def run_timeline(args: argparse.Namespace) -> int:
     ds = vu.make_memmap_dataset(
         memmap_dir=args.memmap_dir, hand=args.hand,
         window_length=args.window,
+        emg_field_preference=args.emg_preference,
         modalities=["emg", "joint_angles", "mocap_hands", "mano"])
     print(f"Dataset: {len(ds)} windows, hand={args.hand}")
 
@@ -343,91 +159,6 @@ def run_timeline(args: argparse.Namespace) -> int:
     return 0
 
 
-# ── mano mode ───────────────────────────────────────────────────────────────
-
-def _process_mano_sample(ds: Any, sample_idx: int, decoder: vu.ManoMeshDecoder,
-                         out_dir: Path, hand: str) -> str | None:
-    sample = ds[sample_idx]
-    if "mano_pose" not in sample or "mano_beta" not in sample:
-        return None
-    pose = sample["mano_pose"]
-    beta = sample["mano_beta"]
-    mid = pose.shape[0] // 2
-    verts, faces = decoder.decode(pose[mid], beta, hand)
-    pred_markers = decoder.marker_vertices(verts)
-
-    gt_markers = None
-    if "mocap_keypoints" in sample:
-        kp = sample["mocap_keypoints"]
-        if kp.ndim == 3 and kp.shape[0] > mid:
-            gt_markers = kp[mid].astype(np.float32)
-
-    if gt_markers is not None and "mano_world_R" in sample \
-            and "mano_world_t" in sample:
-        R = np.asarray(sample["mano_world_R"][mid], dtype=np.float64)
-        t = np.asarray(sample["mano_world_t"][mid], dtype=np.float64)
-        verts = verts @ R.T + t
-        pred_markers = pred_markers @ R.T + t
-    elif gt_markers is not None:
-        R, t = vu.umeyama_alignment(pred_markers, gt_markers)
-        verts = verts @ R.T + t
-        pred_markers = pred_markers @ R.T + t
-
-    ep_idx, ep_id, center = vu.window_location(ds, sample_idx)
-    fname = f"{ep_id}_{hand}_frame{center:07d}.glb"
-    out_path = out_dir / fname
-    vu.save_glb_with_markers(out_path, verts, faces,
-                             gt_markers=gt_markers,
-                             pred_markers=pred_markers)
-    return str(out_path)
-
-
-def run_mano(args: argparse.Namespace) -> int:
-    ds = vu.make_memmap_dataset(
-        memmap_dir=args.memmap_dir, hand=args.hand,
-        window_length=args.window,
-        mano_npy_dir=args.mano_npy_dir)
-    num_episodes = len(ds._episode_id)
-    print(f"Dataset: {len(ds)} windows, {num_episodes} episodes, hand={args.hand}")
-
-    if args.episode is not None:
-        ep_list = [args.episode]
-    elif args.episodes is not None:
-        ep_list = args.episodes
-    elif args.all:
-        ep_list = list(range(num_episodes))
-    else:
-        ep_list = [0]
-
-    decoder = vu.ManoMeshDecoder(args.mano_model_path, args.device)
-    out_dir = Path(args.output_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    total_saved = 0
-    for ep_idx in ep_list:
-        win_indices = vu.find_window_indices(ds, ep_idx)
-        if not win_indices:
-            print(f"  episode {ep_idx}: no windows, skipping")
-            continue
-        if args.offset is not None and len(ep_list) == 1:
-            target_win = args.offset // args.window
-            idx = win_indices[min(target_win, len(win_indices) - 1)]
-            path = _process_mano_sample(ds, idx, decoder, out_dir, args.hand)
-            if path:
-                print(f"  Saved: {path}")
-                total_saved += 1
-        else:
-            n = min(args.num_frames, len(win_indices))
-            chosen = np.linspace(0, len(win_indices) - 1, n, dtype=int)
-            for c in chosen:
-                path = _process_mano_sample(ds, win_indices[c], decoder,
-                                            out_dir, args.hand)
-                if path:
-                    print(f"  Saved: {path}")
-                    total_saved += 1
-    print(f"\nDone. {total_saved} GLB files saved to {out_dir}")
-    return 0
-
-
 # ── mesh mode ───────────────────────────────────────────────────────────────
 
 FLIP_YZ = np.diag([1.0, -1.0, -1.0, 1.0])
@@ -438,6 +169,13 @@ def _render_mesh_overlay(frame_bgr: np.ndarray,
                                                  tuple[int, int, int]]],
                          T_W_C: np.ndarray, K_vid: np.ndarray,
                          renderer: Any, alpha: float) -> np.ndarray:
+    """Render world-space hand meshes over an undistorted frame.
+
+    The frame must be undistorted with the same K_vid (see
+    ``cv2.initUndistortRectifyMap(K_vid, dist, None, K_vid)``) so the
+    render aligns pixel-exactly with pinhole-projected overlays.
+    Pyrender platform (egl/osmesa) follows PYOPENGL_PLATFORM.
+    """
     import cv2
     import pyrender
     import trimesh
@@ -521,8 +259,10 @@ def run_mesh(args: argparse.Namespace) -> int:
         ep_frame_map.setdefault(int(ep_idx_mm[global_i]), []).append(global_i)
 
     vrs: dict[int, Any] = {}
-    active_regions: dict[int, tuple[int, int]] = {}
+    active_info: dict[int, dict[str, Any]] = {}
     for ep in ep_frame_map:
+        if args.glb_only:
+            break  # GLB-only: world-space meshes need no videos
         vp = vu.try_resolve_allintra_video_path(
             video_paths[ep], data_root=args.data_root,
             allintra_root=args.allintra_root,
@@ -533,12 +273,10 @@ def run_mesh(args: argparse.Namespace) -> int:
             vr = vu.open_video_reader(vp)
             vrs[ep] = vr
             first_bgr = vu.read_frame_bgr(vr, 0)
-            K_use, dist_use, info = vu.build_intrinsics_and_frame_mapper(
+            _, _, info = vu.build_intrinsics_and_frame_mapper(
                 K_raw, dist_raw, calib_w, calib_h,
                 first_bgr.shape[1], first_bgr.shape[0], first_bgr)
-            x0 = int(info["crop_xywh_on_video"][0])
-            x1 = int(info["crop_xywh_on_video"][0] + info["crop_xywh_on_video"][2])
-            active_regions[ep] = (x0, x1)
+            active_info[ep] = info
         except Exception:
             continue
 
@@ -548,23 +286,25 @@ def run_mesh(args: argparse.Namespace) -> int:
     renderer_size = None
     pbar = tqdm(total=n_samples, desc="Rendering", unit="frame")
 
-    for ep in sorted(vrs.keys()):
-        vr = vrs[ep]
-        x0, x1 = active_regions[ep]
+    for ep in sorted(ep_frame_map.keys()):
+        vr = vrs.get(ep)
+        info = active_info.get(ep)
 
         for global_i in sorted(ep_frame_map[ep]):
-            device_frame_idx = int(frame_idx_mm[global_i])
-            video_frame_idx = vu.clamp_frame_idx(vr, device_frame_idx)
-            try:
-                frame_bgr = vu.read_frame_bgr(vr, video_frame_idx)
-            except Exception:
-                continue
-            video_h, video_w = frame_bgr.shape[:2]
+            if not args.glb_only:
+                device_frame_idx = int(frame_idx_mm[global_i])
+                video_frame_idx = vu.clamp_frame_idx(vr, device_frame_idx)
+                try:
+                    frame_bgr = vu.read_frame_bgr(vr, video_frame_idx)
+                except Exception:
+                    continue
+                video_h, video_w = frame_bgr.shape[:2]
 
             t12 = np.asarray(cam_transform[global_i], dtype=np.float64)
             T_W_C = vu.t12_to_matrix(t12)
 
             hand_world_verts: dict[str, np.ndarray] = {}
+            pred_markers: dict[str, np.ndarray] = {}
             fk_world_verts: dict[str, np.ndarray] = {}
             fk_faces: dict[str, np.ndarray] = {}
             for hand in ("left", "right"):
@@ -574,139 +314,137 @@ def run_mesh(args: argparse.Namespace) -> int:
                 beta = np.asarray(hand_data[hand]["beta"][beta_idx],
                                   dtype=np.float64)
                 verts_local, _ = decoder.decode(mano_pose, beta, hand)
-                t12_world = np.asarray(hand_data[hand]["world"][global_i],
-                                       dtype=np.float64)
-                R_world = t12_world[:9].reshape(3, 3)
-                t_world = t12_world[9:12]
-                hand_world_verts[hand] = verts_local @ R_world.T + t_world
+                R_world, t_world = vu.t12_world_rt(
+                    hand_data[hand]["world"][global_i])
+                hand_world_verts[hand] = vu.verts_world_from_local(
+                    verts_local, R_world, t_world)
+                pred_markers[hand] = vu.verts_world_from_local(
+                    decoder.marker_vertices(verts_local), R_world, t_world)
 
-                # FK mesh: always skin a right hand, then x-flip for left
-                # (same convention as the original mesh script); FK faces
-                # need a winding flip to match the MANO/trimesh convention.
+                # FK mesh from UmeTrack joint angles; skin/mirror/winding
+                # convention lives in vu.fk_mesh_world.
                 ja = np.asarray(hand_data[hand]["joint_angles"][global_i],
                                 dtype=np.float32)
-                if np.isfinite(ja).all() and np.abs(ja).sum() > 0:
-                    try:
-                        fk_v_local, fk_f = vu.skin_mesh_from_angles(
-                            joint_angles=ja[:20], flip=False)
-                        fk_v_local = fk_v_local.copy()
-                        if hand == "right":
-                            fk_v_local[:, 0] *= -1.0
-                            fk_f = fk_f[:, [0, 2, 1]].copy()
-                        fk_v_local = vu.rescale_mesh_span(fk_v_local, 0.09)
-                        fk_world_verts[hand] = fk_v_local @ R_world.T + t_world
-                        fk_faces[hand] = fk_f
-                    except Exception:
-                        pass
+                fk = vu.fk_mesh_world(ja, R_world, t_world,
+                                      mirror_x=(hand == "right"),
+                                      anchor_verts=verts_local)
+                if fk is not None:
+                    fk_world_verts[hand], fk_faces[hand] = fk
 
             frame_dir = out_dir / f"frame_{global_i:08d}"
             frame_dir.mkdir(parents=True, exist_ok=True)
             for hand in ("left", "right"):
                 if hand in hand_world_verts:
-                    vu.save_mesh_glb(
+                    kp = np.asarray(hand_data[hand]["keypoints"][global_i],
+                                    dtype=np.float64)
+                    kp_valid = np.asarray(
+                        hand_data[hand]["keypoints_valid"][global_i], dtype=bool)
+                    gt = kp[kp_valid & np.isfinite(kp).all(axis=1)]
+                    vu.save_glb_with_markers(
+                        frame_dir / f"mano_{hand}.glb",
                         hand_world_verts[hand], hand_faces[hand],
-                        vu.HAND_COLORS_RGB[hand],
-                        str(frame_dir / f"mano_{hand}.glb"))
+                        mesh_color=vu.HAND_COLORS_RGB[hand] + (255,),
+                        gt_markers=gt if len(gt) else None,
+                        pred_markers=pred_markers[hand])
                 if hand in fk_world_verts:
                     vu.save_mesh_glb(
                         fk_world_verts[hand], fk_faces[hand],
                         vu.HAND_COLORS_RGB[hand],
                         str(frame_dir / f"fk_{hand}.glb"))
 
-            # ── Self-occlusion analysis ─────────────────────────────
-            K_vid = vu.intrinsics_info_to_video_K(info, K_raw)
-            T_C_W = np.linalg.inv(T_W_C)
-            R_C_W = T_C_W[:3, :3].astype(np.float64)
-            t_C_W = T_C_W[:3, 3].astype(np.float64)
+            if not args.glb_only:
+                # ── Self-occlusion analysis ────────────────────────
+                K_vid = vu.intrinsics_info_to_video_K(info, K_raw)
+                T_C_W = np.linalg.inv(T_W_C)
+                R_C_W = T_C_W[:3, :3].astype(np.float64)
+                t_C_W = T_C_W[:3, 3].astype(np.float64)
 
-            occlusion_results: dict[str, dict] = {}
-            for hand in ("left", "right"):
-                if hand not in hand_world_verts:
-                    continue
-                from egoemg.occlusion import compute_self_occlusion
-                verts_w = hand_world_verts[hand].astype(np.float64)
-                verts_cam = (R_C_W @ verts_w.T).T + t_C_W
-                occlusion_results[hand] = compute_self_occlusion(
-                    verts_cam, hand_faces[hand], K_vid, video_h, video_w,
-                    depth_eps=0.005, window_half=2)
-
-            occ_json: dict[str, dict] = {}
-            for hand, r in occlusion_results.items():
-                occ_json[hand] = {
-                    "occlusion_score": round(float(r["occlusion_score"]), 6),
-                    "visible_ratio": round(float(r["visible_ratio"]), 6),
-                    "n_visible": int(r["visible"].sum()),
-                    "n_total": int(len(r["visible"])),
-                    "area_weight_total": round(float(r["area_weights"].sum()), 6),
-                }
-            (frame_dir / "occlusion.json").write_text(
-                json.dumps(occ_json, indent=2))
-
-            occ_vis = frame_bgr.copy()
-            for hand, r in occlusion_results.items():
-                for i in range(len(r["visible"])):
-                    u, v = int(r["u_proj"][i]), int(r["v_proj"][i])
-                    if 0 <= u < video_w and 0 <= v < video_h:
-                        color = (0, 255, 0) if r["visible"][i] else (0, 0, 255)
-                        cv2.circle(occ_vis, (u, v), 2, color, -1,
-                                   lineType=cv2.LINE_AA)
-            cv2.imwrite(str(frame_dir / "occlusion_vis.png"), occ_vis)
-
-            markers_bgr = frame_bgr.copy()
-            for hand in ("left", "right"):
-                kp_world = np.asarray(hand_data[hand]["keypoints"][global_i],
-                                      dtype=np.float64)
-                kp_valid_raw = np.asarray(
-                    hand_data[hand]["keypoints_valid"][global_i], dtype=bool)
-                if not kp_valid_raw.any():
-                    continue
-                kp_px, depth_valid = vu.project_and_map(
-                    kp_world, T_W_C, K_raw, dist_raw, info)
-                in_image = (
-                    (kp_px[:, 0] >= 0) & (kp_px[:, 0] < video_w)
-                    & (kp_px[:, 1] >= 0) & (kp_px[:, 1] < video_h))
-                valid = (depth_valid & in_image & kp_valid_raw
-                         & np.isfinite(kp_world).all(axis=1))
-                if valid.sum() > 0:
-                    markers_bgr = vu.draw_skeleton(
-                        markers_bgr, kp_px, valid,
-                        vu.HAND_COLORS_BGR[hand], label=hand[0].upper())
-            cv2.imwrite(str(frame_dir / "markers.png"), markers_bgr)
-
-            if args.render_mode == "mesh":
-                frame_undist = cv2.undistort(frame_bgr, K_vid, dist_raw,
-                                             None, K_vid)
-                if (video_w, video_h) != renderer_size:
-                    if renderer is not None:
-                        renderer.delete()
-                    import pyrender
-                    renderer = pyrender.OffscreenRenderer(video_w, video_h)
-                    renderer_size = (video_w, video_h)
-                meshes = [
-                    (hand_world_verts[h], hand_faces[h], vu.HAND_COLORS_RGB[h])
-                    for h in ("left", "right")
-                ]
-                frame_bgr = _render_mesh_overlay(
-                    frame_undist, meshes, T_W_C, K_vid,
-                    renderer, args.mesh_alpha)
-            else:
+                occlusion_results: dict[str, dict] = {}
                 for hand in ("left", "right"):
                     if hand not in hand_world_verts:
                         continue
-                    verts_px, depth_valid = vu.project_and_map(
-                        hand_world_verts[hand], T_W_C, K_raw, dist_raw, info)
-                    in_image = (
-                        (verts_px[:, 0] >= 0) & (verts_px[:, 0] < video_w)
-                        & (verts_px[:, 1] >= 0) & (verts_px[:, 1] < video_h))
-                    valid = depth_valid & in_image
-                    vu.draw_wireframe(
-                        frame_bgr, verts_px, valid, hand_faces[hand],
-                        vu.HAND_COLORS_BGR[hand], args.line_width)
+                    from egoemg.occlusion import compute_self_occlusion
+                    verts_w = hand_world_verts[hand].astype(np.float64)
+                    verts_cam = (R_C_W @ verts_w.T).T + t_C_W
+                    occlusion_results[hand] = compute_self_occlusion(
+                        verts_cam, hand_faces[hand], K_vid, video_h, video_w,
+                        depth_eps=0.005, window_half=2)
 
-            frame_bgr = vu.draw_text_block(
-                frame_bgr,
-                [f"global={global_i} ep={ep}", "R: orange  L: blue"])
-            cv2.imwrite(str(frame_dir / "rendered.png"), frame_bgr)
+                occ_json: dict[str, dict] = {}
+                for hand, r in occlusion_results.items():
+                    occ_json[hand] = {
+                        "occlusion_score":
+                            round(float(r["occlusion_score"]), 6),
+                        "visible_ratio": round(float(r["visible_ratio"]), 6),
+                        "n_visible": int(r["visible"].sum()),
+                        "n_total": int(len(r["visible"])),
+                        "area_weight_total":
+                            round(float(r["area_weights"].sum()), 6),
+                    }
+                (frame_dir / "occlusion.json").write_text(
+                    json.dumps(occ_json, indent=2))
+
+                occ_vis = frame_bgr.copy()
+                for hand, r in occlusion_results.items():
+                    for i in range(len(r["visible"])):
+                        u, v = int(r["u_proj"][i]), int(r["v_proj"][i])
+                        if 0 <= u < video_w and 0 <= v < video_h:
+                            color = (0, 255, 0) if r["visible"][i] else (0, 0, 255)
+                            cv2.circle(occ_vis, (u, v), 2, color, -1,
+                                       lineType=cv2.LINE_AA)
+                cv2.imwrite(str(frame_dir / "occlusion_vis.png"), occ_vis)
+
+                markers_bgr = frame_bgr.copy()
+                for hand in ("left", "right"):
+                    markers_bgr = vu.project_draw_keypoints(
+                        markers_bgr,
+                        hand_data[hand]["keypoints"][global_i],
+                        hand_data[hand]["keypoints_valid"][global_i],
+                        T_W_C, K_raw, dist_raw, info,
+                        vu.HAND_COLORS_BGR[hand], label=hand[0].upper())
+                cv2.imwrite(str(frame_dir / "markers.png"), markers_bgr)
+
+                if args.render_mode == "mesh":
+                    K_vid = vu.intrinsics_info_to_video_K(info, K_raw)
+                    if (video_w, video_h) != renderer_size:
+                        if renderer is not None:
+                            renderer.delete()
+                        renderer = vu.make_pyrender_renderer(video_w, video_h)
+                        renderer_size = (video_w, video_h)
+                    mapx, mapy = cv2.initUndistortRectifyMap(
+                        K_vid, dist_raw, None, K_vid, (video_w, video_h),
+                        cv2.CV_32FC1)
+                    frame_undist = cv2.remap(
+                        frame_bgr, mapx, mapy, cv2.INTER_LINEAR)
+                    meshes = [
+                        (hand_world_verts[h], hand_faces[h],
+                         vu.HAND_COLORS_RGB[h])
+                        for h in ("left", "right")
+                    ]
+                    frame_bgr = _render_mesh_overlay(
+                        frame_undist, meshes, T_W_C, K_vid,
+                        renderer, args.mesh_alpha)
+                else:
+                    for hand in ("left", "right"):
+                        if hand not in hand_world_verts:
+                            continue
+                        verts_px, depth_valid = vu.project_and_map(
+                            hand_world_verts[hand], T_W_C, K_raw, dist_raw,
+                            info)
+                        in_image = (
+                            (verts_px[:, 0] >= 0)
+                            & (verts_px[:, 0] < video_w)
+                            & (verts_px[:, 1] >= 0)
+                            & (verts_px[:, 1] < video_h))
+                        valid = depth_valid & in_image
+                        vu.draw_wireframe(
+                            frame_bgr, verts_px, valid, hand_faces[hand],
+                            vu.HAND_COLORS_BGR[hand], args.line_width)
+
+                frame_bgr = vu.draw_text_block(
+                    frame_bgr,
+                    [f"global={global_i} ep={ep}", "R: orange  L: blue"])
+                cv2.imwrite(str(frame_dir / "rendered.png"), frame_bgr)
             pbar.update(1)
 
     pbar.close()
@@ -716,16 +454,71 @@ def run_mesh(args: argparse.Namespace) -> int:
     return 0
 
 
-# ── markers mode ────────────────────────────────────────────────────────────
+# ── vision video mode ───────────────────────────────────────────────────────
 
-def run_markers(args: argparse.Namespace) -> int:
+def _mesh_projected_bbox(verts_px: np.ndarray, valid: np.ndarray,
+                         img_w: int, img_h: int, pad: int) -> np.ndarray | None:
+    """Tight in-image bbox around projected mesh vertices (None if none)."""
+    px = verts_px[valid]
+    if len(px) == 0:
+        return None
+    x0 = max(0, int(np.floor(px[:, 0].min())) - pad)
+    y0 = max(0, int(np.floor(px[:, 1].min())) - pad)
+    x1 = min(img_w - 1, int(np.ceil(px[:, 0].max())) + pad)
+    y1 = min(img_h - 1, int(np.ceil(px[:, 1].max())) + pad)
+    return np.array([x0, y0, x1, y1], dtype=np.float32)
+
+
+def _precrop_affine(
+    markers_world: np.ndarray,
+    markers_valid: np.ndarray,
+    t_w_c: np.ndarray,
+    k: np.ndarray,
+    dist: np.ndarray,
+    intrinsics_info: dict[str, Any],
+    video_w: int,
+    hand: str,
+    crop_size: int,
+) -> np.ndarray | None:
+    """Recreate the affine transform used to make a stored hand crop."""
+    from egoemg.datasets.egoemg_vision_dataset import (
+        _expand_to_aspect_ratio,
+        _gen_trans_from_patch_cv,
+        _get_bbox,
+    )
+
+    marker_px, depth_valid = vu.project_and_map(
+        markers_world, t_w_c, k, dist, intrinsics_info)
+    marker_px = marker_px.astype(np.float32)
+    valid = np.asarray(markers_valid, dtype=bool) & depth_valid
+    if hand == "left":
+        marker_px[:, 0] = (video_w - 1) - marker_px[:, 0]
+    if valid.sum() < 2:
+        return None
+    keypoints = np.concatenate(
+        [marker_px, valid.astype(np.float32)[:, None]], axis=1)
+    center, scale = _get_bbox(keypoints, rescale=1.2)
+    scale = _expand_to_aspect_ratio(scale, (192, 256))
+    bbox_size = float(max(scale[0], scale[1]))
+    return _gen_trans_from_patch_cv(
+        float(center[0]), float(center[1]), bbox_size, bbox_size,
+        crop_size, crop_size, scale=1.0, rot=0.0)
+
+
+def run_vision_video(args: argparse.Namespace) -> int:
+    """Video replay of one episode: head-view frames with MANO/FK mesh
+    projection, mocap marker skeletons and per-hand bboxes overlaid."""
+    import io
+    from PIL import Image
     from tqdm import tqdm
+    import cv2
 
     manifest = vu.load_manifest(args.memmap_dir)
     md = vu.load_metadata(args.memmap_dir)
     ep_ids = vu.decode_bytes(md["episode_id"])
     starts = md["episode_start_idx"].astype(np.int64)
     ends = md["episode_end_idx"].astype(np.int64)
+    beta_idx_arr = md["episode_beta_idx"]
 
     ep_idx = None
     for i, eid in enumerate(ep_ids):
@@ -742,22 +535,36 @@ def run_markers(args: argparse.Namespace) -> int:
     K, dist, calib_w, calib_h = calib.K, calib.dist, calib.width, calib.height
 
     cam_tf_mm = vu.load_memmap(args.memmap_dir, manifest, "mocap_head_transform")
-    kp_left_mm = vu.load_memmap(args.memmap_dir, manifest, "mocap_left_keypoints")
-    valid_left_mm = vu.load_memmap(args.memmap_dir, manifest, "mocap_left_valid")
-    kp_right_mm = vu.load_memmap(args.memmap_dir, manifest, "mocap_right_keypoints")
-    valid_right_mm = vu.load_memmap(args.memmap_dir, manifest, "mocap_right_valid")
-    frame_idx_mm = vu.load_memmap(args.memmap_dir, manifest, "image_head_frame_index")
+    frame_idx_mm = vu.load_memmap(args.memmap_dir, manifest,
+                                  "image_head_frame_index")
+    hand_data = {}
+    for hand in ("left", "right"):
+        hand_data[hand] = {
+            "pose": vu.load_memmap(args.memmap_dir, manifest,
+                                   f"generated_mano_{hand}_pose"),
+            "world": vu.load_memmap(args.memmap_dir, manifest,
+                                    f"mocap_mano_{hand}_world_transform"),
+            "beta": vu.load_memmap(args.memmap_dir, manifest,
+                                   f"generated_mano_{hand}_beta",
+                                   section="episode_fields"),
+            "keypoints": vu.load_memmap(args.memmap_dir, manifest,
+                                        f"mocap_{hand}_keypoints"),
+            "keypoints_valid": vu.load_memmap(args.memmap_dir, manifest,
+                                              f"mocap_{hand}_valid"),
+        }
+
+    decoder = vu.ManoMeshDecoder(args.mano_model_path, args.device)
+    faces_right = decoder._faces
+    faces_left = faces_right[:, [0, 2, 1]]
+    hand_faces = {"right": faces_right, "left": faces_left}
 
     allintra_path = vu.resolve_allintra_video_path(
         vu.decode_bytes(md["episode_head_video_path"])[ep_idx],
         data_root=args.data_root, allintra_root=args.allintra_root,
         suffix=args.allintra_suffix)
-
-    import cv2
-    cap = cv2.VideoCapture(str(allintra_path))
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    video_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    video_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    vr = vu.open_video_reader(allintra_path)
+    fps = vr.get_avg_fps()
+    video_h, video_w = vu.read_frame_bgr(vr, 0).shape[:2]
 
     raw_frame_indices = np.asarray(
         frame_idx_mm[start:start + length], dtype=np.int64)
@@ -776,48 +583,157 @@ def run_markers(args: argparse.Namespace) -> int:
         strided_frames = strided_frames[:args.max_frames]
 
     output = Path(args.output) if args.output else (
-        Path(args.output_dir) / f"{args.episode_id}_markers.mp4")
+        Path(args.output_dir) / f"{args.episode_id}_vision.mp4")
     output.parent.mkdir(parents=True, exist_ok=True)
-    fourcc = cv2.VideoWriter_fourcc(*"avc1")
-    writer = cv2.VideoWriter(str(output), fourcc,
-                             int(round(fps / args.stride)), (video_w, video_h))
+    # Output fps = real-time (fps/stride) floored at 15: low strides play at
+    # native speed, high strides fast-forward smoothly instead of becoming a
+    # 1 fps slideshow or a 60x flash.
+    writer = vu.open_mp4_writer(output, max(15.0, fps / args.stride),
+                                (video_w, video_h))
+    crop_size = 256
+    manifest_path = Path(args.crops_dir) / "manifest.json"
+    if manifest_path.exists():
+        with manifest_path.open() as f:
+            crop_size = int(json.load(f).get("patch_size", crop_size))
+    crop_lmdb = Path(args.crops_dir) / f"{args.episode_id}.lmdb"
+    crop_txn = None
+    crop_env = None
+    if crop_lmdb.is_dir():
+        import lmdb
+        crop_env = lmdb.open(str(crop_lmdb), readonly=True, lock=False,
+                             readahead=False)
+        crop_txn = crop_env.begin()
+    else:
+        print(f"[vision] precomputed crop LMDB missing: {crop_lmdb}")
+    crop_writers = {
+        hand: vu.open_mp4_writer(
+            Path(args.output_dir) / f"{args.episode_id}_{hand}_crop.mp4",
+            max(15.0, fps / args.stride), (crop_size, crop_size))
+        for hand in ("left", "right")
+    }
+
+    def read_precrop(video_frame_idx: int, hand: str) -> np.ndarray | None:
+        if crop_txn is None:
+            return None
+        key = f"{video_frame_idx:08d}_{'L' if hand == 'left' else 'R'}"
+        encoded = crop_txn.get(key.encode())
+        if encoded is None:
+            return None
+        return cv2.cvtColor(
+            np.asarray(Image.open(io.BytesIO(encoded))), cv2.COLOR_RGB2BGR)
 
     intrinsics_info = None
-    pbar = tqdm(strided_frames, desc=f"Processing {args.episode_id}",
+    renderer = None
+    renderer_size = None
+    pbar = tqdm(strided_frames, desc=f"Overlay {args.episode_id}",
                 unit="vframe")
     for video_frame_idx, memmap_offset in pbar:
         global_i = start + memmap_offset
-        cap.set(cv2.CAP_PROP_POS_FRAMES, video_frame_idx)
-        ok, frame = cap.read()
-        if not ok:
-            break
+        frame = vu.read_frame_bgr(vr, vu.clamp_frame_idx(vr, video_frame_idx))
         if intrinsics_info is None:
             K_use, dist_use, intrinsics_info = \
                 vu.build_intrinsics_and_frame_mapper(
                     K, dist, calib_w, calib_h, video_w, video_h, frame)
+            K_vid = vu.intrinsics_info_to_video_K(intrinsics_info, K)
+            # Undistorted basis: mesh (pyrender), markers, bbox all project
+            # through the same ideal pinhole, so they align pixel-exactly.
+            mapx, mapy = cv2.initUndistortRectifyMap(
+                K_vid, dist, None, K_vid, (video_w, video_h), cv2.CV_32FC1)
+        frame = cv2.remap(frame, mapx, mapy, cv2.INTER_LINEAR)
+
         T_W_C = vu.t12_to_matrix(np.asarray(cam_tf_mm[global_i]))
-        for hand, kp_mm, valid_mm, color in (
-            ("left", kp_left_mm, valid_left_mm, (0, 0, 255)),
-            ("right", kp_right_mm, valid_right_mm, (0, 255, 0)),
-        ):
-            kp = np.asarray(kp_mm[global_i], dtype=np.float64)
-            valid = np.asarray(valid_mm[global_i], dtype=bool)
-            if not valid.any():
-                continue
-            pts_raw, depth = vu.project_and_map(
-                kp[valid], T_W_C, K_use, dist_use, intrinsics_info)
-            valid_mask = depth & (pts_raw[:, 0] >= 0) & (pts_raw[:, 0] < video_w) \
-                & (pts_raw[:, 1] >= 0) & (pts_raw[:, 1] < video_h)
-            vu.draw_skeleton(frame, pts_raw, valid_mask, color,
-                             edges=vu.HAND_BONES)
+        beta_idx = int(beta_idx_arr[ep_idx])
+        hand_verts: dict[str, np.ndarray] = {}
+        for hand in ("left", "right"):
+            pose = np.asarray(hand_data[hand]["pose"][global_i],
+                              dtype=np.float64)
+            t12_world = np.asarray(hand_data[hand]["world"][global_i],
+                                   dtype=np.float64)
+            if not (np.isfinite(pose).all() and np.isfinite(t12_world).all()
+                    and np.abs(t12_world).sum() > 1e-6):
+                continue  # no valid MANO supervision for this row
+            beta = np.asarray(hand_data[hand]["beta"][beta_idx],
+                              dtype=np.float64)
+            R_w, t_w = vu.t12_world_rt(t12_world)
+            verts_local, _ = decoder.decode(pose, beta, hand)
+            hand_verts[hand] = vu.verts_world_from_local(verts_local, R_w, t_w)
+
+        if args.render_mode == "mesh":
+            if (video_w, video_h) != renderer_size:
+                if renderer is not None:
+                    renderer.delete()
+                renderer = vu.make_pyrender_renderer(video_w, video_h)
+                renderer_size = (video_w, video_h)
+            meshes = [
+                (hand_verts[h], hand_faces[h], vu.HAND_COLORS_RGB[h])
+                for h in ("left", "right") if h in hand_verts
+            ]
+            frame = _render_mesh_overlay(frame, meshes, T_W_C, K_vid,
+                                         renderer, args.mesh_alpha)
+
+        for hand, verts_w in hand_verts.items():
+            verts_px, depth_valid = vu.project_pinhole(verts_w, T_W_C, K_vid)
+            in_image = (
+                (verts_px[:, 0] >= 0) & (verts_px[:, 0] < video_w)
+                & (verts_px[:, 1] >= 0) & (verts_px[:, 1] < video_h))
+            valid = depth_valid & in_image
+            if args.render_mode == "wireframe":
+                vu.draw_wireframe(frame, verts_px, valid, hand_faces[hand],
+                                  vu.HAND_COLORS_BGR[hand], args.line_width)
+            bbox = _mesh_projected_bbox(
+                verts_px, valid, video_w, video_h, args.bbox_pad)
+            if bbox is not None:
+                frame = vu.draw_bbox(
+                    frame, bbox, vu.HAND_COLORS_BGR[hand], 2)
+
+        for hand in ("left", "right"):
+            frame = vu.project_draw_keypoints_pinhole(
+                frame, hand_data[hand]["keypoints"][global_i],
+                hand_data[hand]["keypoints_valid"][global_i],
+                T_W_C, K_vid, vu.HAND_COLORS_BGR[hand],
+                label=hand[0].upper())
+
         frame = vu.draw_text_block(frame, [
             f"{args.episode_id}  frame={video_frame_idx}",
-            "L=red  R=green",
+            "mesh: R=orange L=blue  boxes: mesh bbox  dots: mocap markers",
         ], line_height=25)
         writer.write(frame)
 
-    cap.release()
+        for hand in ("left", "right"):
+            crop = read_precrop(video_frame_idx, hand)
+            if crop is None:
+                crop = np.zeros((crop_size, crop_size, 3), dtype=np.uint8)
+                cv2.putText(crop, "NO PRECOMPUTED CROP", (8, crop_size // 2),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+            elif crop.shape[:2] != (crop_size, crop_size):
+                crop = cv2.resize(crop, (crop_size, crop_size))
+            if hand in hand_verts:
+                affine = _precrop_affine(
+                    hand_data[hand]["keypoints"][global_i],
+                    hand_data[hand]["keypoints_valid"][global_i],
+                    T_W_C, K, dist, intrinsics_info, video_w, hand, crop_size)
+                if affine is not None:
+                    mesh_px, mesh_depth = vu.project_and_map(
+                        hand_verts[hand], T_W_C, K, dist, intrinsics_info)
+                    if hand == "left":
+                        mesh_px[:, 0] = (video_w - 1) - mesh_px[:, 0]
+                    mesh_crop_px = cv2.transform(
+                        mesh_px.astype(np.float32).reshape(1, -1, 2), affine)[0]
+                    vu.draw_wireframe(
+                        crop, mesh_crop_px, mesh_depth, hand_faces[hand],
+                        vu.HAND_COLORS_BGR[hand], args.line_width)
+            cv2.putText(crop, f"{hand[0].upper()}  frame={video_frame_idx}",
+                        (4, 16), cv2.FONT_HERSHEY_SIMPLEX, 0.42,
+                        (255, 255, 255), 1, lineType=cv2.LINE_AA)
+            crop_writers[hand].write(crop)
+
     writer.release()
+    for crop_writer in crop_writers.values():
+        crop_writer.release()
+    if crop_env is not None:
+        crop_env.close()
+    if renderer is not None:
+        renderer.delete()
     print(f"\nSaved: {output}")
     return 0
 
@@ -827,6 +743,8 @@ def run_markers(args: argparse.Namespace) -> int:
 def run_crops(args: argparse.Namespace) -> int:
     import cv2
 
+    out_dir = Path(args.output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
     crops_dir = Path(args.crops_dir)
     manifest_path = crops_dir / "manifest.json"
     if manifest_path.exists():
@@ -931,7 +849,8 @@ def run_fk_vs_mano(args: argparse.Namespace) -> int:
     crop_dir.mkdir(parents=True, exist_ok=True)
 
     modalities = ["emg", "joint_angles", "mano", "labels"]
-    if args.add_video_fields:
+    if args.add_video_fields or args.per_episode_crops_dir is not None:
+        # video fields are required to look up per-episode crop frames.
         modalities.append("video_index")
     ds = vu.make_memmap_dataset(
         memmap_dir=args.memmap_dir, hand=args.hand,
@@ -975,10 +894,17 @@ def run_fk_vs_mano(args: argparse.Namespace) -> int:
         mano_beta = np.array(sample["mano_beta"], copy=True)
         ja_mid = np.array(sample["joint_angles"][:, center], copy=True)
 
+        # Empirically the stored joint angles pair with the mirrored FK
+        # profile for the right hand and the plain profile for the left
+        # (see vu.fk_mesh_world).
         fk_verts, fk_faces = vu.skin_mesh_from_angles(
-            joint_angles=ja_mid[:20], flip=(args.hand == "left"))
+            joint_angles=ja_mid[:20], flip=(args.hand == "right"))
         fk_verts = fk_verts.copy()
-        mano_verts, mano_faces = decoder.decode(mano_pose_mid, mano_beta)
+        fk_faces = np.asarray(fk_faces)  # mirrored profile -> torch Tensor
+        if args.hand == "right":
+            fk_faces = fk_faces[:, [0, 2, 1]].copy()
+        mano_verts, mano_faces = decoder.decode(
+            mano_pose_mid, mano_beta, args.hand)
         fk_span = fk_verts.max(axis=0) - fk_verts.min(axis=0)
         mano_span = mano_verts.max(axis=0) - mano_verts.min(axis=0)
         if np.median(fk_span) > 1e-6:
@@ -1012,85 +938,6 @@ def run_fk_vs_mano(args: argparse.Namespace) -> int:
     return 0
 
 
-# ── align mode ──────────────────────────────────────────────────────────────
-
-def run_align(args: argparse.Namespace) -> int:
-    import cv2
-    from egoemg.video_io import resolve_allintra_video_path
-
-    md = vu.load_metadata(args.memmap_dir)
-    manifest = vu.load_manifest(args.memmap_dir)
-    fi = vu.load_memmap(args.memmap_dir, manifest, "image_head_frame_index")
-
-    def mm(name: str) -> np.memmap:
-        return vu.load_memmap(args.memmap_dir, manifest, name)
-
-    ep_idx = args.session_index
-    s, e = int(md["episode_start_idx"][ep_idx]), int(md["episode_end_idx"][ep_idx])
-    ep_id = vu.decode_bytes(np.asarray([md["episode_id"][ep_idx]]))[0]
-    raw_video = vu.decode_bytes(np.asarray([md["episode_head_video_path"][ep_idx]]))[0]
-    video_path = resolve_allintra_video_path(
-        raw_video_path=raw_video, data_root=args.data_root,
-        allintra_root=args.allintra_root)
-    print(f"episode {ep_idx} ({ep_id}): rows [{s}, {e}), video {video_path}")
-
-    calib = vu.load_calibration(args.calibration_path)
-    vr = vu.open_video_reader(video_path)
-    n_video_frames = len(vr)
-    frame0 = vr[0].asnumpy()
-    K, dist, info = vu.build_intrinsics_and_frame_mapper(
-        calib.K, calib.dist, calib.width, calib.height,
-        frame0.shape[1], frame0.shape[0], frame0)
-    video_h, video_w = frame0.shape[:2]
-    print(f"video: {n_video_frames} frames, {video_w}x{video_h}")
-
-    transforms = mm("mocap_head_transform")
-    kp_l = mm("mocap_left_keypoints")
-    kp_r = mm("mocap_right_keypoints")
-    valid_l = mm("mocap_left_valid")
-    valid_r = mm("mocap_right_valid")
-    lv = mm("generated_label_valid")
-    stale = mm("image_head_stale")
-
-    rows = np.linspace(s, e - 1, args.samples_per_action * 40).astype(np.int64)
-    rows = [r for r in rows if not bool(stale[r]) and bool(lv[r].all())][
-        : args.samples_per_action * 8
-    ]
-
-    out_dir = Path(args.output_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    for i, r in enumerate(rows):
-        frame_idx = int(fi[r])
-        if frame_idx < 0 or frame_idx >= n_video_frames:
-            print(f"  row {r}: frame index {frame_idx} out of video range, skip")
-            continue
-        frame = vu.read_frame_bgr(vr, frame_idx)
-        T_W_C = vu.t12_to_matrix(np.asarray(transforms[r]))
-        for hand_name, kp_mm, valid_mm, color in (
-            ("left", kp_l, valid_l, (0, 255, 0)),
-            ("right", kp_r, valid_r, (0, 0, 255)),
-        ):
-            marker_world = np.asarray(kp_mm[r], dtype=np.float64)
-            marker_valid = np.asarray(valid_mm[r], dtype=bool)
-            raw, depth_valid = vu.project_and_map(
-                marker_world, T_W_C, K, dist, info)
-            in_img = (
-                (raw[:, 0] >= 0) & (raw[:, 0] < video_w)
-                & (raw[:, 1] >= 0) & (raw[:, 1] < video_h))
-            good = marker_valid & depth_valid & in_img
-            for x, y, ok in zip(raw[:, 0], raw[:, 1], good):
-                if ok:
-                    cv2.circle(frame, (int(x), int(y)), 6, color, -1)
-        frame = vu.draw_text_block(
-            frame, [f"row={r} video_frame={frame_idx}"], line_height=40)
-        out = out_dir / f"row_{r}_vf_{frame_idx}.png"
-        cv2.imwrite(str(out), frame)
-        print(f"  row {r} -> {out}")
-
-    print(f"\nWrote {len(rows)} overlays to {out_dir}")
-    return 0
-
-
 # ── parser ──────────────────────────────────────────────────────────────────
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1111,49 +958,37 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="mode", required=True)
 
     p = sub.add_parser("vision", parents=[common],
-                       description="EgoEmgVisionDataset samples -> PNG")
-    p.add_argument("--video-root", type=Path, default=Path("data/EgoEMG"))
-    p.add_argument("--vision-index-dir", type=Path, default=None)
-    p.add_argument("--auto-build-index", action="store_true")
-    p.add_argument("--calibration-path", type=Path, default=None)
-    p.add_argument("--target-hand", default="both",
-                   choices=["left", "right", "both"])
-    p.add_argument("--allowed-episode-ids", nargs="*", default=None)
-    p.add_argument("--allowed-subjects", nargs="*", default=None)
-    p.add_argument("--allowed-splits", nargs="*", default=None)
+                       description="Video replay: mesh + mocap markers + bbox "
+                                   "projected on head-view frames -> MP4")
+    p.add_argument("--episode-id", required=True)
     p.add_argument("--stride", type=int, default=1)
-    p.add_argument("--patch-size", type=int, default=256)
-    p.add_argument("--start-index", type=int, default=0)
-    p.add_argument("--num-samples", type=int, default=16)
-    p.add_argument("--sample-indices", nargs="*", type=int, default=None)
-    p.add_argument("--joint-radius", type=int, default=3)
-    p.add_argument("--marker-radius", type=int, default=3)
-    p.add_argument("--bbox-line-width", type=int, default=2)
-    p.add_argument("--raw-only", action="store_true")
-    p.add_argument("--max-panel-width", type=int, default=1280)
+    p.add_argument("--max-frames", type=int, default=0)
+    p.add_argument("--render-mode", default="wireframe",
+                   choices=["wireframe", "mesh"])
+    p.add_argument("--line-width", type=int, default=1)
+    p.add_argument("--mesh-alpha", type=float, default=0.7)
+    p.add_argument("--bbox-pad", type=int, default=15)
+    p.add_argument("--mano-model-path", type=Path, default=None)
+    p.add_argument("--calibration-json", type=Path, default=None)
+    p.add_argument("--crops-dir", type=Path, default=Path("data/EgoEMG_v2_crops"),
+                   help="directory containing precomputed per-episode crop LMDBs")
+    p.add_argument("--output", type=Path, default=None)
 
     p = sub.add_parser("timeline", parents=[common],
                        description="EMG / joint angles / MANO time series -> PNG")
     p.add_argument("--episode", type=int, default=3)
     p.add_argument("--hand", default="right", choices=["left", "right"])
+    p.add_argument("--emg-preference", default="filtered",
+                   choices=["raw", "filtered", "filtered_paper"],
+                   help="EMG field preference (left-hand filtered is absent "
+                        "from the unified memmap; use filtered_paper)")
     p.add_argument("--offset", type=int, default=100000)
     p.add_argument("--window", type=int, default=2000)
     p.add_argument("--out-path", type=Path, default=None)
 
-    p = sub.add_parser("mano", parents=[common],
-                       description="GT MANO mesh + markers -> GLB")
-    p.add_argument("--episode", type=int, default=None)
-    p.add_argument("--episodes", type=int, nargs="*", default=None)
-    p.add_argument("--all", action="store_true")
-    p.add_argument("--hand", default="right", choices=["left", "right"])
-    p.add_argument("--offset", type=int, default=None)
-    p.add_argument("--num-frames", type=int, default=1)
-    p.add_argument("--window", type=int, default=1000)
-    p.add_argument("--mano-model-path", type=Path, default=None)
-    p.add_argument("--mano-npy-dir", type=Path, default=None)
-
     p = sub.add_parser("mesh", parents=[common],
-                       description="MANO/FK mesh overlay on head-view frames")
+                       description="MANO/FK mesh overlay on head-view frames; "
+                                   "GLB-only export with --glb-only")
     p.add_argument("--mano-model-path", type=Path, default=None)
     p.add_argument("--n-samples", type=int, default=10)
     p.add_argument("--line-width", type=int, default=1)
@@ -1161,22 +996,9 @@ def build_parser() -> argparse.ArgumentParser:
                    choices=["wireframe", "mesh"])
     p.add_argument("--mesh-alpha", type=float, default=0.7)
     p.add_argument("--calibration-path", type=Path, default=None)
-
-    p = sub.add_parser("markers", parents=[common],
-                       description="Mocap marker reprojection over an episode -> MP4")
-    p.add_argument("--episode-id", required=True)
-    p.add_argument("--stride", type=int, default=1)
-    p.add_argument("--max-frames", type=int, default=0)
-    p.add_argument("--calibration-json", type=Path, default=None)
-    p.add_argument("--output", type=Path, default=None)
-
-    p = sub.add_parser("crops", parents=[common],
-                       description="Pre-cropped hand patch grid -> JPG")
-    p.add_argument("--crops-dir", type=Path,
-                   default=Path("data/EgoEMG_v2_crops"))
-    p.add_argument("--num-frames", type=int, default=16)
-    p.add_argument("--episodes", type=str, default=None)
-    p.add_argument("--grid-cols", type=int, default=4)
+    p.add_argument("--glb-only", action="store_true",
+                   help="skip videos: export MANO/FK world-space GLBs "
+                        "(with mocap + MANO-surface markers) only")
 
     p = sub.add_parser("fk_vs_mano", parents=[common],
                        description="UmeTrack FK vs MANO mesh comparison -> GLB")
@@ -1190,24 +1012,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--episode", type=int, default=None)
     p.add_argument("--mano-model-path", type=Path, default=None)
 
-    p = sub.add_parser("align", parents=[common],
-                       description="ShowEE session frame-alignment check -> PNG")
-    p.add_argument("--calibration-path", type=Path, required=True)
-    p.add_argument("--session-index", type=int, required=True)
-    p.add_argument("--samples-per-action", type=int, default=3)
-
     return parser
 
 
 MODES = {
-    "vision": run_vision,
+    "vision": run_vision_video,
     "timeline": run_timeline,
-    "mano": run_mano,
     "mesh": run_mesh,
-    "markers": run_markers,
-    "crops": run_crops,
     "fk_vs_mano": run_fk_vs_mano,
-    "align": run_align,
 }
 
 

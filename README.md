@@ -28,6 +28,14 @@
 
 ---
 
+> [!WARNING]
+> **Data release status — not ready.** The complete, current EgoEMG dataset is
+> still being prepared and is not available yet. All dataset download links and
+> preview assets currently provided by this repository point to an **older
+> legacy data release**. They are supplied for compatibility and code
+> inspection only; do not treat them as the forthcoming dataset release or use
+> them to reproduce final results.
+
 ## ✨ Highlights
 
 - **🧠 EMG-to-pose** — EMGFormer (small / middle / large) predicts hand pose from
@@ -51,9 +59,10 @@
 
 ## 📦 Dataset
 
-EgoEMG is released under **CC-BY-NC-4.0** for research use. It pairs hand-pose
-labels with bilateral sEMG, wrist IMUs, egocentric RGB video, external RGB-D,
-and motion-capture annotations.
+The complete current EgoEMG release is still being prepared. The resources
+linked below are an older legacy release under **CC-BY-NC-4.0** for research
+use; they pair hand-pose labels with bilateral sEMG, wrist IMUs, egocentric RGB
+video, external RGB-D, and motion-capture annotations.
 
 ### Preview package
 
@@ -70,7 +79,7 @@ bash scripts/download/download_egoemg_data.sh
 bash scripts/download/download_egoemg_data.sh --source baidupcs
 ```
 
-### Full release
+### Legacy full release
 
 The EgoEMG EMGFormer, vision, and fusion workflows require the complete
 unified memmap (`EgoEMG + ShowEE + Incre`). ResNet/ViT vision and fusion
@@ -186,19 +195,16 @@ training entrypoint would otherwise start a new run.
 
 ## 🎥 Visualization
 
-The dataset-centric visualizer renders the exact samples emitted by
-`EgoEmgVisionDataset`, including the dataset-aligned frame, hand box,
-projected labels, and normalized training patch. It is headless and writes one
-PNG per selected sample.
+The dataset-centric visualizer renders a head-view episode video with hand
+meshes, projected mocap labels, and per-hand mesh boxes. It is headless and
+writes an MP4.
 
 ```shell
 python scripts/viz/visualize_dataset.py vision \
   --memmap-dir ${EMG2POSE_ROOT}/data/EgoEMG_unified_memmap \
-  --video-root ${EMG2POSE_ROOT}/data/EgoEMG \
   --allintra-root ${EMG2POSE_ROOT}/data/EgoEMG_allintra \
   --output-dir /tmp/egoemg_vision_viz \
-  --num-samples 8 --target-hand both \
-  --auto-build-index   # builds <memmap-dir>/vision_index if missing
+  --episode-id episode_000000 --stride 10 --max-frames 300
 ```
 
 For a larger visual check or WiLoR-specific setup notes, see

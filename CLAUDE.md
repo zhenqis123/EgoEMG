@@ -90,15 +90,12 @@ python scripts/data/build_egoemg_vision_index.py \
   --memmap-dir /path/to/EgoEMG_unified_memmap \
   --output-dir /path/to/EgoEMG_unified_memmap/vision_index
 
-# Visualize actual dataset samples (unified entrypoint; see `visualize_dataset.py --help`)
+# Video replay with mesh/markers/bbox overlay (most intuitive; the default
+# recommended mode — see `visualize_dataset.py --help` for all modes)
 python scripts/viz/visualize_dataset.py vision \
   --memmap-dir /path/to/EgoEMG_unified_memmap \
-  --video-root /path/to/EgoEMG \
   --allintra-root /path/to/EgoEMG_allintra \
-  --auto-build-index \
-  --output-dir /tmp/egoemg_vision_viz \
-  --num-samples 16 \
-  --target-hand both
+  --episode-id episode_000000 --stride 10 --max-frames 300
 
 # Train and evaluate fusion / vision-to-pose on EgoEMG (single entrypoint)
 python -m egoemg.train \
@@ -242,7 +239,7 @@ Key files:
 - `egoemg/mano.py`: local MANO utilities; datasets should not initialize
   MANO.
 - `scripts/data/build_egoemg_vision_index.py`: one-time sidecar index builder.
-- `scripts/viz/visualize_dataset.py`: unified dataset visualization (modes: vision/timeline/mano/mesh/markers/crops/fk_vs_mano/align).
+- `scripts/viz/visualize_dataset.py`: unified dataset visualization (modes: vision/timeline/mesh/fk_vs_mano).
 - `config/lineage/fusion.yaml`: L1 shared defaults for vision/fusion
   experiments (see `docs/config_architecture.md`).
 

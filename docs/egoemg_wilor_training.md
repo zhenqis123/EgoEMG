@@ -46,36 +46,16 @@ python scripts/prepare/reencode_egoemg_webcam_allintra.py \
 
 ## Dataset Smoke Test
 
-Use the visualization script before launching training. It renders the exact
-samples emitted by `EgoEmgVisionDataset`, including the raw-frame supervision,
-training crop, bbox, and normalized patch keypoints.
+Use the visualization script before launching training to inspect a complete
+head-view episode with projected MANO meshes, mocap markers, and mesh boxes.
 
 ```bash
 python scripts/viz/visualize_dataset.py vision \
     --memmap-dir data/EgoEMG_unified_memmap \
-    --video-root data/EgoEMG \
     --allintra-root data/EgoEMG_allintra \
-    --auto-build-index \
     --output-dir /tmp/egoemg_vision_dataset_viz \
-    --num-samples 16 \
-    --target-hand both
+    --episode-id episode_000000 --stride 10 --max-frames 300
 ```
-
-For quick startup profiling, reduce to one or two samples:
-
-```bash
-python scripts/viz/visualize_dataset.py vision \
-    --memmap-dir data/EgoEMG_unified_memmap \
-    --video-root data/EgoEMG \
-    --allintra-root data/EgoEMG_allintra \
-    --auto-build-index \
-    --output-dir /tmp/egoemg_vision_dataset_viz \
-    --num-samples 1 \
-    --target-hand both
-```
-
-Expected startup behavior with an installed sidecar index is fast. The logged
-`build_index` stage should be milliseconds, not minutes.
 
 ## Dataset API
 
