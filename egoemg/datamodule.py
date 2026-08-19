@@ -7,7 +7,6 @@ from collections.abc import Sequence
 from typing import Any
 
 import pytorch_lightning as pl
-import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from torch.utils.data import ConcatDataset, DataLoader, Dataset

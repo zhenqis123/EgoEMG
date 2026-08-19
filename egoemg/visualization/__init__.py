@@ -10,3 +10,11 @@ from egoemg.visualization.classic import (
 )
 from egoemg.visualization.mesh_renderer import ManoMeshRenderer
 from egoemg.visualization.egoemg_vis import EgoEmgVisualizer
+
+__all__ = [
+    "EgoEmgVisualizer",
+    "ManoMeshRenderer",
+    "get_plotly_animation_for_joint_angles",
+    "joint_angles_to_frames",
+    "plot_hand_mesh",
+]

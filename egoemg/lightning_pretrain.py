@@ -76,7 +76,6 @@ class EmgPretrainModule(pl.LightningModule):
             self.gesture_spaces.append(space_dict)
         self.gesture_num_classes = total
 
-        out_channels = getattr(getattr(self.model, "gesture_head", None), "net", None)
         if hasattr(self.model, "gesture_head") and hasattr(self.model.gesture_head, "net"):
             last_linear = None
             for layer in self.model.gesture_head.net:

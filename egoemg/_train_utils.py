@@ -11,7 +11,6 @@ import logging
 import os
 import pprint
 from collections.abc import Callable, Sequence
-from pathlib import Path
 from typing import Any
 
 import pytorch_lightning as pl

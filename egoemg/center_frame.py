@@ -174,7 +174,6 @@ def eval_center_frame(
             center_target_only=bool(cfg_or_dataset("center_target_only", default=True)),
         )
         preds, targets = [], []
-        n_total = sum(len(v) for v in centers.values())
         count = 0
         first_err = None
         with torch.no_grad():

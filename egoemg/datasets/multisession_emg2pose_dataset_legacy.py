@@ -8,7 +8,7 @@ from typing import Any
 import h5py
 import numpy as np
 import torch
-from torch.utils.data import Dataset, get_worker_info
+from torch.utils.data import Dataset
 
 from egoemg import transforms
 from egoemg.transforms import Transform

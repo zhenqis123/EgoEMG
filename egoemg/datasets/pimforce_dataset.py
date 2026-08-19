@@ -199,7 +199,6 @@ class PimforceDataset(Dataset):
             session_end,
         )
         window_start_local = window_start - session_start
-        window_end_local = window_end - session_start
 
         # Read data from Zarr
         emg = np.asarray(

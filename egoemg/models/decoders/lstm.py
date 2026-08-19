@@ -1,6 +1,3 @@
-import collections
-from collections.abc import Sequence
-from typing import Literal
 
 import torch
 from torch import nn

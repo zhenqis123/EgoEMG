@@ -17,8 +17,6 @@ import pytest
 def _build_synthetic_memmap(out_dir: Path, n_rows: int = 4000, n_episodes: int = 2):
     """Write a minimal EgoEMG-v2-format memmap with dataset_source_id."""
     out_dir.mkdir(parents=True, exist_ok=True)
-    wl = 1000  # short windows for a fast test
-
     fields = {
         "emg_left_raw": ("float32", (n_rows, 8)),
         "emg_left_filtered_paper": ("float32", (n_rows, 8)),

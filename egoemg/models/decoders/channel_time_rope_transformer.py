@@ -1,7 +1,7 @@
 import math
 import torch
 from torch import nn
-from typing import Optional, List, Literal
+from typing import Optional, List
 
 def _apply_rotary_emb(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
     """Standard RoPE rotation application."""

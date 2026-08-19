@@ -8,7 +8,7 @@
 import json
 import os
 from collections.abc import Callable
-from typing import Any, NamedTuple
+from typing import NamedTuple
 
 import torch
 

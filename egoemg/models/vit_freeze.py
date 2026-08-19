@@ -15,7 +15,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import torch
 import torch.nn as nn
 
 log = logging.getLogger(__name__)

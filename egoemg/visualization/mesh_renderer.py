@@ -6,7 +6,6 @@ import os
 
 os.environ.setdefault("PYOPENGL_PLATFORM", "osmesa")
 
-import cv2
 import numpy as np
 import pyrender
 import trimesh

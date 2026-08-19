@@ -323,7 +323,7 @@ def main():
     print(f"Trainable params: {params:,}")
 
     # ── Build datamodule to access dataset config ────────────────────────
-    datamodule = make_data_module(cfg)
+    make_data_module(cfg)  # kept for its config/dataset validation side effects
 
     memmap_dir = cfg.get("egoemg_memmap_dir")
     emg_layout = cfg.get("egoemg_emg_layout", "emg2pose_interpolate16")
@@ -336,9 +336,6 @@ def main():
     val_stride = cfg.datamodule.get("val_test_stride", val_window)
     vit_features_dir = cfg.get("cached_vit_features_dir")
     crops_dir = cfg.get("per_episode_crops_dir")
-    vision_enabled = bool(
-        vit_features_dir or crops_dir or cfg.get("vision_num_frames", 0) > 0
-    )
     skip_emg = cfg.get("skip_emg_loading", False)
 
     # ── Build per-split dataloaders ────────────────────────────────────────

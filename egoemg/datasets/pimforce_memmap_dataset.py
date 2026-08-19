@@ -7,10 +7,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import torch
 from torch.utils.data import Dataset
 
-from egoemg import transforms
 from egoemg.transforms import Transform
 from egoemg.datasets.layout_utils import circular_interpolate, place_sparse_channels
 

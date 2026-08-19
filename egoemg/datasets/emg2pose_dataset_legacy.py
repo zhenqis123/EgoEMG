@@ -14,7 +14,6 @@ from typing import Any, ClassVar
 import h5py
 import numpy as np
 import torch
-from tqdm import tqdm
 
 from egoemg import transforms
 from egoemg.transforms import Transform

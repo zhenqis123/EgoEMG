@@ -27,7 +27,11 @@ jobs:
     - name: Check source syntax and fatal lint errors
       run: |
         python -m compileall -q egoemg scripts
-        flake8 egoemg scripts --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Maintained package code: fatal errors + unused imports/variables.
+        flake8 egoemg --count --select=E9,F63,F7,F82,F401,F811,F841 --show-source --statistics
+        # scripts/ contains research records beyond the public support surface:
+        # fatal errors only.
+        flake8 scripts --count --select=E9,F63,F7,F82 --show-source --statistics
 
     - name: Validate citation metadata
       run: |

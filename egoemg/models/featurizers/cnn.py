@@ -10,10 +10,9 @@ import collections
 from collections.abc import Sequence
 from typing import Literal
 
-import torch
 from torch import nn
 
-from egoemg.models.featurizers.tds import Conv1dBlock, SqueezeExcite
+from egoemg.models.featurizers.tds import Conv1dBlock
 
 
 class CNNStage(nn.Module):

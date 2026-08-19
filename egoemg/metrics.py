@@ -13,7 +13,6 @@ from egoemg.constants import (
     JOINTS,
     LANDMARKS,
     NO_MOVEMENT_LANDMARKS,
-    NUM_JOINTS,
     PD_GROUPS,
 )
 

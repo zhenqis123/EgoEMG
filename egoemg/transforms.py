@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from typing import Any, TypeVar
 
 import numpy as np
-import pywt
 import torch
 from scipy.interpolate import CubicSpline, PchipInterpolator
 
@@ -138,7 +137,6 @@ class ToSpectrogram:
         )
         return spec
 
-import torchaudio.transforms as T
 
 @dataclass
 class RandomSpectrogramBlockMask:

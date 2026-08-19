@@ -36,7 +36,6 @@ from egoemg.video_io import (
     DEFAULT_ALLINTRA_SUFFIX,
     DecordVideoReaderCache,
     FfmpegNvdecReaderCache,
-    PyavNvdecReaderCache,
     resolve_allintra_video_path,
 )
 
@@ -873,7 +872,6 @@ class EgoEmgVisionDataset(Dataset):
 
     def _init_per_episode_crops(self) -> None:
         """Build sample index from vision_index, then open per-episode LMDBs on demand."""
-        import lmdb as _lmdb  # noqa: F811
 
         crops_dir = Path(self.per_episode_crops_dir)
         manifest_path = crops_dir / "manifest.json"

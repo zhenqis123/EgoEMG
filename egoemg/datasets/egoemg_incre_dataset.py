@@ -287,7 +287,6 @@ class EgoEmgIncreDataset(Dataset):
 
         # Jitter: random offset within the stride
         if self.jitter:
-            ep_start = int(self._episode_start_idx[ep_idx])
             ep_end = int(self._episode_end_idx[ep_idx])
             leftover = ep_end - end
             if leftover > 0:

@@ -276,7 +276,6 @@ class EMG2PoseEvaluation:
             module._load_pretrained_angle_head(ckpt_path, strict=False)
         else:
             print(f"Detected regular checkpoint: {ckpt_path}")
-            model_target = self.config.module._target_
             map_location = "cpu"
 
             module = make_lightning_module(self.config)
