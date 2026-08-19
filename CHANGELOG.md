@@ -24,3 +24,12 @@ All notable changes are recorded in this file.
   scripts support surface in `scripts/README.md`.
 - Records the original-data IMU verification report at
   `scripts/release/imu_verify_report_windows_original.json`.
+- Static-analysis cleanup: removes unused imports and unused locals across the
+  package, declares the visualization re-export surface with `__all__`, and
+  extends CI lint to fail on unused-import/unused-variable regressions in the
+  maintained package (`scripts/` stays fatal-errors-only as research records).
+- Dependency-declaration audit: `joblib` (core `egoemg.utils`) and `omegaconf`
+  were imported directly but never declared; both are now in
+  `install_requires`. Remaining undeclared third-party imports (`av`, `timm`,
+  `zarr`, `open3d`, `unidecode`) are lazy, guarded, or behind the lazy
+  dataset factory and belong to optional research paths.

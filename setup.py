@@ -35,6 +35,8 @@ setup(
         "h5py>=3.8",
         "PyYAML>=6.0",
         "hydra-core>=1.3,<1.4",
+        "joblib>=1.2",
+        "omegaconf>=2.3",
         "pytorch-lightning>=2.5,<2.6",
         "torch>=2.2,<2.3",
         "torchvision>=0.17,<0.18",

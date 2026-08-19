@@ -310,3 +310,5 @@
 | 2026-08-08 | 初始 release 审查：42 tests passed；发现发布阻塞项 | 本文件创建前的审查记录 | Codex |
 | 2026-08-20 | 数据修复：unified memmap EgoEMG `imu` 通道重排（41 ep / 66,161,725 行），四层验证（原始 parquet 逐位、/data 副本置换等价、数据集类冒烟、49 tests passed） | `scripts/prepare/fix_egoemg_imu_channel_order.py`、`scripts/release/imu_verify_report_windows_original.json`、`docs/data_known_issues.md` #1、CHANGELOG | ZCode |
 | 2026-08-20 | release-prep 批次：社区文件、CI secret-scan、CLI smoke tests、scripts 支持面声明、措辞/大文件/链接复核、计划勾选更新 | `SECURITY.md`、`CODE_OF_CONDUCT.md`、`.github/ISSUE_TEMPLATE/`、`.github/PULL_REQUEST_TEMPLATE.md`、`.github/workflows/main.yml`、`egoemg/tests/test_cli_help_smoke.py`、`scripts/README.md` | ZCode |
+| 2026-08-20 | 静态分析清理轮：包内死导入/死变量清零（42→0），CI lint 扩展至 F401/F811/F841（包内），52 处文档交叉引用全部有效，wheel 重建验证 | commit `c65029f`；flake8 双范围 0 违规；49 tests passed | ZCode |
+| 2026-08-20 | 依赖声明审计：joblib/omegaconf 补入 install_requires（前者为核心 utils 模块级依赖，干净安装即炸）；其余未声明导入（av/timm/zarr/open3d/unidecode）逐一核实为惰性/受保护/惰性工厂路径 | `setup.py`；AST 导入 vs 声明审计脚本输出；`egoemg/datasets/__init__.py` 惰性工厂核实 | ZCode |
