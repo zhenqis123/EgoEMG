@@ -1,39 +1,79 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 
 jobs:
-  lint-and-test:
+  package-and-test:
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -el {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup Conda
-      uses: conda-incubator/setup-miniconda@v3
+    - uses: actions/setup-python@v5
       with:
-        auto-update-conda: true
-        # Must match the python pin in environment.yml.
-        python-version: '3.11'
-        miniconda-version: "latest"
-        activate-environment: emg2pose
-        environment-file: environment.yml
+        python-version: ${{ matrix.python-version }}
+        cache: pip
 
-    - name: Install packages
-      run: |
-        pip install -e .
-        pip install flake8 pytest
+    - name: Install package and test dependencies
+      run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
 
-    - name: Lint with flake8
+    - name: Check source syntax and fatal lint errors
       run: |
-        # Stop the build on syntax errors or undefined names.
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Report style issues without failing the build (127-col editor width).
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        python -m compileall -q egoemg scripts
+        flake8 egoemg scripts --count --select=E9,F63,F7,F82 --show-source --statistics
+
+    - name: Validate citation metadata
+      run: |
+        python - <<'PY'
+        from pathlib import Path
+        import yaml
+
+        citation = yaml.safe_load(Path("CITATION.cff").read_text())
+        assert citation["type"] == "software"
+        assert citation["version"] == "0.1.0rc1"
+        assert "date-released" not in citation
+        PY
+
+    - name: Secret scan (tracked files)
+      run: |
+        python - <<'PY'
+        import re
+        import subprocess
+        from pathlib import Path
+
+        patterns = re.compile(
+            r"(ghp_[A-Za-z0-9]{20,}|gho_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}"
+            r"|sk-[A-Za-z0-9]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----"
+            r"|access_token=[A-Za-z0-9_\-]{20,})"
+        )
+        files = subprocess.run(
+            ["git", "ls-files"], capture_output=True, text=True, check=True
+        ).stdout.splitlines()
+        hits = []
+        for name in files:
+            p = Path(name)
+            if not p.is_file() or p.stat().st_size > 2_000_000:
+                continue
+            text = p.read_bytes()
+            match = patterns.search(str(text))
+            if match:
+                hits.append(f"{name}: {match.group(0)[:40]}")
+        assert not hits, "potential secrets found:\n" + "\n".join(hits)
+        print(f"secret scan clean over {len(files)} tracked files")
+        PY
+
+    - name: Build and install wheel
+      run: |
+        python -m build --wheel --outdir dist
+        python -m pip install --force-reinstall --no-deps dist/*.whl
+        python -c 'import importlib.resources as r; import egoemg; assert egoemg.__version__ == "0.1.0rc1"; assert r.files("egoemg.UmeTrack").joinpath("dataset/generic_hand_model.json").is_file()'
 
     - name: Run unit tests
-      run: |
-        pytest egoemg/tests -q
+      run: pytest egoemg/tests -q
