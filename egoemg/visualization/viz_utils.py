@@ -1,7 +1,7 @@
 """Shared helpers for dataset visualization (unified visualize_dataset.py).
 
 Module-level imports are limited to stdlib + numpy + cv2 so that light
-modes (crops/markers) do not pull in torch/smplx/pyrender/plotly; every
+modes that do not need rendering do not pull in torch/smplx/pyrender/plotly; every
 heavy dependency is imported lazily inside the function that needs it.
 
 Consolidates boilerplate that used to be duplicated across the

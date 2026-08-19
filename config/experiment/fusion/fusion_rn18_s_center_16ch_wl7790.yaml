@@ -39,14 +39,16 @@ vision_patch_size: 256
 skip_emg_loading: false
 center_target_only: true
 
-# ── Checkpoints ──────────────────────────────────────────────────────────────
-vision_resnet_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/fusion/vision_resnet/version_9/checkpoints/last.ckpt
-pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
+# ── Legacy release checkpoint initializers ───────────────────────────────────
+# Download with scripts/download/download_checkpoints.sh, or set
+# EGOEMG_CHECKPOINT_ROOT to a directory containing these legacy filenames.
+vision_resnet_checkpoint: ${oc.env:EGOEMG_CHECKPOINT_ROOT,checkpoints}/vision_resnet18.ckpt
+pretrained_emg_checkpoint: ${oc.env:EGOEMG_CHECKPOINT_ROOT,checkpoints}/egoemg_emgformer_small.ckpt
 checkpoint:
 
-# ── Not used (config compatibility) ──────────────────────────────────────────
-wilor_checkpoint_path: ${oc.env:WILOR_PATH,../WiLoR}/pretrained_models/wilor_final.ckpt
-mano_model_path: ${oc.env:WILOR_PATH,../WiLoR}/mano_data
+# ── Not used by the ResNet-18 fusion implementation ──────────────────────────
+wilor_checkpoint_path: null
+mano_model_path: null
 
 # ── Training ─────────────────────────────────────────────────────────────────
 seed: 42

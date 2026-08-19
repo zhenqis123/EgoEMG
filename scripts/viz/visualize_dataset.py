@@ -596,18 +596,32 @@ def run_vision_video(args: argparse.Namespace) -> int:
         with manifest_path.open() as f:
             crop_size = int(json.load(f).get("patch_size", crop_size))
     crop_lmdb = Path(args.crops_dir) / f"{args.episode_id}.lmdb"
-    crop_txn = None
-    crop_env = None
-    if crop_lmdb.is_dir():
-        import lmdb
-        crop_env = lmdb.open(str(crop_lmdb), readonly=True, lock=False,
-                             readahead=False)
-        crop_txn = crop_env.begin()
-    else:
-        print(f"[vision] precomputed crop LMDB missing: {crop_lmdb}")
+    if not crop_lmdb.is_dir():
+        raise FileNotFoundError(
+            f"Precomputed crop LMDB is required for vision output: {crop_lmdb}. "
+            "Create/download the episode crops first; vision never crops from "
+            "the overlay bbox at runtime.")
+
+    import lmdb
+    crop_env = lmdb.open(str(crop_lmdb), readonly=True, lock=False,
+                         readahead=False)
+    crop_txn = crop_env.begin()
+    missing_crop_keys = [
+        f"{video_frame_idx:08d}_{hand_code}"
+        for video_frame_idx, _ in strided_frames
+        for hand_code in ("L", "R")
+        if crop_txn.get(f"{video_frame_idx:08d}_{hand_code}".encode()) is None
+    ]
+    if missing_crop_keys:
+        crop_env.close()
+        preview = ", ".join(missing_crop_keys[:3])
+        raise RuntimeError(
+            f"{len(missing_crop_keys)} required precomputed crops are missing "
+            f"from {crop_lmdb} (for example: {preview}). Refusing to create "
+            "a misleading partial/black crop video.")
     crop_writers = {
         hand: vu.open_mp4_writer(
-            Path(args.output_dir) / f"{args.episode_id}_{hand}_crop.mp4",
+            output.parent / f"{args.episode_id}_{hand}_crop.mp4",
             max(15.0, fps / args.stride), (crop_size, crop_size))
         for hand in ("left", "right")
     }
@@ -701,11 +715,11 @@ def run_vision_video(args: argparse.Namespace) -> int:
 
         for hand in ("left", "right"):
             crop = read_precrop(video_frame_idx, hand)
-            if crop is None:
-                crop = np.zeros((crop_size, crop_size, 3), dtype=np.uint8)
-                cv2.putText(crop, "NO PRECOMPUTED CROP", (8, crop_size // 2),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
-            elif crop.shape[:2] != (crop_size, crop_size):
+            if crop is None:  # Prevalidated above; protects against LMDB corruption.
+                raise RuntimeError(
+                    f"Precomputed crop vanished while reading frame {video_frame_idx}, "
+                    f"hand={hand} from {crop_lmdb}")
+            if crop.shape[:2] != (crop_size, crop_size):
                 crop = cv2.resize(crop, (crop_size, crop_size))
             if hand in hand_verts:
                 affine = _precrop_affine(
@@ -735,104 +749,6 @@ def run_vision_video(args: argparse.Namespace) -> int:
     if renderer is not None:
         renderer.delete()
     print(f"\nSaved: {output}")
-    return 0
-
-
-# ── crops mode ──────────────────────────────────────────────────────────────
-
-def run_crops(args: argparse.Namespace) -> int:
-    import cv2
-
-    out_dir = Path(args.output_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    crops_dir = Path(args.crops_dir)
-    manifest_path = crops_dir / "manifest.json"
-    if manifest_path.exists():
-        with manifest_path.open() as f:
-            manifest = json.load(f)
-        ep_ids = manifest["episode_ids"]
-        patch_size = manifest.get("patch_size", 256)
-        print(f"Found {len(ep_ids)} episodes, patch_size={patch_size}")
-    else:
-        ep_ids = sorted(
-            p.name[:-5] for p in crops_dir.glob("episode_*.lmdb"))
-        patch_size = 256
-        print(f"Manifest missing; found {len(ep_ids)} LMDB episodes")
-
-    if args.episodes is not None:
-        indices = [int(x) for x in args.episodes.split(",")]
-    else:
-        indices = list(range(len(ep_ids)))
-
-    for ep_i in indices:
-        if ep_i >= len(ep_ids):
-            print(f"  Episode index {ep_i} out of range, skipping")
-            continue
-        ep_id = ep_ids[ep_i]
-        lmdb_path = crops_dir / f"{ep_id}.lmdb"
-        if not lmdb_path.exists():
-            print(f"  [{ep_id}] LMDB not found, skipping")
-            continue
-
-        all_keys = vu.list_lmdb_keys(lmdb_path)
-        if not all_keys:
-            print(f"  [{ep_id}] empty LMDB, skipping")
-            continue
-
-        vfis = sorted(set(int(k.split("_")[0]) for k in all_keys))
-        print(f"  [{ep_id}] {len(all_keys)} crops, {len(vfis)} frames")
-        n_sample = min(args.num_frames, len(vfis))
-        step = max(len(vfis) // n_sample, 1)
-        sampled_vfis = vfis[::step][:n_sample]
-
-        rows = []
-        for vfi in sampled_vfis:
-            left = vu.read_crop_from_lmdb(lmdb_path, f"{vfi:08d}_L")
-            right = vu.read_crop_from_lmdb(lmdb_path, f"{vfi:08d}_R")
-            left = cv2.cvtColor(left, cv2.COLOR_RGB2BGR) if left is not None \
-                else np.zeros((patch_size, patch_size, 3), dtype=np.uint8)
-            right = cv2.cvtColor(right, cv2.COLOR_RGB2BGR) if right is not None \
-                else np.zeros((patch_size, patch_size, 3), dtype=np.uint8)
-            if not np.any(left):
-                cv2.putText(left, "NO L", (10, patch_size // 2),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-            if not np.any(right):
-                cv2.putText(right, "NO R", (10, patch_size // 2),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-            left_lab = left.copy()
-            right_lab = right.copy()
-            cv2.putText(left_lab, f"L vfi={vfi}", (4, 20),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 1)
-            cv2.putText(right_lab, f"R vfi={vfi}", (4, 20),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 1)
-            rows.append(np.concatenate([left_lab, right_lab], axis=1))
-
-        cols = args.grid_cols
-        n_rows = (len(rows) + cols - 1) // cols
-        grid_rows = []
-        for r in range(n_rows):
-            chunks = []
-            for c in range(cols):
-                idx = r * cols + c
-                chunks.append(rows[idx] if idx < len(rows)
-                              else np.zeros_like(rows[0]))
-            grid_rows.append(np.concatenate(chunks, axis=1))
-        grid = np.concatenate(grid_rows, axis=0)
-        h, w = rows[0].shape[:2]
-        for r in range(1, n_rows):
-            y = r * h
-            if y < grid.shape[0]:
-                grid[y, :] = 30
-        for c in range(1, cols):
-            x = c * w
-            if x < grid.shape[1]:
-                grid[:, x] = 30
-
-        out_path = Path(args.output_dir) / f"{ep_id}.jpg"
-        cv2.imwrite(str(out_path), grid)
-        print(f"  [{ep_id}] saved {out_path} ({grid.shape[1]}x{grid.shape[0]})")
-
-    print(f"\nDone. Output in {args.output_dir}")
     return 0
 
 

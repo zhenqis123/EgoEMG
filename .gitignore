@@ -178,6 +178,9 @@ checkpoints/
 *.bak
 # Repo-root data dir only (anchored) — must not match scripts/data/.
 /data/
+# Local visualization checks; these are intentionally not release assets.
+/viz_check/
+/zed_sample_30s.mp4
 emg2pose_model_checkpoints/
 vis_dir/
 image.png

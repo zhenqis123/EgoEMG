@@ -11,30 +11,27 @@
 </p>
 
 <p align="center">
-  <a href="#-dataset"><img src="https://img.shields.io/badge/Dataset-CC--BY--NC--4.0-orange" alt="Dataset license"></a>
+  <a href="#-release-status"><img src="https://img.shields.io/badge/release-code%20preview-orange" alt="Release status"></a>
   <a href="#-license"><img src="https://img.shields.io/badge/Code-MIT-blue" alt="Code license"></a>
-  <a href="#-pre-trained-checkpoints"><img src="https://img.shields.io/badge/checkpoints-10-brightgreen" alt="Checkpoints"></a>
   <a href="https://github.com/zhenqis123/EgoEMG/actions"><img src="https://img.shields.io/github/actions/workflow/status/zhenqis123/EgoEMG/main.yml?branch=main" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.11-blue" alt="Python">
-  <img src="https://img.shields.io/badge/version-1.0.0-8A2BE2" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.1.0rc1-8A2BE2" alt="Version">
 </p>
 
 <p align="center">
-  [ <a href="#-reproducing-paper-results">Results</a> ·
-    <a href="#-dataset">Dataset</a> ·
-    <a href="#-pre-trained-checkpoints">Checkpoints</a> ·
+  [ <a href="#-release-status">Release status</a> ·
+    <a href="#-setup">Setup</a> ·
     <a href="#-citing-egoemg">Citation</a> ]
 </p>
 
 ---
 
 > [!WARNING]
-> **Data release status — not ready.** The complete, current EgoEMG dataset is
-> still being prepared and is not available yet. All dataset download links and
-> preview assets currently provided by this repository point to an **older
-> legacy data release**. They are supplied for compatibility and code
-> inspection only; do not treat them as the forthcoming dataset release or use
-> them to reproduce final results.
+> **Code pre-release (`0.1.0rc1`).** This repository is released for code
+> inspection and development. The current EgoEMG dataset release is **not
+> ready**. An earlier legacy data/checkpoint release remains available for the
+> canonical legacy workflows documented here; it is not the forthcoming dataset
+> release and does not cover every historical research configuration.
 
 ## ✨ Highlights
 
@@ -47,117 +44,56 @@
 
 ## 📖 Contents
 
-- [Dataset](#-dataset)
-- [Pre-trained Checkpoints](#-pre-trained-checkpoints)
+- [Release Status](#-release-status)
+- [Legacy Asset Setup](docs/ASSET_SETUP.md)
 - [Setup](#-setup)
 - [Training](#-training)
 - [Visualization](#-visualization)
-- [Reproducing Paper Results](#-reproducing-paper-results)
+- [Legacy Paper Results and Evaluation](#-legacy-paper-results-and-evaluation)
 - [Repository Layout](#-repository-layout)
 - [License](#-license)
 - [Citation](#-citing-egoemg)
 
-## 📦 Dataset
+## 🚧 Release Status
 
-The complete current EgoEMG release is still being prepared. The resources
-linked below are an older legacy release under **CC-BY-NC-4.0** for research
-use; they pair hand-pose labels with bilateral sEMG, wrist IMUs, egocentric RGB
-video, external RGB-D, and motion-capture annotations.
+This is a **code pre-release**. The current EgoEMG dataset is still being
+prepared, but an earlier legacy data/checkpoint release is available for the
+canonical EMGFormer, ResNet-18 vision/fusion, evaluation, and visualization
+workflows in this README. It is not the forthcoming dataset release and does
+not make every research recipe under `config/experiment/` portable.
 
-### Preview package
+Follow [Legacy Asset Setup](docs/ASSET_SETUP.md) before running these workflows.
+It distinguishes the single-episode preview from the complete legacy asset tree,
+lists the expected directory layout, and documents external MANO requirements.
+See also [the code pre-release support boundary](docs/PRERELEASE_LIMITATIONS.md)
+and the [data-card placeholder](docs/DATA_CARD.md).
 
-The self-contained `dataset_egoemg_preview` package contains one episode of
-memmap data, all-intra webcam video, pre-cropped LMDB patches, and
-metadata/calibration. Download it for a quick data-layout inspection:
+### Legacy material
 
-```shell
-# Google Drive (default; install gdown once with: pip install gdown)
-pip install gdown
-bash scripts/download/download_egoemg_data.sh
-
-# or from Baidu Netdisk (requires `baidupcs` login)
-bash scripts/download/download_egoemg_data.sh --source baidupcs
-```
-
-### Legacy full release
-
-The EgoEMG EMGFormer, vision, and fusion workflows require the complete
-unified memmap (`EgoEMG + ShowEE + Incre`). ResNet/ViT vision and fusion
-experiments also use the pre-cropped image patches; the actual-frame/WiLoR
-pipeline additionally needs all-intra webcam videos. These assets are
-distributed separately under `EgoEMG_release/` on Baidu Netdisk and in the
-corresponding Google Drive folders. EMG2Pose benchmark checkpoints instead
-require the corresponding EMG2Pose memmap (see [Evaluation](#evaluation)).
-
-Keep the full release under a data root and set `EMG2POSE_ROOT` to its
-**absolute** path. The supplied configurations resolve assets relative to this
-variable; Hydra run directories make relative paths unreliable.
-
-```shell
-export EMG2POSE_ROOT=/absolute/path/to/data_root
-```
-
-> **Baidu Netdisk note**: single files are capped at 128 GB there, so the two
-> largest files of `dataset_emg2pose_benchmark` (`emg.dat`, `joint_angles.dat`)
-> are distributed as 100 GB `*.part_XX` chunks — reassemble them with
-> `bash scripts/download/assemble_emg2pose_parts.sh <memmap_dir>` after
-> downloading (the Google Drive copies are already assembled).
-
-**Manual download (Baidu Netdisk, permanent link):**
-<https://pan.baidu.com/s/1aG2e-mHJkmP4KiYtYRcReA> — 提取码 `8059`.
-This link hosts the entire `EgoEMG_release/` tree (unified memmap, all-intra
-videos, pre-crop patches, and all checkpoints). Downloading via the `baidupcs`
-CLI (`baidupcs download /EgoEMG_release/...`) does not need the code.
-The root `README.txt` inside the share maps each remote directory to its
-local `data/` layout (e.g. `dataset_egoemg_unified` → `data/EgoEMG_unified_memmap`).
-
-## 🏆 Pre-trained Checkpoints
-
-Ten pretrained checkpoints are provided and mirrored on Google Drive and Baidu
-Netdisk:
-
-| Checkpoint | Task |
-|-----------|------|
-| `egoemg_emgformer_small.ckpt` | EMG-to-pose on EgoEMG (EMGFormer-S) |
-| `egoemg_emgformer_middle.ckpt` | EMG-to-pose on EgoEMG (EMGFormer-M) |
-| `egoemg_emgformer_large.ckpt` | EMG-to-pose on EgoEMG (EMGFormer-L) |
-| `emg2pose_emgformer_small.ckpt` | EMG-to-pose on EMG2Pose (EMGFormer-S) |
-| `emg2pose_emgformer_middle.ckpt` | EMG-to-pose on EMG2Pose (EMGFormer-M) |
-| `emg2pose_emgformer_large.ckpt` | EMG-to-pose on EMG2Pose (EMGFormer-L) |
-| `vision_resnet18.ckpt` | Vision-to-pose (ResNet-18) |
-| `vision_vit_small.ckpt` | Vision-to-pose (ViT-S) |
-| `fusion_resnet_emgfusion_center.ckpt` | EMG+Vision fusion (ResNet-18) |
-| `fusion_vit_emgfusion_center.ckpt` | EMG+Vision fusion (ViT-S) |
-
-```shell
-# Google Drive (default)
-pip install gdown
-bash scripts/download/download_checkpoints.sh
-
-# or from Baidu Netdisk (requires `baidupcs` login)
-bash scripts/download/download_checkpoints.sh baidupcs
-```
-
-The checkpoints are also included in the Baidu Netdisk share link above
-(<https://pan.baidu.com/s/1aG2e-mHJkmP4KiYtYRcReA>, 提取码 `8059`).
+Some legacy artifacts may remain in repository history or third-party storage.
+They are not part of this release contract: availability, integrity, license
+scope, compatibility, and result reproducibility are not guaranteed. Do not
+redistribute or cite them as the forthcoming EgoEMG dataset.
 
 ## ⚙️ Setup
 
 ```shell
 conda env create -f environment.yml && conda activate emg2pose
-pip install -e .
+pip install -e '.[viz]'
 ```
 
-The Google Drive download scripts use `gdown`, which is not included in the
-training environment. Install it only when you use that download route.
-Set `EMG2POSE_ROOT` as shown in [Full release](#full-release) before running a
-configuration that reads dataset assets.
+For core code only, use `pip install -e .`; the `viz` extra installs public
+visualization dependencies. `environment.yml` selects the tested CUDA-enabled
+PyTorch build. Download and configure legacy data/checkpoints with
+[Legacy Asset Setup](docs/ASSET_SETUP.md).
 
-## 🚀 Training
+## 🚀 Maintainer workflow sketches (unreleased assets required)
 
 Supervised EMG, vision, and fusion training use `egoemg.train`; the Hydra
-experiment selects the model family. The commands below assume the full release
-is available at `$EMG2POSE_ROOT`:
+experiment selects the model family. The listed canonical workflows use the
+legacy assets in [Legacy Asset Setup](docs/ASSET_SETUP.md). Before inspecting a
+different experiment config, run `python scripts/release/audit_portability.py`
+to see whether it has research-only local/private references.
 
 > **Hardware:** the reference recipes use NVIDIA GPUs with CUDA 11.8. The EMG
 > example below is a six-GPU run and the fusion example uses five GPUs. For a
@@ -207,14 +143,17 @@ python scripts/viz/visualize_dataset.py vision \
   --episode-id episode_000000 --stride 10 --max-frames 300
 ```
 
-For a larger visual check or WiLoR-specific setup notes, see
+For the required precomputed-crop behavior and unsupported external assets, see
+[the code pre-release support boundary](docs/PRERELEASE_LIMITATIONS.md). For a
+larger visual check or WiLoR-specific setup notes, see
 [the EgoEMG/WiLoR training guide](docs/egoemg_wilor_training.md).
 
-## 📊 Reproducing Paper Results
+## 📊 Legacy paper results and evaluation
 
-Key numbers from the paper. Rows backed by a released checkpoint (see
-[Pre-trained Checkpoints](#-pre-trained-checkpoints)) are reproducible with the
-commands below; the remaining rows are reported from the paper only.
+The following numbers are from the legacy release. Rows backed by the legacy
+data and checkpoint assets described in [Legacy Asset Setup](docs/ASSET_SETUP.md)
+are reproducible with the matching commands below; other rows remain
+paper-reported only.
 
 **EMG-to-pose on EgoEMG** (MAE in degrees, per-user mean ± std across the
 Gesture / User / Both test splits; Avg. is the per-sample-weighted MAE across
@@ -240,8 +179,8 @@ across the User / Stage / User+Stage test splits):
 | EMGFormer-M | 6.6M | 12.4 ± 1.1 | 10.2 ± 1.1 | 12.4 ± 1.1 |
 | EMGFormer-L | 16.3M | 12.3 ± 1.1 | 9.3 ± 1.1 | 12.3 ± 1.1 |
 
-*Rows correspond to the released `emg2pose_emgformer_{small,middle,large}.ckpt`
-checkpoints; prior-work rows in the paper are paper-reported.*
+*The legacy checkpoint bundle contains the EMGFormer-S/M/L checkpoints for these
+rows; prior-work rows remain paper-reported only.*
 
 **Vision-only → EMG+vision fusion on EgoEMG** (MAE in degrees on identical
 center frames; Frz./FT = frozen/fine-tuned visual predictor; Avg. is the
@@ -257,15 +196,13 @@ per-sample-weighted MAE, Δavg the fusion gain):
 | ViT-L/14 | Frz. | 5.39 | 5.36 | +0.03 |
 | WiLoR | Frz. | 4.73 | 4.68 | +0.04 |
 
-*Released checkpoints cover the fine-tuned ResNet-18 / ViT-S rows and their
-fusions; the frozen-backbone rows (ResNet-50/152, ViT-B/L, WiLoR) are
-paper-reported.*
+*The legacy checkpoint bundle covers the fine-tuned ResNet-18 / ViT-S rows and
+their fusions; frozen-backbone rows remain paper-reported only.*
 
 ### Evaluation
 
-Evaluate a released checkpoint with `test_analysis`. First download the
-checkpoints (see [Pre-trained Checkpoints](#-pre-trained-checkpoints); they
-land in `checkpoints/`) and export `EMG2POSE_ROOT` as an **absolute** path.
+After completing [Legacy Asset Setup](docs/ASSET_SETUP.md), use these commands
+with the matching legacy data and checkpoint assets.
 The EgoEMG experiment configs enable `per_group_stats` by default, so the
 output reports the per-user / per-gesture mean ± std (matching the paper
 tables) plus an `overall` MAE: the same per-sample-weighted aggregate reported
@@ -336,17 +273,13 @@ evaluation), selected automatically by the experiment config.
 
 ## 📜 License
 
-The baseline code is distributed under the **MIT License**, as found in the
-LICENSE file. The **EgoEMG dataset** is released under **CC-BY-NC-4.0** for
-research use. Portions of this codebase are derived from
-[emg2pose](https://github.com/facebookresearch/emg2pose), distributed under
-CC-BY-NC-SA-4.0.
-
-Third-party assets remain subject to their original licenses (UmeTrack,
-the MANO model, and pretrained vision backbones).
+Project-authored code is distributed under the **MIT License**. This repository
+also contains third-party material with different terms, including UmeTrack
+(CC-BY-NC-4.0); the current **EgoEMG dataset is not released**. See
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and the license files in the
+corresponding directories before use or redistribution.
 
 ## 📖 Citing EgoEMG
 
-The paper is currently under review. Official citation metadata will be added
-when a public version is available. Until then, please reference this
-repository and the exact commit used for your experiments.
+The paper is currently under review. Until a public paper version is available,
+please cite this repository and the exact commit used for your work.

@@ -1,8 +1,9 @@
 cff-version: 1.2.0
-message: "If you use this dataset or software, please cite it as follows."
+message: "If you use this pre-release software, please cite the repository and exact commit."
 title: "EgoEmg: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation"
-type: dataset
-date-released: "2026-08-04"
+type: software
+version: "0.1.0rc1"
+repository-code: "https://github.com/zhenqis123/EgoEMG"
 authors:
   - given-names: Ziheng
     family-names: Xi
@@ -14,12 +15,4 @@ keywords:
   - egocentric vision
   - sensor fusion
   - EMG
-license: "MIT AND CC-BY-NC-4.0 AND CC-BY-NC-SA-4.0"
-preferred-citation:
-  type: article
-  title: "EgoEmg: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation"
-  authors:
-    - given-names: Ziheng
-      family-names: Xi
-      affiliation: Tsinghua University
-  year: 2026
+license: "LicenseRef-EgoEMG-Composite"
