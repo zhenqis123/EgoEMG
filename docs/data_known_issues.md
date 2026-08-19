@@ -6,30 +6,44 @@
 > - 🟡 待补（原始数据存在，可修复）
 > - ⚫ 不可补（原始数据缺失/从未录制）
 >
-> 最后更新：2026-08-05（ShowEE 视频/IMU 补齐轮次）
+> 最后更新：2026-08-20（EgoEMG imu 通道重排修复轮次）
 
 ---
 
 ## 一、待补问题（🟡）
 
-### 1. EgoEMG 源 imu 为固定模板占位
+### 1. EgoEMG 源 imu 为固定模板占位 → ✅ 已修复（2026-08-20，通道重排）
 
-- **状态**：🟡 待确认原始数据后决定（清零 or 补真实数据）
-- **现象**：`imu` 字段的 EgoEMG 行（episode 0–40，全部 6,616 万行）为固定占位
-  值：`acc=[0, -0.093, -0.195]`, `gyro=[-0.15, -2.301, -3.981]`，无重力分量
-  （|acc|≈0.2，真实 IMU 应为 ~9.8）。v1 老 memmap 与 v2 memmap **逐位一致**
-  → 固定模板占位，非坏传感器数据。
-- **来源**：EgoEMG v2 memmap 的实际构建脚本不在仓库中（仓库内
-  `convert_simple_to_egoemg_v2.py`/`build_manus_memmap.py` 写的是全零；
-  唯一写真实 IMU 的是 `build_showee_memmap.py`）。原始 LeRobot 数据
-  （parquet）本机已丢失，无法确认原始是否有 `observation.imus` 列。
-- **影响**：用 `imu` 训练时 EgoEMG 行无效；README 的 "wrist IMUs" 承诺对
-  EgoEMG 源不成立。
-- **待办**：找到原始 LeRobot 数据（百度网盘/原采集机）→ 检查是否有 IMU
-  列；有则补真实 IMU；没有则把 EgoEMG 行清零（与 Incre 的"无数据=0"
-  约定一致）并修正 README 措辞。
-- **参考**：ShowEE 左腕带 imu 为真实数据（|acc|≈9.8）；新增的
-  `imu_right`/`imu_head`/`imu_wrist_left`/`imu_wrist_right` 均为真实数据。
+- **状态**：✅ 已修复（原诊断部分有误，见下）
+- **真相**：EgoEMG 的 IMU 数据一直是**真实且齐全**的。原始 LeRobot parquet
+  （Windows 采集机 `J:\training_dataset_lerobot_full`，41 episode /
+  66,161,725 行，100% 非零）的 `observation.imu` 列是 **gyro-first**
+  `[gyro×3, acc×3]` 布局（gyro_x 为死轴，恒 0；重力 ~9.2–9.4 m/s² 位于后
+  3 通道）。v2 转换将其**逐位照搬**进按 `[acc, gyro]` 语义使用的 unified
+  字段 → 误诊为"无重力占位数据"。原诊断中"固定模板值
+  [0,-0.093,-0.195]/[-0.15,-2.301,-3.981]"在数据中出现 0 次（当时分析的
+  v1/v2 老 memmap 已删除，无法复核该结论的来源）。
+- **修复**：`scripts/prepare/fix_egoemg_imu_channel_order.py` 对
+  `imu.dat` 的 EgoEMG 行（rows [0, 66,161,725)，已断言连续且 source_id=0）
+  原地置换通道 `[3,4,5,0,1,2]`；备份 `imu.dat.bak_prelayout`（3.2 GB）；
+  manifest `imu_semantics` 已更新（含 `egoemg_layout_fix` 记录）。
+- **验证**：
+  - Windows 原始 parquet 全量扫描报告 `scripts/release/imu_verify_report_windows_original.json`
+    （41/41 episode，`observation.imu` 100% 非零，重力侧=后 3 通道，死轴=ch0）；
+  - 修复后 41/41 episode 的 |acc| p50 与原始报告一致（tol 0.01）；
+  - 与未修改的 `/data/xiziheng/EgoEMG_unified_memmap` 副本逐位等价
+    （EgoEMG 行 = 旧行置换；ShowEE/Incre 行逐位相同）；
+  - 从 Windows 原始 parquet 抽取 ep0 行块（rows 500–600、900000–900100）
+    与修复后 memmap **逐位相等**；
+  - 数据集类冒烟：`EgoEmgMemmapDataset(modalities=("imu",))` 读取
+    EgoEMG/ShowEE 窗口 |acc| 中位数 9.5–9.7，两源语义一致。
+- **备注**：11 个 episode（3,4,18,21,22,24,29,30,33,34,35,37,38）|acc|
+  中位数偏低（3.0–7.3）**在原始数据中即如此**（非转换伪影），未做幅值
+  修正，已在 manifest 注明；ep4 为 5 秒退化片段。gyro_x 死轴如实保留。
+- **副本状态**：`/mnt/nvme/xiziheng/EgoEMG_unified_memmap`（活动，已修复；
+  `EgoEMG_release/dataset_egoemg_unified` 是它的符号链接，同步修复）；
+  `/data/xiziheng/EgoEMG_unified_memmap`（合并期快照，**保持 pre-fix**，
+  作为修复前参考，勿再用于训练）。
 
 ### 2. emg_left_filtered 缺失（且 emg_right_filtered 管线不可复现）
 
@@ -129,9 +143,13 @@
 - **未提交 git**：`scripts/prepare/` 下新增脚本（`fix_showee_session_frame_indices`、
   `rebuild_session_metadata`、`rename_webcam_to_head`、`build_showee_session_videos`、
   `build_showee_wrist_zed_indices`、`finalize_release_metadata`、
-  `repair_unfinalized_mp4`、`fill_showee_incre_imu`）、
+  `repair_unfinalized_mp4`、`fill_showee_incre_imu`、
+  `fix_egoemg_imu_channel_order`、`verify_original_lerobot_imu`）、
+  `scripts/release/imu_verify_report_windows_original.json`（原始数据验证报告）、
+  `egoemg/tests/test_egoemg_imu_reorder.py`、
   `scripts/viz/visualize_dataset.py`（统一数据集可视化入口）。
 - **备份文件清理**：两个 memmap 的 `.bak`/`.orig928`/`.npz.bak2/3`/`.json.bak`、
+  `imu.dat.bak_prelayout`（3.2 GB，#1 修复前快照，确认修复稳定后可删）、
   损坏 mkv 的 `.mkv.broken`（3 个，确认修复后可删）。
 - **/tmp 旧 readme 草稿**：`videos_readme2.txt`/`crops_readme2.txt` 等描述旧的
   928-per-action 方案，已被实际发布状态取代。
