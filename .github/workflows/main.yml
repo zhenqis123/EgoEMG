@@ -78,6 +78,7 @@ jobs:
         python -m build --wheel --outdir dist
         python -m pip install --force-reinstall --no-deps dist/*.whl
         python -c 'import importlib.resources as r; import egoemg; assert egoemg.__version__ == "0.1.0rc1"; assert r.files("egoemg.UmeTrack").joinpath("dataset/generic_hand_model.json").is_file()'
+        python -c 'import egoemg.models, egoemg.models.decoders, egoemg.models.featurizers, egoemg.utils, egoemg.lightning, egoemg.test_analysis'
 
     - name: Run unit tests
       run: |
