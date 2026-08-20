@@ -51,11 +51,9 @@
 
 ## 🚧 Release Status
 
-This is a **code pre-release**. The current EgoEMG dataset is still being
-prepared, but an earlier legacy data/checkpoint release is available for the
-canonical EMGFormer, ResNet-18 vision/fusion, evaluation, and visualization
-workflows in this README. It is not the forthcoming dataset release and does
-not make every research recipe under `config/experiment/` portable.
+The canonical workflows in this README — EMGFormer training, ResNet-18
+vision/fusion, evaluation, and visualization — run on the earlier legacy
+data/checkpoint release, not the forthcoming dataset release.
 
 Follow [Legacy Asset Setup](docs/ASSET_SETUP.md) before running these workflows.
 It distinguishes the single-episode preview from the complete legacy asset tree,
@@ -162,6 +160,10 @@ python scripts/viz/visualize_dataset.py vision \
   --episode-id episode_000000 --stride 10 --max-frames 300
 ```
 
+<p align="center">
+  <img src="images/viz_example.jpg" width="70%" alt="vision-mode overlay output: hand meshes, projected mocap markers, and per-hand boxes on the egocentric frame">
+</p>
+
 For the required precomputed-crop behavior and unsupported external assets, see
 [the code pre-release support boundary](docs/PRERELEASE_LIMITATIONS.md). For a
 larger visual check or WiLoR-specific setup notes, see
@@ -252,10 +254,8 @@ python -m egoemg.test_analysis \
 **Vision and fusion** checkpoints use the same `test_analysis` entrypoint;
 their experiment configs enable `center_frame_eval`, which evaluates on
 identical center frames and reports the per-hand MAE. The config must match
-the checkpoint's training setup (EMG channels, window length): the released
-vision/fusion checkpoints were trained with 16 EMG channels
-(`emg2pose_interpolate16` layout) at WL=7790, so use the `*_16ch_wl7790`
-fusion configs:
+the checkpoint's training setup (EMG channels, window length) — the commands
+below pin the matching recipe for each released checkpoint:
 
 ```shell
 # Vision-only ResNet18
