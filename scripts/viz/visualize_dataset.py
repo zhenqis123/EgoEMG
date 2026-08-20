@@ -38,9 +38,9 @@ from typing import Any
 
 import numpy as np
 
-# Importing egoemg.visualization executes its __init__ which eagerly
-# imports matplotlib/plotly/torch; set the headless backend BEFORE that
-# so backend probing never hangs on a headless box.
+# Rendering modes import matplotlib/pyrender lazily; pin the headless
+# backends before any of that runs so backend probing never hangs on a
+# headless box.
 os.environ.setdefault("PYOPENGL_PLATFORM", "osmesa")
 os.environ.setdefault("MPLBACKEND", "Agg")
 os.environ.setdefault(
