@@ -210,8 +210,10 @@ per-sample-weighted MAE, Δavg the fusion gain):
 | ViT-L/14 | Frz. | 5.39 | 5.36 | +0.03 |
 | WiLoR | Frz. | 4.73 | 4.68 | +0.04 |
 
-*The legacy checkpoint bundle covers the fine-tuned ResNet-18 / ViT-S rows and
-their fusions; frozen-backbone rows remain paper-reported only.*
+*The legacy checkpoint bundle covers the fine-tuned ResNet-18 / ViT-S
+vision-only rows, the fine-tuned ResNet-50 / ViT-S fusion rows, and the
+EMGFormer rows. The fine-tuned ResNet-18 fusion row and all frozen-backbone
+rows remain paper-reported only.*
 
 ### Evaluation
 
@@ -251,11 +253,26 @@ python -m egoemg.test_analysis \
   experiment=fusion/vision_resnet18 \
   'checkpoint=checkpoints/vision_resnet18.ckpt'
 
-# EMG+vision fusion (ResNet18 + EMGFormer-S)
+# Vision-only DINOv2 ViT-S/14
 python -m egoemg.test_analysis \
-  experiment=fusion/fusion_rn18_s_center_16ch_wl7790 \
+  experiment=fusion/vision_vit_small \
+  'checkpoint=checkpoints/vision_vit_small.ckpt'
+
+# EMG+vision fusion (ResNet-50 + 8ch EMG featurizer, WL 12000)
+python -m egoemg.test_analysis \
+  experiment=fusion/fusion_rn50_m_center_eval_released \
   'checkpoint=checkpoints/fusion_resnet_emgfusion_center.ckpt'
+
+# EMG+vision fusion (DINOv2 ViT-S/14 + 16ch EMG featurizer, WL 7790)
+python -m egoemg.test_analysis \
+  experiment=fusion/fusion_vits_s_center_eval_released \
+  'checkpoint=checkpoints/fusion_vit_emgfusion_center.ckpt'
 ```
+
+The released fusion checkpoints are the fine-tuned ResNet-50 and ViT-S fusion
+models; the `*_center_eval_released` recipes pin the matching architectures
+and null the training-time branch-initialization paths so only the released
+assets are needed.
 
 Notes for evaluation:
 

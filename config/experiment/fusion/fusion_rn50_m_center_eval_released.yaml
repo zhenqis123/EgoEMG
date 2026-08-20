@@ -1,0 +1,17 @@
+# @package _global_
+# Canonical evaluation recipe for the released legacy checkpoint
+# `fusion_resnet_emgfusion_center.ckpt` (ResNet-50 vision backbone +
+# 8-channel EMG featurizer + 6-layer decoder, window length 12000,
+# center-supervised). The full checkpoint supplies every weight, so the
+# branch-initialization paths of the training recipe are nulled and nothing
+# outside the released asset bundle is required.
+defaults:
+  - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_100e
+  - _self_
+
+vision_resnet_checkpoint: null
+pretrained_emg_checkpoint: null
+train: false
+
+logger:
+  name: fusion_rn50_m_center_eval_released

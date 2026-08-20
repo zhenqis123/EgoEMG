@@ -1,0 +1,17 @@
+# @package _global_
+# Canonical evaluation recipe for the released legacy checkpoint
+# `fusion_vit_emgfusion_center.ckpt` (DINOv2 ViT-S/14 vision backbone +
+# 16-channel EMG featurizer + 3-layer decoder, window length 7790,
+# center-supervised). The full checkpoint supplies every weight, so the
+# branch-initialization paths of the training recipe are nulled and nothing
+# outside the released asset bundle is required.
+defaults:
+  - /experiment/fusion/fusion_vits_s_center_16ch_wl7790
+  - _self_
+
+vision_vit_checkpoint: null
+pretrained_emg_checkpoint: null
+train: false
+
+logger:
+  name: fusion_vits_s_center_eval_released

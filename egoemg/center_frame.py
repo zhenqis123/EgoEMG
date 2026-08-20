@@ -147,7 +147,14 @@ def eval_center_frame(
     for hand in hands:
         # Per-hand dataset so _getitem_center_supervised uses the target hand.
         ds = EgoEmgMemmapDataset(
-            memmap_dir=resolve_path(cfg_or_dataset("egoemg_memmap_dir", default=memmap_dir)),
+            # Prefer the unified memmap like test_analysis._find_memmap_dir;
+            # the legacy egoemg_memmap_dir alias may point at a non-unified
+            # (or absent) pre-merge directory.
+            memmap_dir=resolve_path(
+                cfg_or_dataset(
+                    "egoemg_unified_memmap_dir", default=memmap_dir
+                )
+            ),
             window_length=wl,
             stride=wl,
             allowed_splits=["user", "gesture", "both"],
