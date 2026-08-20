@@ -83,6 +83,8 @@ jobs:
     - name: Run unit tests
       run: |
         set -o pipefail
-        pytest egoemg/tests -q --tb=short 2>&1 | tee /tmp/pytest.log || \
-          (tail -n 30 /tmp/pytest.log | sed 's/^/ERROR: /' | while IFS= read -r line; do \
-             echo "::error::${line}"; done; exit 1)
+        pytest egoemg/tests -q --tb=short -p no:cacheprovider 2>&1 | tee /tmp/pytest.log || \
+          (grep -E "^(FAILED|ERROR)" /tmp/pytest.log | head -n 10 | while IFS= read -r line; do \
+             echo "::error::${line:0:250}"; done; \
+           grep -qE "^(FAILED|ERROR)" /tmp/pytest.log || tail -n 15 /tmp/pytest.log | sed 's/^/TAIL: /' | while IFS= read -r line; do \
+             echo "::error::${line:0:250}"; done; exit 1)
