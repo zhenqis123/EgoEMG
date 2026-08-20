@@ -582,6 +582,35 @@ def run_vision_video(args: argparse.Namespace) -> int:
     if args.max_frames > 0:
         strided_frames = strided_frames[:args.max_frames]
 
+    # Crop production only writes frames with >=2 in-view valid markers, so a
+    # few episode-head frames (notably frame 0 everywhere) have no crop keys
+    # at all. Drop them from the selection with a notice instead of failing
+    # the whole render; genuinely missing crops for retained frames are still
+    # a hard error below.
+    crop_lmdb_probe = Path(args.crops_dir) / f"{args.episode_id}.lmdb"
+    if crop_lmdb_probe.is_dir():
+        import lmdb as _lmdb_probe
+
+        _env = _lmdb_probe.open(str(crop_lmdb_probe), readonly=True, lock=False,
+                                readahead=False)
+        with _env.begin() as _txn:
+            def _has_crop(vfi: int) -> bool:
+                return (
+                    _txn.get(f"{vfi:08d}_L".encode()) is not None
+                    and _txn.get(f"{vfi:08d}_R".encode()) is not None
+                )
+            _kept = [(vfi, mfi) for vfi, mfi in strided_frames if _has_crop(vfi)]
+        _env.close()
+        _dropped = len(strided_frames) - len(_kept)
+        if _dropped:
+            print(f"[{args.episode_id}] skipping {_dropped} selected frame(s) "
+                  "without precomputed crops (no valid markers at capture time)")
+        strided_frames = _kept
+        if not strided_frames:
+            raise RuntimeError(
+                f"None of the selected frames have precomputed crops in "
+                f"{crop_lmdb_probe}; choose different frames/stride.")
+
     output = Path(args.output) if args.output else (
         Path(args.output_dir) / f"{args.episode_id}_vision.mp4")
     output.parent.mkdir(parents=True, exist_ok=True)
