@@ -293,15 +293,25 @@ Notes for evaluation:
   see the coverage note). The EMGFormer rows reproduce with split-level
   offsets that are identical in direction and size across S/M/L (user
   +0.3–0.4°, both −0.7–−1.1°, gesture ±0.6°, overall −0.3–−0.6°; e.g.
-  EMGFormer-S overall 14.1° vs table 14.7). Verified causes that are ruled
-  out: evaluation-code changes (bit-identical results on the pre-change
-  commit) and normalization statistics (the alias file matches the
-  checkpoints' training-time path; swapping in the other stats file degrades
-  S to 16.7°). The residual is a systematic per-split evaluation-state
-  difference against the paper-table measurement environment (pre-merge v2
-  memmap / training-time evaluation), whose original artifacts were deleted
-  (see docs/data_known_issues.md); the table values remain the canonical
-  reference.
+  EMGFormer-S overall 14.1° vs table 14.7). Root cause (traced to the
+  original artifacts): the paper-table EMG rows were measured on the
+  2026-04/05 `aggressive_egoemg` model family — 16-channel
+  `emg2pose_interpolate16` layout, WL 7790, trained on the pre-merge v2
+  memmap's `emg_*_filtered` columns with the original
+  `per_dataset_norm_stats.json` — whereas the released
+  `egoemg_emgformer_*` checkpoints are the later retrains (8-channel
+  `target_hand`, WL 12000, regenerated `filtered_paper` field, alias
+  stats). Both prerequisites of the paper protocol are unrecoverable today:
+  the original checkpoints' training logs were pruned (only a later
+  aggressive-generation survives in the local archive), and the EgoEMG
+  `filtered` columns are all-zero in the unified memmap (only Incre rows
+  carry them; the v2 memmap was deleted). Substitution experiments confirm
+  the gap does not close: the archived aggressive checkpoint on
+  `filtered_paper` degrades to 15–18.6°, and the released checkpoint on the
+  original stats file degrades to 16.7°. Evaluation-code changes are ruled
+  out (bit-identical results on the pre-change commit). The table values
+  remain the canonical paper reference; the released checkpoints' own
+  measured values are the numbers above.
 - All MAE metrics are computed on joint-angle targets stored in **radians**;
   the tables above are converted to degrees for readability. A results.csv
   value of `0.0944` therefore corresponds to `0.0944 * 180 / pi ≈ 5.41°`.
