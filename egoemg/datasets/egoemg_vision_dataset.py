@@ -68,7 +68,7 @@ MODALITY_GROUPS: dict[str, tuple[str, ...]] = {
     ),
     "camera": (
         "mocap_head_transform",
-        "mocap_head_tracked",
+        "mocap_head_valid",
         "mocap_mano_left_world_transform",
         "mocap_mano_right_world_transform",
     ),
@@ -158,7 +158,7 @@ def build_egoemg_vision_index(
 
     frame_split_mm = _load_memmap(memmap_dir, manifest["fields"]["frame_split_id"])
     label_valid_mm = _load_memmap(memmap_dir, manifest["fields"]["generated_label_valid"])
-    tracked_mm = _load_memmap(memmap_dir, manifest["fields"]["mocap_head_tracked"])
+    tracked_mm = _load_memmap(memmap_dir, manifest["fields"]["mocap_head_valid"])
     stale_mm = _load_memmap(memmap_dir, manifest["fields"]["image_head_stale"])
 
     hands = ("left", "right")

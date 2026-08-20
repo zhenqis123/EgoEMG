@@ -1300,7 +1300,7 @@ def main():
     inner_model._forward_center_supervised = original_forward_cs
 
     # ── Filter to only samples with valid mocap (matching verify_training_with_emg.py) ──
-    tracked_mm = _load_mm(Path(args.data_location), "mocap_head_tracked")
+    tracked_mm = _load_mm(Path(args.data_location), "mocap_head_valid")
     stale_mm = _load_mm(Path(args.data_location), "image_head_stale")
     tracked_count = 0
     filtered_results: list[dict] = []

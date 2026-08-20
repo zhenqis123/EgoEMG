@@ -38,7 +38,8 @@ from pathlib import Path
 
 import numpy as np
 
-FIELDS = ("imu_right", "imu_head", "imu_wrist_left", "imu_wrist_right")
+# v3 schema names (was imu_right/imu_head/imu_wrist_left/imu_wrist_right in v2)
+FIELDS = ("imu_band_right", "imu_cam_head", "imu_cam_wrist_left", "imu_cam_wrist_right")
 
 
 def _clean(values) -> list[str]:

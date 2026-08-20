@@ -1,3 +1,6 @@
+# NOTE: this builder emits schema v2 (egoemg_v2_memmap). After merging, run
+# scripts/data/migrate_unified_memmap_v3.py to upgrade the directory to the
+# v3 schema (IMU renames, dead-field drops, scalar mocap validity).
 #!/usr/bin/env python
 """Physically merge EgoEMG + ShowEE + Incre into a single unified memmap.
 

@@ -96,17 +96,15 @@ MODALITY_GROUPS: dict[str, tuple[str, ...]] = {
     "emg": (
         "emg_left_raw",
         "emg_right_raw",
-        "emg_left_filtered",
-        "emg_right_filtered",
         "emg_left_filtered_paper",
         "emg_right_filtered_paper",
     ),
     "imu": (
-        "imu",
-        "imu_right",
-        "imu_head",
-        "imu_wrist_left",
-        "imu_wrist_right",
+        "imu_band_left",
+        "imu_band_right",
+        "imu_cam_head",
+        "imu_cam_wrist_left",
+        "imu_cam_wrist_right",
     ),
     "mocap_hands": (
         "mocap_left_keypoints",
@@ -131,7 +129,7 @@ MODALITY_GROUPS: dict[str, tuple[str, ...]] = {
     "head_mocap": (
         "mocap_head_position",
         "mocap_head_orientation",
-        "mocap_head_tracked",
+        "mocap_head_valid",
         "mocap_head_rigid_markers",
     ),
     "video_index": (
@@ -165,16 +163,12 @@ MODALITY_GROUPS: dict[str, tuple[str, ...]] = {
         "generated_joint_angles_right",
     ),
     "timing": (
-        "timestamp",
         "timestamp_us",
         "episode_index",
         "frame_index",
-        "source_index",
-        "task_index",
         "subject_id",
         "is_first",
         "is_last",
-        "is_terminal",
     ),
 }
 
@@ -329,9 +323,8 @@ class EgoEmgMemmapDataset(Dataset):
                 emg_layout=self.emg_layout,
             )
             # Fail at construction with a config-pointing message when the
-            # preferred EMG variant does not exist for the target hand (e.g.
-            # emg_field_preference=filtered + target_hand=left: the unified
-            # schema has emg_right_filtered only).
+            # preferred EMG variant does not exist for the target hand (the
+            # v3 schema ships raw + filtered_paper for both hands only).
             required_emg = f"emg_{self.target_hand}_{self.emg_field_preference}"
             if (
                 self.emg_field_preference != "raw"
@@ -359,7 +352,7 @@ class EgoEmgMemmapDataset(Dataset):
             if self.per_episode_crops_dir is None:
                 self._frame_fields_to_load |= {
                     "mocap_head_transform",
-                    "mocap_head_tracked",
+                    "mocap_head_valid",
                     "generated_label_valid",
                     f"mocap_{self.target_hand}_keypoints",
                     f"mocap_{self.target_hand}_valid",
@@ -1127,7 +1120,7 @@ class EgoEmgMemmapDataset(Dataset):
         marker_world_seq = np.asarray(result[f"mocap_{hand}_keypoints"], dtype=np.float64)
         marker_valid_seq = np.asarray(result[f"mocap_{hand}_valid"], dtype=bool)
         cam_transform_seq = np.asarray(result["mocap_head_transform"], dtype=np.float64)
-        tracked_seq = np.asarray(result["mocap_head_tracked"], dtype=bool)
+        tracked_seq = np.asarray(result["mocap_head_valid"], dtype=bool)
         label_valid_seq = np.asarray(result["generated_label_valid"], dtype=bool)[:, hand_idx]
 
         for frame_bgr, local_idx, video_frame_idx in zip(
