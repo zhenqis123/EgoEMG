@@ -49,7 +49,7 @@
 - [Setup](#-setup)
 - [Training](#-training)
 - [Visualization](#-visualization)
-- [Legacy Paper Results and Evaluation](#-legacy-paper-results-and-evaluation)
+- [Results and Evaluation](#-results-and-evaluation)
 - [Repository Layout](#-repository-layout)
 - [License](#-license)
 - [Citation](#-citing-egoemg)
@@ -99,13 +99,14 @@ visualization dependencies. `environment.yml` selects the tested CUDA-enabled
 PyTorch build. Download and configure legacy data/checkpoints with
 [Legacy Asset Setup](docs/ASSET_SETUP.md).
 
-## 🚀 Maintainer workflow sketches (unreleased assets required)
+## 🚀 Training
 
 Supervised EMG, vision, and fusion training use `egoemg.train`; the Hydra
-experiment selects the model family. The listed canonical workflows use the
-legacy assets in [Legacy Asset Setup](docs/ASSET_SETUP.md). Before inspecting a
-different experiment config, run `python scripts/release/audit_portability.py`
-to see whether it has research-only local/private references.
+experiment selects the model family. These are maintainer workflow sketches —
+they require the unreleased legacy assets from
+[Legacy Asset Setup](docs/ASSET_SETUP.md). Before inspecting a different
+experiment config, run `python scripts/release/audit_portability.py` to see
+whether it has research-only local/private references.
 
 > **Hardware:** the reference recipes use NVIDIA GPUs with CUDA 11.8. The EMG
 > example below is a six-GPU run and the fusion example uses five GPUs. For a
@@ -162,18 +163,17 @@ For the required precomputed-crop behavior and unsupported external assets, see
 larger visual check or WiLoR-specific setup notes, see
 [the EgoEMG/WiLoR training guide](docs/egoemg_wilor_training.md).
 
-## 📊 Legacy paper results and evaluation
+## 📊 Results and evaluation
 
-The following numbers are from the legacy release. Rows backed by the legacy
-data and checkpoint assets described in [Legacy Asset Setup](docs/ASSET_SETUP.md)
-are reproducible with the matching commands below; other rows remain
-paper-reported only.
+EMGFormer rows are measured with the released checkpoints via the commands
+below (2026-08-20, single RTX 4090, fresh clone + the
+[legacy assets](docs/ASSET_SETUP.md)); prior-work rows are paper-reported,
+as their checkpoints are not part of the bundle. All tables report MAE in
+degrees.
 
-**EMG-to-pose on EgoEMG** (MAE in degrees, per-user mean ± std across the
-Gesture / User / Both test splits; Avg. is the per-sample-weighted MAE across
-the three test splits). The EMGFormer rows are **measured with the released
-WL=12000 checkpoints** via the evaluation commands below (2026-08-20, single
-RTX 4090, fresh clone + legacy assets):
+**EMG-to-pose on EgoEMG** (per-user mean ± std across the Gesture / User /
+Both test splits; Avg. is the per-sample-weighted MAE across the three
+splits):
 
 | Method | Params | Gesture | User | Both | Avg. |
 |--------|--------|---------|------|------|------|
@@ -183,18 +183,15 @@ RTX 4090, fresh clone + legacy assets):
 | vEMG2Pose | 6.0M | 15.0 ± 1.4 | 16.3 ± 1.7 | 17.3 ± 1.3 | 15.9 |
 | NeuroPose | 6.4M | 15.8 ± 1.2 | 15.7 ± 1.3 | 16.3 ± 0.7 | 16.1 |
 
-For reference, the paper reports for the same three variants
-(Gesture/User/Both/Avg): S 12.8/15.6/17.4/14.7, M 11.8/15.6/17.4/14.2,
-L 11.7/15.7/17.7/14.2 — the released checkpoints' measured Avg improves on
-all three rows. The paper values were produced by an earlier
-(16-channel, WL=7790) evaluation generation whose exact measurement state is
-no longer recoverable; see the provenance note below.
+For reference, the paper reports S 12.8/15.6/17.4/14.7,
+M 11.8/15.6/17.4/14.2, and L 11.7/15.7/17.7/14.2 (Gesture/User/Both/Avg);
+the measured Avg improves on all three. Those values come from an earlier
+16-channel, WL=7790 evaluation generation that predates the released
+checkpoints (provenance traced in
+[docs/code_review_findings_20260820.md](docs/code_review_findings_20260820.md)).
 
-*`vEMG2Pose` and `NeuroPose` rows are paper-reported; their checkpoints are not
-released.*
-
-**EMG-to-pose on the EMG2Pose benchmark** (MAE in degrees, per-user mean ± std
-across the User / Stage / User+Stage test splits):
+**EMG-to-pose on the EMG2Pose benchmark** (per-user mean ± std across the
+User / Stage / User+Stage test splits):
 
 | Method | Params | User | Stage | User+Stage |
 |--------|--------|------|-------|------------|
@@ -205,9 +202,9 @@ across the User / Stage / User+Stage test splits):
 *The legacy checkpoint bundle contains the EMGFormer-S/M/L checkpoints for these
 rows; prior-work rows remain paper-reported only.*
 
-**Vision-only → EMG+vision fusion on EgoEMG** (MAE in degrees on identical
-center frames; Frz./FT = frozen/fine-tuned visual predictor; Avg. is the
-per-sample-weighted MAE, Δavg the fusion gain):
+**Vision-only → EMG+vision fusion on EgoEMG** (identical center frames;
+Frz./FT = frozen/fine-tuned visual predictor; Avg. is the per-sample-weighted
+MAE, Δavg the fusion gain):
 
 | Backbone | Update | Vision Avg | Fusion Avg | Δavg |
 |----------|--------|-----------|-----------|------|
@@ -294,24 +291,11 @@ Notes for evaluation:
   (the model window must fit inside the episode). Expected, not a bug.
 - `results.csv` is written into the Hydra run directory (`logs/<date>/...`),
   never into the repo root.
-- Provenance (traced to surviving artifacts on 2026-08-20): the paper's
-  EMGFormer numbers were produced by the 2026-05-04 evaluation of the
-  pre-paper `aggressive_egoemg_wo_aug` family — 16ch layout, WL 7790, the
-  pre-merge v2 memmap's `filtered` columns, original stats
-  (`logs_archive_20260802/2026-05-04/*` matches the printed Gesture/Both
-  columns to 0.1–0.25°; the checkpoints survive under
-  `ablation_study/checkpoints/tmp_eval/`). Re-evaluating that family today
-  is data-blocked (the EgoEMG `filtered` columns are all-zero in the
-  unified memmap; the v2 memmap was deleted), so the table above quotes the
-  released WL=12000 checkpoints' measured values as the canonical,
-  command-reproducible numbers, with the paper values alongside for
-  reference.
-- All MAE metrics are computed on joint-angle targets stored in **radians**;
-  the tables above are converted to degrees for readability. A results.csv
-  value of `0.0944` therefore corresponds to `0.0944 * 180 / pi ≈ 5.41°`.
-  `eval_dataset_name=egoemg_unified` must be passed when evaluating
-  checkpoints trained on the unified memmap (released legacy checkpoints use
-  the default `egoemg` statistics keys).
+- MAE is computed on joint-angle targets stored in **radians**; the tables
+  above are converted to degrees (`0.0944 rad ≈ 5.41°`). The evaluation
+  recipes already pin the per-dataset statistics keys that match each
+  released checkpoint's training; only custom configs evaluating
+  unified-trained checkpoints need `+eval_dataset_name=egoemg_unified`.
 
 `test_analysis` is the single evaluation tool for all three modalities
 (EMG generalization splits with per-group stats, and vision/fusion center-frame
