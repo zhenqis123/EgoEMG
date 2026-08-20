@@ -274,8 +274,11 @@ class EmgPretrainModule(pl.LightningModule):
                 print(f"[DEBUG] Model has no keystroke_head attribute")
             return torch.tensor(0.0, device=batch["emg"].device), False
 
-        # Check if any samples have keystroke labels
-        has_labels = any(len(labels) > 0 for labels in keystroke_labels)
+        # Check if any samples have keystroke labels (entries may be None in
+        # mixed-dataset batches whose sample lacked the field)
+        has_labels = any(
+            labels is not None and len(labels) > 0 for labels in keystroke_labels
+        )
         if not has_labels:
             if not hasattr(self, '_keystroke_debug_empty_labels'):
                 self._keystroke_debug_empty_labels = True
@@ -304,12 +307,17 @@ class EmgPretrainModule(pl.LightningModule):
         if T == 0:
             return torch.tensor(0.0, device=batch["emg"].device), False
         # Prepare targets and lengths
-        max_target_len = max(len(labels) for labels in keystroke_labels)
+        max_target_len = max(
+            (len(labels) for labels in keystroke_labels if labels is not None),
+            default=0,
+        )
+        if max_target_len == 0:
+            return torch.tensor(0.0, device=batch["emg"].device), False
         targets = torch.full((N, max_target_len), 0, dtype=torch.long, device=keystroke_logits.device)
         target_lengths = torch.zeros(N, dtype=torch.long, device=keystroke_logits.device)
 
         for i, labels in enumerate(keystroke_labels):
-            if len(labels) > 0:
+            if labels is not None and len(labels) > 0:
                 targets[i, :len(labels)] = labels
                 target_lengths[i] = len(labels)
 

@@ -18,16 +18,35 @@ module:
     dropout: 0.15
     in_channels: 256
   recon_head:
-    in_channels: 256
+    _target_: egoemg.models.heads.mlp.MLPHead
+    in_channels: 256  # decoder model_dim; out = 16ch EMG reconstruction
     out_channels: 16
+    hidden_sizes: [512]
+    activation: relu
+    dropout: 0.1
   angle_head:
+    _target_: egoemg.models.heads.mlp.MLPHead
     in_channels: 256
     out_channels: 22
+    hidden_sizes: [512]
+    activation: relu
+    dropout: 0.1
   gesture_head:
+    _target_: egoemg.models.heads.mlp.MLPHead
     in_channels: 256
     out_channels: ${gesture_num_classes}
+    hidden_sizes: [512]
+    activation: relu
+    dropout: 0.1
   keystroke_head:
+    _target_: egoemg.models.heads.mlp.MLPHead
     in_channels: 256
+    # len(CharacterSet().allowed_keys) — must match the CTC charset used by
+    # lightning_pretrain (verified via its runtime assertion).
+    out_channels: 98
+    hidden_sizes: [512]
+    activation: relu
+    dropout: 0.1
 
 num_workers: 12
 

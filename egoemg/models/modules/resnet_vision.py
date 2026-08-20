@@ -48,7 +48,14 @@ class ResNetVisionPose(nn.Module):
             )
 
         resnet_fn, weights_cls = _RESNET_BUILDERS[backbone_type]
-        weights = getattr(tv_models, weights_cls).IMAGENET1K_V1 if pretrained else None
+        import os
+
+        _offline = os.environ.get("EGOEMG_NO_PRETRAINED_DOWNLOAD", "") not in ("", "0")
+        weights = (
+            getattr(tv_models, weights_cls).IMAGENET1K_V1
+            if pretrained and not _offline
+            else None
+        )
         resnet = getattr(tv_models, resnet_fn)(weights=weights)
         self.backbone = nn.Sequential(
             resnet.conv1,

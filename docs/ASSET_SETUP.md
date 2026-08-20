@@ -122,3 +122,59 @@ precomputed LMDB crops; it does not derive crops from bounding boxes at runtime.
 - Start with the preview package for a visualization smoke check, then use the
   complete legacy tree for training and benchmark evaluation.
 
+
+## 7. IMU channel-order fix (2026-08-20)
+
+The EgoEMG source wrist band streams its IMU gyro-first
+(`[gyro_x, gyro_y, gyro_z, acc_x, acc_y, acc_z]`, gyro_x dead/always 0), but
+the unified memmap documents — and all consumers expect — accel-first
+`[acc, gyro]`. Legacy-release copies of `dataset_egoemg_unified/` uploaded
+before 2026-08-20 store the EgoEMG rows (episodes 0–40) with the halves
+swapped; the ShowEE/Incre rows were always correct.
+
+**Check whether a copy needs the fix** (gravity should sit in the first three
+channels; pre-fix copies read ~0.2 there):
+
+```shell
+python - <<'PY'
+import numpy as np, json
+root = "<path to EgoEMG_unified_memmap>"
+m = json.load(open(f"{root}/manifest.json"))
+n = m["fields"]["imu"]["shape"][0]
+imu = np.memmap(f"{root}/imu.dat", dtype="float32", mode="r", shape=(n, 6))
+p50 = np.percentile(np.linalg.norm(imu[:1_000_000:10, :3], axis=1), 50)
+print("first-half |.| p50 =", round(float(p50), 2), "->", "FIXED" if p50 > 7 else "NEEDS FIX")
+PY
+```
+
+**Repair a downloaded copy in place** (reversible; keeps a 3.2 GB backup next
+to the file):
+
+```shell
+python scripts/prepare/fix_egoemg_imu_channel_order.py \
+  --memmap-dir <path to EgoEMG_unified_memmap> --apply
+```
+
+**Verify against the canonical fixed files:**
+
+| File | SHA-256 |
+| --- | --- |
+| `imu.dat` | `9a0bb4565272f746f35b6a2922e7ba421e4f485fb87f9f2c01260df825b01a6e` |
+| `manifest.json` | `3aa0a7abe04a1f698e8e51e6b6c5e7b1cb8b87352aead35cf87874bafee7e8c8` |
+
+**Maintainer: patching the Baidu NetDisk copy.** Only two files changed, so
+replace them in the cloud package instead of re-uploading ~170 GB (requires a
+logged-in BaiduPCS-Go; adjust `/EgoEMG_release/dataset_egoemg_unified/` to
+the package's actual remote directory):
+
+```shell
+BaiduPCS-Go upload /mnt/nvme/xiziheng/EgoEMG_unified_memmap/imu.dat      /EgoEMG_release/dataset_egoemg_unified/imu.dat
+BaiduPCS-Go upload /mnt/nvme/xiziheng/EgoEMG_unified_memmap/manifest.json /EgoEMG_release/dataset_egoemg_unified/manifest.json
+# verify
+BaiduPCS-Go md5sum /EgoEMG_release/dataset_egoemg_unified/imu.dat
+```
+
+Post-fix verification evidence (original parquet bitwise comparison,
+per-episode gravity statistics, ShowEE/Incre guard checksums) is recorded in
+`docs/data_known_issues.md` #1 and
+`scripts/release/imu_verify_report_windows_original.json`.

@@ -322,12 +322,31 @@ class EgoEmgMemmapDataset(Dataset):
         # "joint_angles" pulls both hands). Remove fields for the non-target hand
         # and the non-preferred EMG variant before opening memmaps.
         if self.target_hand is not None:
-            self._frame_fields_to_load = self._prune_hand_fields(
+            pruned = self._prune_hand_fields(
                 self._frame_fields_to_load,
                 target_hand=self.target_hand,
                 emg_field_preference=self.emg_field_preference,
                 emg_layout=self.emg_layout,
             )
+            # Fail at construction with a config-pointing message when the
+            # preferred EMG variant does not exist for the target hand (e.g.
+            # emg_field_preference=filtered + target_hand=left: the unified
+            # schema has emg_right_filtered only).
+            required_emg = f"emg_{self.target_hand}_{self.emg_field_preference}"
+            if (
+                self.emg_field_preference != "raw"
+                and "emg" in (self.modalities or ("emg",))
+                and required_emg not in self._manifest["fields"]
+            ):
+                raise ValueError(
+                    f"emg_field_preference={self.emg_field_preference!r} with "
+                    f"target_hand={self.target_hand!r} requires the memmap field "
+                    f"{required_emg!r}, which does not exist. Available EMG "
+                    f"variants: "
+                    f"{sorted(f for f in self._manifest['fields'] if f.startswith('emg_'))}. "
+                    "Use emg_field_preference=raw or filtered_paper."
+                )
+            self._frame_fields_to_load = pruned
         if self.skip_emg_loading:
             emg_fields = {f for f in self._frame_fields_to_load if f.startswith("emg_")}
             self._frame_fields_to_load -= emg_fields
@@ -1066,8 +1085,12 @@ class EgoEmgMemmapDataset(Dataset):
         # Read from pre-crops if available, otherwise decode from video
         if self.per_episode_crops_dir is not None:
             frames_rgb = self._read_episode_crops(episode_id, video_frame_indices, hand_code)
+            crops_valid = frames_rgb is not None
             if frames_rgb is None:
-                # Crops not available - return placeholder so batch can collate
+                # Crops not available - return placeholder so batch can collate,
+                # but mark every frame INVALID so losses/eval exclude it (the
+                # same contract as the vision-only and center-supervised fast
+                # paths).
                 frames_rgb = np.zeros(
                     (len(video_frame_indices), self.vision_patch_size, self.vision_patch_size, 3),
                     dtype=np.uint8,
@@ -1086,7 +1109,7 @@ class EgoEmgMemmapDataset(Dataset):
                 vision_img = vision_img[0]
             return {
                 "vision_img": vision_img.astype(np.float32),
-                "vision_valid_mask": np.asarray([True] * len(frames_rgb), dtype=bool),
+                "vision_valid_mask": np.asarray([crops_valid] * len(frames_rgb), dtype=bool),
                 "vision_frame_indices": np.asarray(video_frame_indices, dtype=np.int64),
             }
 

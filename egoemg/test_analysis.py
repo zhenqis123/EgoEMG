@@ -251,7 +251,9 @@ class EMG2PoseEvaluation:
         ckpt_path = os.path.abspath(ckpt_path)
 
         # Detect if this is a pretrain checkpoint
-        checkpoint = torch.load(ckpt_path, map_location="cpu")
+        # Checkpoints record OmegaConf hyperparameters that PyTorch 2.6+'s
+        # weights-only default cannot deserialize (trusted local artifact).
+        checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=False)
         state_dict = _extract_state_dict(checkpoint)
         is_pretrain = _is_pretrain_checkpoint(state_dict)
 
@@ -311,6 +313,9 @@ class EMG2PoseEvaluation:
                         f"Note: {key}={hp_val} does not exist on this machine; "
                         "skipping pretrained-init load during evaluation"
                     )
+            # Evaluation machines may be offline; trained weights come from
+            # the checkpoint itself, so suppress ImageNet/DINO init downloads.
+            os.environ.setdefault("EGOEMG_NO_PRETRAINED_DOWNLOAD", "1")
             module = module.__class__.load_from_checkpoint(ckpt_path, **kwargs)
 
         module.eval()
@@ -348,6 +353,7 @@ class EMG2PoseEvaluation:
 
         dataloaders = []
         group_names = []
+        group_keys: list[tuple[str, str]] = []  # (split_name, hand) per entry
         wrapped_datasets = []  # stored for per-group evaluation
 
         for split_name in splits:
@@ -400,7 +406,9 @@ class EMG2PoseEvaluation:
                     group_names.append(config_group_names[len(group_names)])
                 else:
                     group_names.append(f"{split_name}/{hand}")
+                group_keys.append((split_name, hand))
         self._egoemg_group_names = group_names
+        self._egoemg_group_keys = group_keys
         self._egoemg_wrapped_datasets = wrapped_datasets
         return dataloaders
 
@@ -638,9 +646,9 @@ class EMG2PoseEvaluation:
         module.to(device)
         module.eval()
 
-        # Datasets are stored in order: user/left, user/right, gesture/left,
-        # gesture/right, both/left, both/right
-        datasets = self._egoemg_wrapped_datasets
+        # Pair datasets by their (split, hand) build key instead of position:
+        # any skipped empty split/hand must not shift the pairing.
+        by_key = dict(zip(self._egoemg_group_keys, self._egoemg_wrapped_datasets))
         split_names = ["user", "gesture", "both"]
         pooled_stats: dict[str, dict] = {}
 
@@ -648,9 +656,13 @@ class EMG2PoseEvaluation:
         all_sum = 0.0
         all_cnt = 0
 
-        for pair_idx, split_name in enumerate(split_names):
-            left_ds = datasets[pair_idx * 2]
-            right_ds = datasets[pair_idx * 2 + 1]
+        for split_name in split_names:
+            left_ds = by_key.get((split_name, "left"))
+            right_ds = by_key.get((split_name, "right"))
+            if left_ds is None or right_ds is None:
+                print(f"Note: pooled evaluation skipped '{split_name}' "
+                      "(one hand's dataset was empty)")
+                continue
 
             # ── Build index metadata for both hands ──
             # We process left and right separately but pool by subject name.

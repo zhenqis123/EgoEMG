@@ -6,9 +6,12 @@ se:
   residual: true
   mode: global
 
+# The pretraining corpus (emg2pose_v3 / emg2qwerty / Ninapro-relabeled) is
+# harmonized to 16 EMG channels by the datasets, so the first conv must
+# accept 16. (tds_slim stays 8ch for the unified EgoEMG 8ch layout.)
 conv_blocks:
   - _target_: egoemg.models.featurizers.tds.Conv1dBlock
-    in_channels: 8
+    in_channels: 16
     out_channels: 256
     kernel_size: 11
     stride: 5

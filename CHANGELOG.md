@@ -24,6 +24,21 @@ All notable changes are recorded in this file.
   scripts support surface in `scripts/README.md`.
 - Records the original-data IMU verification report at
   `scripts/release/imu_verify_report_windows_original.json`.
+- Review-driven correctness batch (independent five-agent audit, tracked in
+  `docs/code_review_findings_20260820.md`): fixes the SDPA bool-mask semantic
+  inversion in rotary attention (future leakage + NaN under `causal=true`),
+  the multitask pretraining heads missing `_target_` and the 8-vs-16-channel
+  featurizer mismatch, vision validity on missing precomputed crops, MixUp
+  target/mask consistency, the ResNet `head_vision.` double-prefix strip,
+  `weights_only` handling for checkpoint loads, center-frame robustness
+  (name-based split resolution, CPU fallback, configurable EMG preference),
+  keystroke collate/consumer None-safety, offline evaluation (no ImageNet
+  downloads), pooled-evaluation pairing by key, dtype-preserving numpy
+  augmentations, and early validation of missing EMG variants. Center-frame
+  evaluation keeps including missing-crop black frames by maintainer decision.
+- Documents the legacy-release IMU channel-order fix for downloaders
+  (checksums, self-patch command, and a BaiduPCS-Go cloud-patch runbook in
+  `docs/ASSET_SETUP.md` §7) and notes it in the README release status.
 - Static-analysis cleanup: removes unused imports and unused locals across the
   package, declares the visualization re-export surface with `__all__`, and
   extends CI lint to fail on unused-import/unused-variable regressions in the

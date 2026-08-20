@@ -21,7 +21,26 @@
 | F11 | 评估m1/文档m3 | vision 模式 overlay MP4 在 LMDB/crop key 校验前创建，失败遗留空文件（与 PRERELEASE 契约字面不符） | 三个 writer 统一移到全部校验之后 |
 | F12 | 文档m1,m2,m4,m6,m8 | scripts/README 指向错误/缺目录、emgformer_small 头注释 16ch↔8ch、config_architecture 组名过时、VIZ_README 字段名错 | 已逐一修正；m6（README 提及 emg2pose/ 目录）、m7（python badge）下一批 |
 
-## 批次二：待修（按影响排序，均需配测试）
+## 批次二：修复状态（2026-08-20 第二轮，commit `Apply batch-two review fixes...`）
+
+| # | 状态 | 说明 |
+|---|---|---|
+| D1 | ✅ 已修 | pretrain_multitask 三头补 `_target_`（keystroke out=98=CharacterSet）；tds_no_out 首 conv 8→16ch（预训练语料统一 16ch）；新增 2 项配置级测试 |
+| D2 | 📌 按设计关闭 | 维护者裁决：center-frame 评估纳入缺 crop 黑图为**预期行为**，不改（发布数字口径保持） |
+| D3 | ✅ 已修 | SDPA bool mask 进入前取反（MHA↔SDPA 语义差）；3 项回归测试（无未来泄漏/无 NaN/key_padding 隔离） |
+| D4 | ⏸ 暂缓 | eval_center_stride 无 split 检索路径不一致——被全部在用配置遮蔽；修复需重构 block 索引，单独一轮处理 |
+| D5 | ✅ 已修 | `_build_vision_sample` 缺 crops 时 vision_valid=False（与快速路径对齐） |
+| D6 | ✅ 已修 | 批级 MixUp 以同系数混合 label_valid_mask（>0.5 阈值） |
+| D7 | ✅ 已修 | ResNet 分支 `head_vision.` 键双重剥前缀；核实 DINOv2/WiLoR 分支本就正确（审查报告对 WiLoR 的指控不成立） |
+| D8 | ✅ 已修 | train/test_analysis 的 torch.load 补 weights_only=False；移除 PL2.5 无效 kwarg |
+| D9 | ✅ 已修 | center_frame：split id 按 manifest labels 名字解析（回退 [1,2,3]）、设备自适应（CPU 可跑）、EMG preference 配置化（默认 filtered_paper） |
+| D10 | ✅ 已修 | collate keystroke 全批探测 + 消费端 None 安全 |
+| D11 | ✅ 已修 | EGOEMG_NO_PRETRAINED_DOWNLOAD=1 环境开关（resnet/timm 两构造点），评估加载检查点时自动设置 |
+| D12 | ✅ 已修 | `_evaluate_egoemg_pooled` 按 (split,hand) 键配对，缺手跳过并提示 |
+| D13 | ⏸ 暂缓 | RotationAugmentation 归一化后 roll 的语义问题需增强策略复核（涉及已训练配方语义），单独立项 |
+| D14 | ✅ 部分 | float64 提升修复；EMG variant 缺失改为构造期明确报错；`_prune_hand_fields` 静默丢弃告警暂缓（需模态上下文重构） |
+
+## 批次二原清单（留档）
 
 | # | 来源 | 问题 | 备注 |
 |---|---|---|---|

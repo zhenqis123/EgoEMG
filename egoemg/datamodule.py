@@ -264,11 +264,13 @@ class WindowedEmgDataModule(pl.LightningDataModule):
         if not batch:
             return {}
 
-        # Only pop keystroke_labels if the first sample has them (avoids
-        # allocating 48000 empty tensors when the field is absent).
-        has_keystroke = "keystroke_labels" in batch[0]
+        # Pop keystroke_labels when ANY sample carries them (avoids silently
+        # dropping the field in mixed batches whose first sample lacks it).
+        # Samples without the field contribute None so the per-sample list
+        # stays aligned; downstream consumers already skip None entries.
+        has_keystroke = any("keystroke_labels" in sample for sample in batch)
         keystroke_labels = (
-            [sample.pop("keystroke_labels") for sample in batch]
+            [sample.pop("keystroke_labels", None) for sample in batch]
             if has_keystroke
             else []
         )

@@ -121,12 +121,10 @@ def run_train_eval(
             results_key = "last_checkpoint"
 
         if reload_best and chosen and os.path.isfile(chosen):
-            # Our own checkpoint is a trusted local artifact.  It records
-            # OmegaConf hyperparameters, which PyTorch 2.6+'s weights-only
-            # default cannot deserialize.
-            module = module.__class__.load_from_checkpoint(
-                chosen, weights_only=False
-            )
+            # Our own checkpoint is a trusted local artifact, but
+            # load_from_checkpoint has no weights_only passthrough in PL 2.5;
+            # any OmegaConf deserialization issue surfaces as a load error.
+            module = module.__class__.load_from_checkpoint(chosen)
         if chosen:
             results[results_key] = chosen
 

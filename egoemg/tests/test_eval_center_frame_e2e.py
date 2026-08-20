@@ -37,6 +37,9 @@ class _StubModule:
     def cuda(self):
         return self
 
+    def to(self, device):
+        return self
+
     def eval(self):
         return self
 

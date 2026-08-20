@@ -35,6 +35,12 @@ def collect_val_centers(
     """
     m = json.load(open(memmap_dir / "manifest.json"))
     n = m["total_rows"]
+    # Resolve val split ids by name so a memmap with a different split-table
+    # order is not silently mis-selected (legacy hardcode was [1, 2, 3]).
+    labels = list(m.get("frame_split_labels") or [])
+    val_split_ids = [labels.index(name) for name in ("user", "gesture", "both") if name in labels]
+    if not val_split_ids:
+        val_split_ids = [1, 2, 3]
     episode_idx = np.memmap(
         memmap_dir / "episode_index.dat", dtype=np.int64, mode="r", shape=(n,)
     )
@@ -56,7 +62,7 @@ def collect_val_centers(
             continue
         starts = s0 + np.arange(n_windows) * REF_WL
         centers = starts + REF_WL // 2
-        val_mask = np.isin(split[centers], [1, 2, 3])  # user + gesture + both
+        val_mask = np.isin(split[centers], val_split_ids)  # user + gesture + both
         val_starts = starts[val_mask]
         val_centers = centers[val_mask]
         if required_window_length is not None:
@@ -113,7 +119,8 @@ def eval_center_frame(
     centers = collect_val_centers(memmap_dir, center_window_length)
     wl = int(cfg.datamodule.window_length)
     module = _load_module(cfg, ckpt_path)
-    module.cuda().eval()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    module.to(device).eval()
     model = module.model
 
     results: dict[str, dict] = {}
@@ -146,7 +153,9 @@ def eval_center_frame(
             allowed_splits=["user", "gesture", "both"],
             modalities=["emg", "joint_angles", "labels"],
             target_hand=hand,
-            emg_field_preference="filtered_paper",
+            emg_field_preference=cfg_or_dataset(
+                "egoemg_emg_field_preference", default="filtered_paper"
+            ),
             emg_layout=cfg_or_dataset("egoemg_emg_layout", default="target_hand"),
             emg2pose_channel_indices=cfg_or_dataset(
                 "egoemg_emg2pose_channel_indices", default=None
@@ -207,9 +216,9 @@ def eval_center_frame(
                     batch = {}
                     for k, v in sample.items():
                         if isinstance(v, np.ndarray):
-                            batch[k] = torch.from_numpy(v).float().cuda().unsqueeze(0)
+                            batch[k] = torch.from_numpy(v).float().to(device).unsqueeze(0)
                         elif isinstance(v, torch.Tensor):
-                            batch[k] = v.cuda() if v.ndim else v.cuda().unsqueeze(0)
+                            batch[k] = v.to(device) if v.ndim else v.to(device).unsqueeze(0)
                         else:
                             batch[k] = v
                     out = model(batch)

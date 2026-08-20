@@ -501,4 +501,16 @@ class BatchAugmentation(nn.Module):
                 tgt_f * lam_t + tgt_f[perm] * (1.0 - lam_t)
             ).to(tgt.dtype)
 
+        # Blend the validity mask with the same coefficient: when the partner
+        # sample's target is an invalid placeholder (e.g. Incre left-hand zero
+        # poses), the mixed target is only partially trustworthy, so the loss
+        # mask must reflect the same mixture instead of keeping the gated
+        # sample's original mask.
+        mask = batch.get("label_valid_mask")
+        if mask is not None and torch.is_tensor(mask):
+            lam_m = lam.view(B, *([1] * (mask.dim() - 1)))
+            mask_f = mask.to(torch.float32)
+            mixed_mask = mask_f * lam_m + mask_f[perm] * (1.0 - lam_m)
+            batch["label_valid_mask"] = (mixed_mask > 0.5).to(mask.dtype)
+
         return batch

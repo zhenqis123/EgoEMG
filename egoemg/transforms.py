@@ -900,7 +900,7 @@ class BaselineDrift:
         else:
             scale = np.full((1, 1), np.std(x))
 
-        drift = np.zeros_like(x, dtype=float)
+        drift = np.zeros_like(x, dtype=x.dtype)
         if use_sine:
             freq = np.random.uniform(self.min_freq, self.max_freq)
             phase = np.random.uniform(
@@ -968,7 +968,7 @@ class PowerlineNoise:
         else:
             scale = np.full((1, 1), np.std(x))
 
-        noise = np.zeros_like(x, dtype=float)
+        noise = np.zeros_like(x, dtype=x.dtype)
         for harmonic in range(1, self.max_harmonic + 1):
             freq = base * harmonic
             if freq >= nyquist:

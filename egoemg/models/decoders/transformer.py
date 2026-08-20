@@ -122,11 +122,17 @@ class RotaryMultiheadAttention(nn.Module):
                 mask_val = torch.finfo(combined_mask.dtype).min
                 combined_mask = combined_mask + key_mask.to(combined_mask.dtype) * mask_val
 
+        # nn.MultiheadAttention semantics: bool True = MASKED (forbidden).
+        # F.scaled_dot_product_attention semantics: bool True = ALLOWED.
+        # The masks above are built/combined in MHA semantics (True=forbidden,
+        # float=additive bias), so invert bool masks before handing them to
+        # SDPA; float masks are additive in both APIs and pass through.
+        sdpa_mask = ~combined_mask if combined_mask is not None and combined_mask.dtype == torch.bool else combined_mask
         attn = F.scaled_dot_product_attention(
             q,
             k,
             v,
-            attn_mask=combined_mask,
+            attn_mask=sdpa_mask,
             dropout_p=self.dropout if self.training else 0.0,
             is_causal=is_causal,
         )

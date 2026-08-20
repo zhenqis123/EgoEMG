@@ -101,7 +101,9 @@ def _load_from_checkpoint(config: DictConfig):
     """Build module then load backbone + head weights from a checkpoint file."""
     log.info(f"Loading from checkpoint {config.checkpoint}")
     ckpt_path = Path(config.checkpoint).expanduser()
-    checkpoint = torch.load(ckpt_path, map_location="cpu")
+    # Checkpoints record OmegaConf hyperparameters that PyTorch 2.6+'s
+    # weights-only default cannot deserialize (trusted local artifact).
+    checkpoint = torch.load(ckpt_path, map_location="cpu", weights_only=False)
     state_dict = _extract_state_dict(checkpoint)
     strict = bool(config.get("pretrained_strict", False))
 

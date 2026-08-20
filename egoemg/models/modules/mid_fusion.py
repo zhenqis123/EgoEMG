@@ -820,9 +820,12 @@ class MidFusionPoseFormer(BaseModule):
             has_local_pretrained = bool(
                 pretrained_path and Path(pretrained_path).is_file()
             )
+            import os
+
+            _offline = os.environ.get("EGOEMG_NO_PRETRAINED_DOWNLOAD", "") not in ("", "0")
             backbone = timm.create_model(
                 timm_name,
-                pretrained=not has_local_pretrained,
+                pretrained=not has_local_pretrained and not _offline,
                 num_classes=0,
                 img_size=256,
             )
@@ -897,7 +900,9 @@ class MidFusionPoseFormer(BaseModule):
                     elif stripped.startswith("head_vision."):
                         headsd[stripped[len("head_vision."):]] = value
                     elif stripped.startswith("head."):
-                        headsd[stripped] = value
+                        # Store pre-stripped like the head_vision family so a
+                        # single (already-stripped) key space is consumed below.
+                        headsd[stripped[len("head."):]] = value
                 if backbonesd:
                     missing, unexpected = backbone.load_state_dict(backbonesd, strict=False)
                     log.info(
@@ -905,9 +910,7 @@ class MidFusionPoseFormer(BaseModule):
                         resnet_name, pretrained_path, len(missing), len(unexpected),
                     )
                 if headsd:
-                    self._pretrained_head_state = {
-                        k[len("head."):]: v for k, v in headsd.items()
-                    }
+                    self._pretrained_head_state = headsd
                     log.info(
                         "Found %d pretrained head keys in %s",
                         len(headsd), pretrained_path,

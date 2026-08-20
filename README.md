@@ -75,6 +75,18 @@ They are not part of this release contract: availability, integrity, license
 scope, compatibility, and result reproducibility are not guaranteed. Do not
 redistribute or cite them as the forthcoming EgoEMG dataset.
 
+### Dataset IMU note (2026-08-20)
+
+The unified memmap's `imu` field carries real wrist-band inertial data for all
+three sources in a single `[acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z]`
+layout (m/s², gravity ≈ 9.2–9.7 at rest; the EgoEMG band's gyro_x axis is
+dead and stored as 0). Legacy-release copies downloaded **before 2026-08-20**
+store the EgoEMG rows with the two halves swapped; run
+`scripts/prepare/fix_egoemg_imu_channel_order.py --memmap-dir <dir> --apply`
+to repair them in place, or re-download `imu.dat` / `manifest.json` — see
+[Legacy Asset Setup](docs/ASSET_SETUP.md#7-imu-channel-order-fix-2026-08-20)
+for checksums and details.
+
 ## ⚙️ Setup
 
 ```shell

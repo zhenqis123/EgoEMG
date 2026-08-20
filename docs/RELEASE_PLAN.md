@@ -313,3 +313,6 @@
 | 2026-08-20 | 静态分析清理轮：包内死导入/死变量清零（42→0），CI lint 扩展至 F401/F811/F841（包内），52 处文档交叉引用全部有效，wheel 重建验证 | commit `c65029f`；flake8 双范围 0 违规；49 tests passed | ZCode |
 | 2026-08-20 | 依赖声明审计：joblib/omegaconf 补入 install_requires（前者为核心 utils 模块级依赖，干净安装即炸）；其余未声明导入（av/timm/zarr/open3d/unidecode）逐一核实为惰性/受保护/惰性工厂路径 | `setup.py`；AST 导入 vs 声明审计脚本输出；`egoemg/datasets/__init__.py` 惰性工厂核实 | ZCode |
 | 2026-08-20 | **干净 runner 全量安装+测试通过（CI 绿）**：修复 5 个仅干净环境暴露的缺陷（wheel 缺 egoemg.models 子包、孤儿 utils/ 目录遮蔽 utils.py、egoemg.tests 缺包标记、viz 路径缺 PyAV 声明、vendored UmeTrack 绝对导入依赖遗留 editable）；CI 安装 `.[dev,vision,viz]` 并在 wheel 步骤校验核心子模块导入 | Actions run 32328956979（Python 3.10/3.11 双绿，49 tests）；分支 `release/0.1.0rc1-prep` @ c50bcee | ZCode |
+| 2026-08-20 | 独立审查轮：5 个并行子 agent（训练流/评估可视化/数据管线/模型/文档一致性），30+ 发现入 `docs/code_review_findings_20260820.md` | 各 agent 报告（含 compose/冒烟/真实数据只读验证）；批次一 12 项修复 commit `dffcdd9` | ZCode |
+| 2026-08-20 | 批次二修复：D1/D3/D5-D12/D14（SDPA mask、pretrain 头、MixUp 一致性、head 前缀、离线评估等 12 项）+ D2 按维护者裁决关闭；54 tests passed | 本文件勾选无需更新（属 §5.1 测试资产新增：test_rotary_attention_mask、test_pretrain_multitask_module）；批次二 commit | ZCode |
+| 2026-08-20 | 数据侧：legacy 发布包 IMU 补齐准备——本地发布视图已含修复（符号链接）、备份移出发布目录、SHA-256 与 BaiduPCS-Go 云补丁 runbook 入 ASSET_SETUP §7、README 增补 IMU 说明 | `docs/ASSET_SETUP.md` §7；checksums（imu.dat 9a0bb456…、manifest 3aa0a7ab…）；云端重传待隧道恢复后执行 | ZCode |
