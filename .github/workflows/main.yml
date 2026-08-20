@@ -80,4 +80,8 @@ jobs:
         python -c 'import importlib.resources as r; import egoemg; assert egoemg.__version__ == "0.1.0rc1"; assert r.files("egoemg.UmeTrack").joinpath("dataset/generic_hand_model.json").is_file()'
 
     - name: Run unit tests
-      run: pytest egoemg/tests -q
+      run: |
+        set -o pipefail
+        pytest egoemg/tests -q --tb=short 2>&1 | tee /tmp/pytest.log || \
+          (tail -n 30 /tmp/pytest.log | sed 's/^/ERROR: /' | while IFS= read -r line; do \
+             echo "::error::${line}"; done; exit 1)
