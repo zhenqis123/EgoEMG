@@ -91,7 +91,7 @@ verts_world = verts_local @ world_R^T + world_t
 2. For left hand, mirror raw MANO geometry along x to recover left-hand chirality
 3. Load the matching per-frame local-to-world transform (`mocap_mano_{hand}_world_transform` or synced `*_world_R.npy` / `*_world_t.npy`)
 4. Apply `verts_world = verts_local @ R^T + t`
-5. Read `mocap_webcam_transform` as `T_W_Camera`, then invert to `T_C_W`
+5. Read `mocap_head_transform` as `T_W_Camera`, then invert to `T_C_W`
 6. `cv2.projectPoints(points_world, rvec, tvec, K_calib, dist_coeffs)`
 7. Map calib resolution (3840×3360) to raw video resolution (1280×720)
 

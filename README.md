@@ -139,6 +139,8 @@ writes an MP4.
 python scripts/viz/visualize_dataset.py vision \
   --memmap-dir ${EMG2POSE_ROOT}/data/EgoEMG_unified_memmap \
   --allintra-root ${EMG2POSE_ROOT}/data/EgoEMG_allintra \
+  --crops-dir ${EMG2POSE_ROOT}/data/EgoEMG_v2_crops \
+  --data-root ${EMG2POSE_ROOT}/data \
   --output-dir /tmp/egoemg_vision_viz \
   --episode-id episode_000000 --stride 10 --max-frames 300
 ```
@@ -254,6 +256,12 @@ Notes for evaluation:
   (the model window must fit inside the episode). Expected, not a bug.
 - `results.csv` is written into the Hydra run directory (`logs/<date>/...`),
   never into the repo root.
+- All MAE metrics are computed on joint-angle targets stored in **radians**;
+  the tables above are converted to degrees for readability. A results.csv
+  value of `0.0944` therefore corresponds to `0.0944 * 180 / pi ≈ 5.41°`.
+  `eval_dataset_name=egoemg_unified` must be passed when evaluating
+  checkpoints trained on the unified memmap (released legacy checkpoints use
+  the default `egoemg` statistics keys).
 
 `test_analysis` is the single evaluation tool for all three modalities
 (EMG generalization splits with per-group stats, and vision/fusion center-frame

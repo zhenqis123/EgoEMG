@@ -26,7 +26,10 @@ SOFTWARE.
 
 This repository's baseline code is licensed under the **MIT License** above.
 
-**EgoEMG dataset**: released under **CC-BY-NC 4.0** for research use.
+**EgoEMG dataset**: the earlier *legacy* data release (see
+`docs/ASSET_SETUP.md`) is available under **CC-BY-NC 4.0** for research use.
+The current, complete EgoEMG dataset release is still in preparation and is
+not yet published.
 
 **Derived code**: portions of this codebase are derived from the emg2pose
 benchmark codebase (https://github.com/facebookresearch/emg2pose), which is

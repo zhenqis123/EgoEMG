@@ -88,12 +88,25 @@
   （保留完整行），尾部 ~1s 的 IMU 数据丢失。
 - **待办**：若原始日志有备份可替换完整文件；否则维持现状（缺失 ~1s）。
 
-### 6. README 模态措辞与实际情况不符
+### 6. README 模态措辞与实际情况不符 → ✅ 仓库 README 已修正（遗留：发布包 README.txt）
 
-- **状态**：🟡 待修正
-- **现象**：README 宣称 "wrist IMUs"（EgoEMG 源无真实 IMU，见 #1）与
-  "external RGB-D"（ZED 录制未保存深度流，见 #8）。
-- **待办**：按实际覆盖范围修正措辞（或补数据后保留）。
+- **状态**：✅ 仓库 README 已在 0.1.0rc1 预发布整理中移除 "wrist IMUs" 与
+  "external RGB-D" 宣称（IMU 部分另见 #1 的通道重排修复）。剩余工作：legacy
+  数据发布包内的 README.txt 如含相同措辞，正式数据发布时一并修正。
+
+### 19. Incre 行 mocap_valid 位与零 keypoints 矛盾
+
+- **状态**：🟡 数据级待决策（重刷位 or 文档标注）
+- **现象**：unified memmap 中 Incre 源（ep 63 起）`mocap_{left,right}_valid`
+  全为 True，但 `mocap_*_keypoints` 全零、manifest `source_policies` 声明
+  "valid=False"。且仓库 `merge_datasets_to_unified_memmap.py` 的
+  `VISION_STALE_TRUE_FIELDS` 缺 `image_wrist_left/right_stale` 两个位
+  （线上数据为 True，说明由旧版脚本产出；重跑仓库脚本反而会得到 False）。
+- **影响**：当前 loss 不消费这些位（只看 label_valid + dataset_name 腕掩码），
+  但任何用 `mocap_valid`/wrist stale 做过滤的下游会被误导。
+- **待办**：用补丁脚本重刷 Incre 行的 valid/stale 位（或至少在 manifest
+  source_policies 中如实标注现状）；同时修 merge 脚本的 stale 位清单。
+- **来源**：2026-08-20 数据管线独立审查（见 docs/code_review_findings_20260820.md P1）。
 
 ---
 

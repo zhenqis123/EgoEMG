@@ -325,7 +325,8 @@ def main():
     # ── Build datamodule to access dataset config ────────────────────────
     make_data_module(cfg)  # kept for its config/dataset validation side effects
 
-    memmap_dir = cfg.get("egoemg_memmap_dir")
+    memmap_dir = cfg.get("egoemg_unified_memmap_dir") or cfg.get("egoemg_memmap_dir")
+    eval_dataset_name = cfg.get("eval_dataset_name", "egoemg")
     emg_layout = cfg.get("egoemg_emg_layout", "emg2pose_interpolate16")
     channel_indices = cfg.get(
         "egoemg_emg2pose_channel_indices", [10, 12, 0, 1, 2, 4, 5, 6]
@@ -363,7 +364,7 @@ def main():
                 channel_interpolate=channel_interpolate,
                 norm_mode="per-dataset",
                 norm_stats_path=norm_stats_path,
-                dataset_name="egoemg",
+                dataset_name=eval_dataset_name,
                 jitter=False,
                 cached_vit_features_dir=vit_features_dir,
                 per_episode_crops_dir=crops_dir,

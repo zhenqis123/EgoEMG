@@ -42,12 +42,15 @@ loss_weights:
   mae: 1
   landmark/fingertip: 0.01
 
-# Trainer framework fields. precision / devices are intentionally NOT set here
-# — they must be provided by a lineage or the experiment to avoid silent
-# fp32-vs-bf16 or wrong-GPU fallbacks. max_epochs is kept as a fallback because
+# Trainer framework fields. precision is intentionally NOT set here — it must
+# be provided by a lineage or the experiment to avoid silent fp32-vs-bf16
+# fallbacks. devices defaults to a single GPU so the documented
+# `trainer.devices=[...]` overrides compose without `+`; multi-GPU runs must
+# override it explicitly. max_epochs is kept as a fallback because
 # lr_scheduler.cosine.T_max interpolates ${trainer.max_epochs}.
 trainer:
   max_epochs: 200
+  devices: 1
   log_every_n_steps: 1
   enable_model_summary: False
 
@@ -80,15 +83,19 @@ logger:
 # Customize hydra directory outputs
 # see: https://hydra.cc/docs/0.11/configure_hydra/workdir/
 hydra:
+  # Keep the launch cwd (repo root / EMG2POSE_ROOT layout) instead of the
+  # per-run directory, so `${oc.env:EMG2POSE_ROOT,.}` relative fallbacks for
+  # memmap/assets paths resolve identically before and after job start.
+  job:
+    chdir: false
+    name: emg2pose
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed
   run:
     dir: logs/${now:%Y-%m-%d}/${now:%H-%M-%S}_${hydra.job.name}
   sweep:
     dir: ${hydra.run.dir}
     subdir: ${hydra.job.num}_${hydra.job.override_dirname}/seed=${seed}
   output_subdir: hydra_configs
-  job:
-    name: emg2pose
-    config:
-      override_dirname:
-        exclude_keys:
-          - seed

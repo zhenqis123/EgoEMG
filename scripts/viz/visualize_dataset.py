@@ -588,8 +588,7 @@ def run_vision_video(args: argparse.Namespace) -> int:
     # Output fps = real-time (fps/stride) floored at 15: low strides play at
     # native speed, high strides fast-forward smoothly instead of becoming a
     # 1 fps slideshow or a 60x flash.
-    writer = vu.open_mp4_writer(output, max(15.0, fps / args.stride),
-                                (video_w, video_h))
+    out_fps = max(15.0, fps / args.stride)
     crop_size = 256
     manifest_path = Path(args.crops_dir) / "manifest.json"
     if manifest_path.exists():
@@ -619,10 +618,14 @@ def run_vision_video(args: argparse.Namespace) -> int:
             f"{len(missing_crop_keys)} required precomputed crops are missing "
             f"from {crop_lmdb} (for example: {preview}). Refusing to create "
             "a misleading partial/black crop video.")
+    # All three writers are created only after every selected frame's crop
+    # key has been verified, so a validation failure leaves no partial
+    # output files behind.
+    writer = vu.open_mp4_writer(output, out_fps, (video_w, video_h))
     crop_writers = {
         hand: vu.open_mp4_writer(
             output.parent / f"{args.episode_id}_{hand}_crop.mp4",
-            max(15.0, fps / args.stride), (crop_size, crop_size))
+            out_fps, (crop_size, crop_size))
         for hand in ("left", "right")
     }
 

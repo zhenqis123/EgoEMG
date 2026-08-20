@@ -5,7 +5,7 @@ defaults:
   - optimizer: adamw
   - lr_scheduler: cosine
   - transforms: pretrain_mae
-  - experiment: emgformer/pretrain_emgformer_small
+  - experiment: emgformer/pretrain_multitask
 
 data_root: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus
 data_location: ${data_root}/emg2pose_v3
@@ -121,16 +121,22 @@ logger:
   version: null
   default_hp_metric: false
 
+# Single-GPU default so documented `trainer.devices=[...]` overrides compose
+# without `+`; multi-GPU pretraining must override explicitly.
+trainer:
+  devices: 1
+
 hydra:
+  job:
+    chdir: false
+    name: emg2pose_pretrain
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed
   run:
     dir: logs/pretrain/${now:%Y-%m-%d}/${now:%H-%M-%S}
   sweep:
     dir: ${hydra.run.dir}
     subdir: ${hydra.job.num}_${hydra.job.override_dirname}/seed=${seed}
   output_subdir: hydra_configs
-  job:
-    name: emg2pose_pretrain
-    config:
-      override_dirname:
-        exclude_keys:
-          - seed

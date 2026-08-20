@@ -326,6 +326,10 @@ class EMG2PoseEvaluation:
                                           [10, 12, 0, 1, 2, 4, 5, 6])
         channel_interpolate = self.config.get("egoemg_channel_interpolate", True)
         norm_stats_path = self.config.datamodule.get("per_dataset_norm_stats_path", None)
+        # Per-dataset normalization stats are keyed by dataset_name. Released
+        # legacy checkpoints were trained with the `egoemg` keys; checkpoints
+        # trained on the unified memmap need `egoemg_unified`.
+        eval_dataset_name = self.config.get("eval_dataset_name", "egoemg")
 
         # Allow config to override which splits to evaluate.
         # Default: ["user", "gesture", "both"] for test-time generalization analysis.
@@ -352,6 +356,7 @@ class EMG2PoseEvaluation:
                     base={
                         '_target_': 'egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset',
                         'memmap_dir': memmap_dir,
+                        'dataset_name': eval_dataset_name,
                         # Use the configured evaluation window directly. The model
                         # already accounts for its temporal context when aligning
                         # predictions and targets inside the Lightning module.
@@ -918,7 +923,7 @@ class EMG2PoseEvaluation:
             records = []
             for name, result in zip(self._egoemg_group_names, results):
                 record = {"split": name}
-                result = {k.split("/")[0]: v for k, v in result.items()}
+                result = {k.replace("/", "_"): v for k, v in result.items()}
                 record.update(result)
                 records.append(record)
             return pd.DataFrame(records)
@@ -926,7 +931,7 @@ class EMG2PoseEvaluation:
         records = []
         for (vals, _), result in zip(self.groupby, results):
             record = dict(zip(self.conditions, vals))
-            result = {k.split("/")[0]: v for k, v in result.items()}
+            result = {k.replace("/", "_"): v for k, v in result.items()}
             record.update(result)
             records.append(record)
         return pd.DataFrame(records)

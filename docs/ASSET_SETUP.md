@@ -54,11 +54,14 @@ The canonical paths expected by the README are:
 $EMG2POSE_ROOT/
 ├── assets/
 │   ├── per_dataset_norm_stats.json
-│   └── per_dataset_norm_stats_repro_filtered_paper_alias.json
+│   ├── per_dataset_norm_stats_unified.json
+│   ├── per_dataset_norm_stats_repro_filtered_paper_alias.json
+│   └── emg_norm_stats.npz           # pretraining normalization stats
 └── data/
     ├── EgoEMG_unified_memmap/       # EMG training/evaluation + labels
     ├── EgoEMG_allintra/             # full-video visualization
     ├── EgoEMG_v2_crops/             # per-episode precomputed crop LMDBs
+    ├── reprojection_assets/         # GX010023 camera calibration (viz)
     └── emg_corpus/
         ├── emg2pose_v3/             # EMG2Pose source data
         └── emg2pose_v3_memmap/      # EMG2Pose training/evaluation memmap
