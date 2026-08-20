@@ -1,4 +1,3 @@
-per_user: true
 # @package _global_
 # emg2pose_v3 回归训练基础模板
 # Note: not migrated to lineage/emgformer — uses emg2pose_v3 dataset
@@ -12,6 +11,9 @@ defaults:
   - override /datamodule: egoemg
   - _self_
 
+# README's EMG2Pose table reports per-user mean ± std; the official
+# re-evaluation script enables this flag for the emg2pose path.
+per_user: true
 pretrained_strict: true
 
 module:
