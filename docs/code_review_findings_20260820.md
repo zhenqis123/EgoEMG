@@ -84,7 +84,7 @@
 - EMGFormer-S：gesture 12.21/user 16.15/both 16.70/overall 14.08° vs 表 12.8/15.6/17.4/14.7 —— **新旧提交逐位一致**（f1b575c 对照实验），差异为既有评估口径差，非本轮改动引入；已在 README 注记
 - 四种可视化全部实跑通过：vision（29 帧 overlay+双手 crop MP4，mesh/marker/bbox 对齐人工核验）、timeline（PNG）、mesh（8 帧 GLB+markers+occlusion）、fk_vs_mano（GLB 对）
 - **V5（后续排查）**：EMGFormer-Large 评估配方 decoder.in_channels=384 导致 input_proj 缺失、检查点加载失败 → 改 256（匹配 tds_slim 输出与检查点），实测通过
-- **EMG 表差异根因结论**：S/M/L 三模型偏差按 split 同向同量级（user +0.3–0.4°、both −0.7–−1.1°、gesture ≈0、overall −0.3–−0.6°）→ 系统性评估状态差异（论文表测量于合并前 v2 memmap/训练期评估环境，其原始工件已删除）；已排除：本轮代码改动（旧提交逐位一致）、归一化统计（换错 stats 文件 S 掉至 16.7°，alias 文件与训练路径一致）、配置与检查点不匹配（hparams 逐项核对）。详见 README evaluation notes
+- **EMG 表差异根因结论（已溯源到工件级）**：论文/README 表的 EMG 行出自 2026-04/05 `aggressive_egoemg` 家族（16ch interpolate16、WL7790、v2 memmap 的 `filtered` 列、原始 per_dataset_norm_stats.json；生成脚本 `scripts/eval/run_test_analysis_emg.sh` 指向 `test_results/egoemg_*_best.ckpt` → 已删除的 04-29 运行；本地归档仅存 05-04 后代，其 val_mae 与表 Avg 吻合）。发布 bundle 的 `egoemg_emgformer_*` 是后代重训（8ch target_hand、WL12000、filtered_paper、alias stats）。两个前提均不可恢复：原始 04-29 检查点已删（符号链接悬空）；EgoEMG 行 `filtered` 列在 unified 中实测全零（仅 Incre 有；v2 memmap 已删）。替代实验证实不可闭合：归档 05-04 检查点 + filtered_paper → 15–18.6°；发布检查点 + 原始 stats → 16.7°。S/M/L 偏差按 split 同向（user +0.3–0.4°、both −0.7–−1.1°）与该世代差异一致；已排除本轮代码改动（旧提交逐位一致）。云端根目录 2026-05-26 的 checkpoints.zip（600MB）可能含原始检查点，但下载限速 ~40KB/s，且即便取得、`filtered` 数据列仍缺失 → 需二者齐备方可精确复现。详见 README evaluation notes
 
 ## 观察项（与设计一致或当前不可达，仅记录）
 

@@ -48,7 +48,7 @@
 ### 2. emg_left_filtered 缺失（且 emg_right_filtered 管线不可复现）
 
 - **状态**：🟡 待统一重建或文档化
-- **现象**：memmap 有 `emg_right_filtered`（来自 Incre 源）但无
+- **现象**：memmap 有 `emg_right_filtered`（**仅 Incre 行有数据，EgoEMG 行实测全零**）但无
   `emg_left_filtered`；`emg_right_filtered` 的滤波管线**无法复现**——
   仓库中三个滤波实现（`scripts/realtime/filter.py`、
   `build_manus_memmap.py`、`filter_emg_into_new_columns.py`）对同一 raw
