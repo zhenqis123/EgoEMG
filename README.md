@@ -285,25 +285,27 @@ Notes for evaluation:
   (the model window must fit inside the episode). Expected, not a bug.
 - `results.csv` is written into the Hydra run directory (`logs/<date>/...`),
   never into the repo root.
-- Measured reproduction (2026-08-20, fresh clone + legacy assets, single
-  RTX 4090): the center-frame vision/fusion evaluations above reproduce the
-  table numbers essentially exactly — vision ResNet-18 5.85° (table 5.84),
-  vision ViT-S 6.04° (6.02), ViT-S fusion 5.56° (5.54); the released
-  ResNet-50 fusion checkpoint measures 5.36° (its row is not in the table —
-  see the coverage note). The paper's EMGFormer rows use the same
-  8-channel target-wrist WL=12000 generation as the released checkpoints;
-  with the training-matched stats pairing pinned in the eval recipes
-  (`eval_dataset_name=egoemg_unified` + the unified stats file) the
-  Gesture column reproduces to 0.05–0.2° and overall to ≤0.3°
-  (S/M/L overall 14.2/13.9/14.0° vs table 14.7/14.2/14.2°). A residual
-  per-split offset remains on User (+0.4–0.6°) and Both (−0.7–−1.0°),
-  identical in direction across S/M/L and unaffected by the stats pairing
-  or centered-grid variants; the runs that produced the printed table had
-  their logs pruned, so this residual cannot be explained further locally.
-  Evaluation-code changes are ruled out (bit-identical results on the
-  pre-change commit). The table values remain the canonical paper
-  reference; the values above are what the released checkpoints measure
-  today.
+- Provenance of the EMGFormer table (traced to surviving artifacts on
+  2026-08-20): the table was produced by the 2026-05-04 evaluation sweep of
+  the pre-paper `aggressive_egoemg_wo_aug` family — checkpoints
+  `ablation_study/checkpoints/tmp_eval/{7_small,8_middle,9_large}_egoemg_wo_aug_*.ckpt`,
+  16ch `emg2pose_interpolate16` layout, WL 7790, the pre-merge v2 memmap's
+  `filtered` columns, and the original `per_dataset_norm_stats.json`. The
+  surviving sweep results (`logs_archive_20260802/2026-05-04/*`) match the
+  printed Gesture and Both columns to 0.1–0.25°, and the table's Avg column
+  equals those checkpoints' validation MAE to ~0.0004 rad. The paper's
+  equipment text (and the released checkpoints) describe the later
+  8-channel WL=12000 generation, so no released artifact reproduces all
+  four columns: with the released checkpoints and the training-matched
+  stats pairing pinned in the eval recipes, Gesture reproduces to
+  0.05–0.2° and overall lands within 0.3–0.5° (S/M/L: 14.2/13.9/14.0° vs
+  table 14.7/14.2/14.2°); the User column (15.6–15.7°) matches no
+  surviving measurement (every artifact reads 16.0–17.2°) and its
+  producing pass is lost. Re-evaluating the old family today is
+  data-blocked: the EgoEMG `filtered` columns are all-zero in the unified
+  memmap and the v2 memmap was deleted. Vision/fusion rows reproduce
+  essentially exactly with the released checkpoints. The paper table
+  remains the canonical reference.
 - All MAE metrics are computed on joint-angle targets stored in **radians**;
   the tables above are converted to degrees for readability. A results.csv
   value of `0.0944` therefore corresponds to `0.0944 * 180 / pi ≈ 5.41°`.

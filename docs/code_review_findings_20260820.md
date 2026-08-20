@@ -84,7 +84,7 @@
 - EMGFormer-S：gesture 12.21/user 16.15/both 16.70/overall 14.08° vs 表 12.8/15.6/17.4/14.7 —— **新旧提交逐位一致**（f1b575c 对照实验），差异为既有评估口径差，非本轮改动引入；已在 README 注记
 - 四种可视化全部实跑通过：vision（29 帧 overlay+双手 crop MP4，mesh/marker/bbox 对齐人工核验）、timeline（PNG）、mesh（8 帧 GLB+markers+occlusion）、fk_vs_mano（GLB 对）
 - **V5（后续排查）**：EMGFormer-Large 评估配方 decoder.in_channels=384 导致 input_proj 缺失、检查点加载失败 → 改 256（匹配 tds_slim 输出与检查点），实测通过
-- **EMG 表差异根因结论（终版，修正先前"世代错配"误判）**：paper 正文明确报告的 EMGFormer 为 8ch target-wrist/WL12000/150ep 世代 = 发布检查点世代。差异分解为两 部分：(a) **评估统计配对**（已修复并固化进三个评估配方：eval_dataset_name=egoemg_unified + unified stats 文件）→ 修复后 Gesture 复现至 0.05–0.2°、overall ≤0.3°（S/M/L: 14.2/13.9/14.0 vs 表 14.7/14.2/14.2）；(b) **User(+0.4–0.6°)/Both(−0.7–−1.0°) 残差**——S/M/L 同向、不受统计配对/居中网格影响，产出该表的运行日志已清理（June logs 目录为空），无法进一步定位；候选解释为表值测于训练期 val-split（test: ${dataset.val}）的 per-group 聚合，与 test_analysis 的窗口/split 边界处理存在细微差异（n=5 用户组对边界窗口敏感）。已排除：代码改动（旧提交逐位一致）。历史背景：更早的 April aggressive 16ch/WL7790 家族是 superseded 世代（其 filtered 列在 unified 中仅 Incre 行非零，已记 known-issues #2）。
+- **EMG 表差异根因（溯源闭环）**：表格出自 2026-05-04 对 pre-paper 旧家族 `aggressive_egoemg_wo_aug`（ablation_study/checkpoints/tmp_eval/{7_small,8_middle,9_large}，16ch interpolate16、WL7790、v2 memmap `filtered` 列、原始 per_dataset_norm_stats.json）的评估扫描；幸存 results.csv（logs_archive_20260802/2026-05-04/*）与表 Gesture/Both 两列吻合 0.1–0.25°，表 Avg = 该批检查点 val_mae（~0.0004 rad 内）。而 paper 正文与发布检查点描述的是后续 8ch/WL12000 世代 → 无任何发布工件能同时复现四列。发布 ckpt + 正确统计配对（已固化进评估配方）后 Gesture 复现 0.05–0.2°、overall 差 0.3–0.5°；User 列（15.6–15.7°）无任何幸存测量匹配（全部 16.0–17.2°），产出该列的评估过程已遗失。旧家族今日重评受数据阻断（EgoEMG `filtered` 列在 unified 全零、v2 已删；替代实验 15–18.6° 不可闭合）。已验证排除：代码改动（旧提交逐位一致）、v2→unified 数据漂移（ep28 全字段逐位一致）、统计文件配对错误（已修）、居中网格（无变化）、整窗包含语义（方向相反）。
 
 ## 观察项（与设计一致或当前不可达，仅记录）
 
