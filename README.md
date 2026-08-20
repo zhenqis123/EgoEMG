@@ -290,28 +290,20 @@ Notes for evaluation:
   table numbers essentially exactly — vision ResNet-18 5.85° (table 5.84),
   vision ViT-S 6.04° (6.02), ViT-S fusion 5.56° (5.54); the released
   ResNet-50 fusion checkpoint measures 5.36° (its row is not in the table —
-  see the coverage note). The EMGFormer rows reproduce with split-level
-  offsets that are identical in direction and size across S/M/L (user
-  +0.3–0.4°, both −0.7–−1.1°, gesture ±0.6°, overall −0.3–−0.6°; e.g.
-  EMGFormer-S overall 14.1° vs table 14.7). Root cause (traced to the
-  original artifacts): the paper-table EMG rows were measured on the
-  2026-04/05 `aggressive_egoemg` model family — 16-channel
-  `emg2pose_interpolate16` layout, WL 7790, trained on the pre-merge v2
-  memmap's `emg_*_filtered` columns with the original
-  `per_dataset_norm_stats.json` — whereas the released
-  `egoemg_emgformer_*` checkpoints are the later retrains (8-channel
-  `target_hand`, WL 12000, regenerated `filtered_paper` field, alias
-  stats). Both prerequisites of the paper protocol are unrecoverable today:
-  the original checkpoints' training logs were pruned (only a later
-  aggressive-generation survives in the local archive), and the EgoEMG
-  `filtered` columns are all-zero in the unified memmap (only Incre rows
-  carry them; the v2 memmap was deleted). Substitution experiments confirm
-  the gap does not close: the archived aggressive checkpoint on
-  `filtered_paper` degrades to 15–18.6°, and the released checkpoint on the
-  original stats file degrades to 16.7°. Evaluation-code changes are ruled
-  out (bit-identical results on the pre-change commit). The table values
-  remain the canonical paper reference; the released checkpoints' own
-  measured values are the numbers above.
+  see the coverage note). The paper's EMGFormer rows use the same
+  8-channel target-wrist WL=12000 generation as the released checkpoints;
+  with the training-matched stats pairing pinned in the eval recipes
+  (`eval_dataset_name=egoemg_unified` + the unified stats file) the
+  Gesture column reproduces to 0.05–0.2° and overall to ≤0.3°
+  (S/M/L overall 14.2/13.9/14.0° vs table 14.7/14.2/14.2°). A residual
+  per-split offset remains on User (+0.4–0.6°) and Both (−0.7–−1.0°),
+  identical in direction across S/M/L and unaffected by the stats pairing
+  or centered-grid variants; the runs that produced the printed table had
+  their logs pruned, so this residual cannot be explained further locally.
+  Evaluation-code changes are ruled out (bit-identical results on the
+  pre-change commit). The table values remain the canonical paper
+  reference; the values above are what the released checkpoints measure
+  today.
 - All MAE metrics are computed on joint-angle targets stored in **radians**;
   the tables above are converted to degrees for readability. A results.csv
   value of `0.0944` therefore corresponds to `0.0944 * 180 / pi ≈ 5.41°`.
