@@ -112,9 +112,14 @@ def resolve_calibration_path(
         if not path.is_file():
             raise FileNotFoundError(f"Calibration file not found: {path}")
         return path
+    calib_name = Path(DEFAULT_CALIB_FILENAME).name
     candidates = [
         Path(data_root) / DEFAULT_CALIB_FILENAME,
         Path(data_root) / "EgoEMG" / DEFAULT_CALIB_FILENAME,
+        # Legacy LeRobot dataset tree (training_dataset_lerobot_full_NEW) and
+        # the released preview package both carry the same calibration file.
+        Path(data_root) / "training_dataset_lerobot_full_NEW" / DEFAULT_CALIB_FILENAME,
+        Path(data_root) / "dataset_egoemg_preview" / "meta" / calib_name,
     ]
     for path in candidates:
         if path.is_file():
