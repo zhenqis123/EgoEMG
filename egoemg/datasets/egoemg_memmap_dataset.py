@@ -1939,19 +1939,18 @@ class EgoEmgMemmapDataset(Dataset):
 
         # Remove raw hand-specific memmap fields to keep collation keys
         # consistent when left-hand and right-hand datasets are concatenated.
-        # The wrist-view stream fields are per-view indices, not per-hand
-        # data, so they must survive the cleanup (their names contain
-        # "_left"/"_right").
-        stream_keys = {
-            "image_wrist_left_frame_index", "image_wrist_left_stale",
-            "image_wrist_left_delta_ms", "image_wrist_right_frame_index",
-            "image_wrist_right_stale", "image_wrist_right_delta_ms",
-            "episode_wrist_left_video_path", "episode_wrist_right_video_path",
-            "wrist_left_video_path", "wrist_right_video_path",
-            "wrist_left_video_frames", "wrist_right_video_frames",
-        }
+        # Match precise per-hand field families instead of "_left"/"_right"
+        # substrings: substring matching silently swallowed the imu wrist
+        # fields (imu_band_left/right, imu_cam_wrist_left/right), which are
+        # positional, not per-hand.
+        per_hand_prefixes = (
+            "emg_left_", "emg_right_",
+            "generated_joint_angles_left", "generated_joint_angles_right",
+            "generated_mano_left", "generated_mano_right",
+            "mocap_left_", "mocap_right_",
+        )
         for key in list(result.keys()):
-            if ("_left" in key or "_right" in key) and key not in stream_keys:
+            if key.startswith(per_hand_prefixes):
                 result.pop(key, None)
 
         # Fill default values for optional fields that were requested via modalities
