@@ -49,7 +49,7 @@ setup(
         "viz": [
             "opencv-python>=4.8", "decord>=0.6", "lmdb>=1.4", "Pillow>=10",
             "matplotlib>=3.7", "plotly>=5.18", "smplx>=0.1.28", "pyrender>=0.1.45",
-            "trimesh>=4.0",
+            "trimesh>=4.0", "av>=11",
         ],
         "realtime": ["pyarrow>=14", "pyserial>=3.5", "pyzmq>=25"],
         "keystroke": ["python-Levenshtein>=0.23"],
