@@ -162,17 +162,17 @@ python scripts/prepare/fix_egoemg_imu_channel_order.py \
 | `imu.dat` | `9a0bb4565272f746f35b6a2922e7ba421e4f485fb87f9f2c01260df825b01a6e` |
 | `manifest.json` | `3aa0a7abe04a1f698e8e51e6b6c5e7b1cb8b87352aead35cf87874bafee7e8c8` |
 
-**Maintainer: patching the Baidu NetDisk copy.** Only two files changed, so
-replace them in the cloud package instead of re-uploading ~170 GB (requires a
-logged-in BaiduPCS-Go; adjust `/EgoEMG_release/dataset_egoemg_unified/` to
-the package's actual remote directory):
+**Maintainer: Baidu NetDisk copy — patched 2026-08-20.** The cloud package
+(`/EgoEMG_release/dataset_egoemg_unified/`) now serves the fixed `imu.dat`
+and `manifest.json`. Both were uploaded to a staging dir, downloaded back,
+and verified byte-identical (SHA-256 above) before the swap; the pre-fix
+files remain as rollback backups in
+`/EgoEMG_release/dataset_egoemg_unified/_imu_fix_20260820/*.pre-fix.bak`
+(delete once the release is confirmed stable). To roll back, `mv` the
+`.pre-fix.bak` files back over the main-dir names.
 
-```shell
-BaiduPCS-Go upload /mnt/nvme/xiziheng/EgoEMG_unified_memmap/imu.dat      /EgoEMG_release/dataset_egoemg_unified/imu.dat
-BaiduPCS-Go upload /mnt/nvme/xiziheng/EgoEMG_unified_memmap/manifest.json /EgoEMG_release/dataset_egoemg_unified/manifest.json
-# verify
-BaiduPCS-Go md5sum /EgoEMG_release/dataset_egoemg_unified/imu.dat
-```
+Fresh downloads therefore need no repair; only copies saved before
+2026-08-20 need the in-place fix command above.
 
 Post-fix verification evidence (original parquet bitwise comparison,
 per-episode gravity statistics, ShowEE/Incre guard checksums) is recorded in
