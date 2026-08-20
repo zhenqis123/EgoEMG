@@ -33,3 +33,15 @@ All notable changes are recorded in this file.
   `install_requires`. Remaining undeclared third-party imports (`av`, `timm`,
   `zarr`, `open3d`, `unidecode`) are lazy, guarded, or behind the lazy
   dataset factory and belong to optional research paths.
+- Clean-runner hardening (all exposed by CI on a fresh install, all fixed):
+  the built wheel was missing `egoemg.models` and its subpackages (namespace
+  directories without `__init__.py` that `find_packages()` skips); an orphan
+  empty `egoemg/utils/` directory shadowed the real `egoemg/utils.py` module;
+  `egoemg.tests` needed a package marker for cross-test imports after the
+  wheel force-reinstall; the classic visualization path needs PyAV via the
+  vendored UmeTrack tracker (`av>=11` added to the `viz` extra); and the
+  vendored UmeTrack tree's repo-root-absolute imports (`import lib...`) now
+  resolve via a sys.path registration in `egoemg/UmeTrack/__init__.py`
+  instead of relying on a legacy separate editable install. CI installs
+  `.[dev,vision,viz]`, verifies core submodule imports from the wheel, and
+  reports pytest FAILED/ERROR lines as annotations.
