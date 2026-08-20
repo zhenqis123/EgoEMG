@@ -28,9 +28,11 @@ the active config tree. Canonical README recipes use the legacy asset layout in
 
 `scripts/viz/visualize_dataset.py vision` emits an overlay MP4 and one MP4 per
 hand. The hand videos are read exclusively from the precomputed episode LMDB;
-they are never generated from an overlay bounding box at runtime. Before output
-creation, the command verifies that every selected video frame has both crop
-keys. A missing LMDB or crop key is an error, not a black placeholder frame.
+they are never generated from an overlay bounding box at runtime. Frames whose
+crops were never produced (no valid markers at capture time — e.g. frame 0 of
+every episode) are skipped from the selection with a notice. For all retained
+frames, output creation happens only after both crop keys are verified; a
+missing LMDB or crop key is an error, not a black placeholder frame.
 
 `--stride` and `--max-frames` select the same frame sequence for all three
 videos. Therefore the overlay and crop outputs have matching frame counts. To

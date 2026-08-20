@@ -67,6 +67,23 @@
 | P2 | 文档M2 | pretrain "canonical workflow" 依赖 ASSET_SETUP legacy 树中不存在的语料（emg2qwerty/Ninapro 等）→ ASSET_SETUP 需补"pretrain 语料不在 legacy 包内"的说明或补语料获取方式 |
 | P3 | 训练m4 | `eval=true` 时 test 与 val 评估同一份数据（`test: ${dataset.val}`），结果键名误导 | 决策：去掉重复评估或改名 |
 
+## 批次三：新鲜克隆复现验证（2026-08-20，验收轮）
+
+模拟"新人克隆 + 按文档放置资产"实跑 README 全部评估与四种可视化，发现并修复：
+
+| # | 问题 | 修复 |
+|---|---|---|
+| V1 | center-frame 评估读旧 `egoemg_memmap_dir` 别名 → 规范资产树上 FileNotFoundError | `center_frame.py` 改 unified 优先 |
+| V2 | README 将 rn50+8ch+WL12000 的 `fusion_resnet_emgfusion_center.ckpt` 配到 rn18/16ch/7790 配置 → 形状不匹配崩溃；且 bundle 并无 rn18-fusion 检查点，覆盖声明失实 | 新增 `fusion_{rn50_m,vits_s}_center_eval_released.yaml`（compose 验证）；README 换正确配对 + 补 ViT vision/fusion 命令 + 修正覆盖声明 |
+| V3 | 校准文件在发布资产树无可达位置（只在预览包 meta/ 与未发布的 LeRobot 树里） | 解析器增加发布树候选路径；校准文件上传至云端 `/EgoEMG_release/reprojection_assets/`；ASSET_SETUP 树已含该位置 |
+| V4 | 所有 episode 的 crop LMDB 从帧 1 起（帧 0 无 crop），stride 网格必含帧 0 → vision 示例对任何 episode 必失败 | 选择期跳过无 crop 帧并打印数量；缺 LMDB/空选择/保留帧缺 key 仍硬错误；PRERELEASE 措辞同步 |
+
+**实测复现数字**（fresh clone、4090、弧度×57.2958 换算）：
+- vision rn18 5.85°（表 5.84）✓；vision ViT-S 6.04°（表 6.02）✓；ViT-S fusion 5.56°（表 5.54）✓
+- rn50 fusion（发布检查点）5.36°（表无此行，见 README 覆盖说明）
+- EMGFormer-S：gesture 12.21/user 16.15/both 16.70/overall 14.08° vs 表 12.8/15.6/17.4/14.7 —— **新旧提交逐位一致**（f1b575c 对照实验），差异为既有评估口径差，非本轮改动引入；已在 README 注记
+- 四种可视化全部实跑通过：vision（29 帧 overlay+双手 crop MP4，mesh/marker/bbox 对齐人工核验）、timeline（PNG）、mesh（8 帧 GLB+markers+occlusion）、fk_vs_mano（GLB 对）
+
 ## 观察项（与设计一致或当前不可达，仅记录）
 
 - 训练o：compose 内部自洽（T_max/monitor_metric/loss 键匹配）、make_data_module 装配、split 过滤、入口防护——验证通过。

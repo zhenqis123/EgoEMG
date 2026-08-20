@@ -39,6 +39,12 @@ All notable changes are recorded in this file.
 - Documents the legacy-release IMU channel-order fix for downloaders
   (checksums and self-patch command in `docs/ASSET_SETUP.md` §7) and notes
   it in the README release status.
+- Fresh-clone reproduction verification: all README evaluation commands and
+  all four visualizer modes now run end-to-end on the canonical asset tree
+  (center-frame memmap resolution, released-checkpoint config pairing for
+  the ResNet-50 fusion, calibration asset location, crop-less-frame
+  selection); measured reproduction numbers are recorded in the README
+  evaluation notes and docs/code_review_findings_20260820.md.
 - Patches the Baidu NetDisk legacy package in place: the fixed `imu.dat` and
   `manifest.json` were uploaded, downloaded back, verified byte-identical
   (SHA-256), and swapped in; pre-fix files are kept as rollback backups
