@@ -30,12 +30,13 @@
 
 ---
 
-> [!WARNING]
-> **Code pre-release (`0.1.0rc1`).** This repository is released for code
-> inspection and development. The current EgoEMG dataset release is **not
-> ready**. An earlier legacy data/checkpoint release remains available for the
-> canonical legacy workflows documented here; it is not the forthcoming dataset
-> release and does not cover every historical research configuration.
+> [!NOTE]
+> **Code pre-release (`0.1.0rc1`).** The complete EgoEMG dataset release is
+> still in preparation. Until then, the earlier legacy data/checkpoint
+> package is available and verified for every workflow documented in this
+> README — all quoted results are measured from it and command-reproducible.
+> It is not the forthcoming dataset release and does not cover every
+> historical research configuration.
 
 ## ✨ Highlights
 
