@@ -33,7 +33,9 @@ module:
     preset: large
     pos_encoding: rope
     dropout: 0.15
-    in_channels: 384
+    # 256 = tds_slim featurizer output; != model_dim so the decoder keeps its
+    # input_proj, matching the released egoemg_emgformer_large.ckpt.
+    in_channels: 256
     model_dim: 384
     num_heads: 12
     num_layers: 8
