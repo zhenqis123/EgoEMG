@@ -1,3 +1,4 @@
+per_user: true
 # @package _global_
 # emg2pose_v3 回归训练基础模板
 # Note: not migrated to lineage/emgformer — uses emg2pose_v3 dataset
