@@ -14,13 +14,17 @@
   <a href="#-release-status"><img src="https://img.shields.io/badge/release-code%20preview-orange" alt="Release status"></a>
   <a href="#-license"><img src="https://img.shields.io/badge/Code-MIT-blue" alt="Code license"></a>
   <a href="https://github.com/zhenqis123/EgoEMG/actions"><img src="https://img.shields.io/github/actions/workflow/status/zhenqis123/EgoEMG/main.yml?branch=main" alt="CI"></a>
-  <img src="https://img.shields.io/badge/python-3.11-blue" alt="Python">
+  <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11-blue" alt="Python">
   <img src="https://img.shields.io/badge/version-0.1.0rc1-8A2BE2" alt="Version">
 </p>
 
 <p align="center">
   [ <a href="#-release-status">Release status</a> ·
     <a href="#-setup">Setup</a> ·
+    <a href="#-training">Training</a> ·
+    <a href="#-visualization">Visualization</a> ·
+    <a href="#-results-and-evaluation">Results</a> ·
+    <a href="#-license">License</a> ·
     <a href="#-citing-egoemg">Citation</a> ]
 </p>
 
@@ -35,24 +39,15 @@
 
 ## ✨ Highlights
 
-- **🧠 EMG-to-pose** — EMGFormer (small / middle / large) predicts hand pose from
-  bilateral surface EMG.
-- **👁️ Vision-to-pose** — ResNet / ViT single-frame predictors on the egocentric
-  webcam stream.
-- **🔀 EMG+vision fusion** — combines EMG and visual cues on identical
-  center frames.
-
-## 📖 Contents
-
-- [Release Status](#-release-status)
-- [Legacy Asset Setup](docs/ASSET_SETUP.md)
-- [Setup](#-setup)
-- [Training](#-training)
-- [Visualization](#-visualization)
-- [Results and Evaluation](#-results-and-evaluation)
-- [Repository Layout](#-repository-layout)
-- [License](#-license)
-- [Citation](#-citing-egoemg)
+- **🧠 EMG-to-pose** — EMGFormer (small / middle / large) predicts hand pose
+  from bilateral surface EMG; **13.9° Avg MAE** with the released
+  EMGFormer-M checkpoint, command-reproducible end to end.
+- **👁️ Vision-to-pose** — ResNet / ViT single-frame predictors on the
+  egocentric webcam stream (**5.84°** with the released ResNet-18).
+- **🔀 EMG+vision fusion** — combines EMG and visual cues on identical center
+  frames for the best of both (**5.36°** with the released ResNet-50 fusion).
+- **🎥 One-command visualization** — overlay videos with projected meshes and
+  mocap markers, straight from the released memmap and videos.
 
 ## 🚧 Release Status
 
@@ -68,14 +63,17 @@ lists the expected directory layout, and documents external MANO requirements.
 See also [the code pre-release support boundary](docs/PRERELEASE_LIMITATIONS.md)
 and the [data-card placeholder](docs/DATA_CARD.md).
 
-### Legacy material
+<details>
+<summary><b>Legacy material</b></summary>
 
 Some legacy artifacts may remain in repository history or third-party storage.
 They are not part of this release contract: availability, integrity, license
 scope, compatibility, and result reproducibility are not guaranteed. Do not
 redistribute or cite them as the forthcoming EgoEMG dataset.
+</details>
 
-### Dataset IMU note (2026-08-20)
+<details>
+<summary><b>Dataset IMU note (updated 2026-08-20)</b></summary>
 
 The unified memmap's `imu` field carries real wrist-band inertial data for all
 three sources in a single `[acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z]`
@@ -86,6 +84,7 @@ store the EgoEMG rows with the two halves swapped; run
 to repair them in place, or re-download `imu.dat` / `manifest.json` — see
 [Legacy Asset Setup](docs/ASSET_SETUP.md#7-imu-channel-order-fix-2026-08-20)
 for checksums and details.
+</details>
 
 ## ⚙️ Setup
 
@@ -144,9 +143,14 @@ training entrypoint would otherwise start a new run.
 
 ## 🎥 Visualization
 
-The dataset-centric visualizer renders a head-view episode video with hand
-meshes, projected mocap labels, and per-hand mesh boxes. It is headless and
-writes an MP4.
+One entrypoint, four modes — all headless:
+
+| Mode | What you get |
+|------|--------------|
+| `vision` | head-view overlay MP4 (hand meshes, projected mocap markers, per-hand boxes) plus one precomputed-crop MP4 per hand |
+| `timeline` | EMG signal timeline PNG for an episode |
+| `mesh` | world-space MANO/FK meshes as GLB, with marker and occlusion renders |
+| `fk_vs_mano` | side-by-side forward-kinematics vs MANO comparison |
 
 ```shell
 python scripts/viz/visualize_dataset.py vision \
@@ -280,7 +284,8 @@ models; the `*_center_eval_released` recipes pin the matching architectures
 and null the training-time branch-initialization paths so only the released
 assets are needed.
 
-Notes for evaluation:
+<details>
+<summary><b>Evaluation notes</b></summary>
 
 - Checkpoint filenames containing `=` (e.g. `epoch=011-val_mae=0.1022.ckpt`)
   cannot be passed through Hydra CLI overrides; symlink to a `=`-free path or
@@ -298,20 +303,23 @@ Notes for evaluation:
   unified-trained checkpoints need `+eval_dataset_name=egoemg_unified`.
 
 `test_analysis` is the single evaluation tool for all three modalities
-(EMG generalization splits with per-group stats, and vision/fusion center-frame
-evaluation), selected automatically by the experiment config.
+(EMG generalization splits with per-group stats, and vision/fusion
+center-frame evaluation), selected automatically by the experiment config.
+</details>
 
 ## 🗂️ Repository Layout
 
-- `egoemg/` — source code: models, dataset wrappers, training/eval entrypoints
-  (`train.py`, `test_analysis.py`), and vendored `UmeTrack` FK utilities.
-- `config/` — Hydra experiment configs (`config/experiment/{emgformer,fusion}/`)
-  over shared lineage defaults (`config/lineage/`).
-- `scripts/` — data conversion, dataset/checkpoint download, visualization,
-  and paper-figure regeneration.
-- `experiments/` — shell launchers for the paper's experiments.
-- `docs/` — config architecture and dataset notes.
-- `assets/` — EMG layout figures and per-dataset normalization statistics.
+```text
+egoemg/        models, dataset loaders, training/eval entrypoints,
+               vendored UmeTrack FK utilities
+config/        Hydra experiment tree
+  ├─ experiment/{emgformer,fusion}/   active experiment recipes
+  └─ lineage/                         shared per-lineage defaults
+scripts/       data conversion, downloads, visualization, paper figures
+experiments/   shell launchers for the paper's experiments
+docs/          config architecture, asset setup, dataset notes
+assets/        EMG layout figures and normalization statistics
+```
 
 ## 📜 License
 
