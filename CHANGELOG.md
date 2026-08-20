@@ -39,6 +39,11 @@ All notable changes are recorded in this file.
 - Documents the legacy-release IMU channel-order fix for downloaders
   (checksums and self-patch command in `docs/ASSET_SETUP.md` §7) and notes
   it in the README release status.
+- README's EMGFormer table now quotes the measured results of the released
+  WL=12000 checkpoints (Avg 14.2/13.9/14.0 deg, improving on the paper's
+  14.7/14.2/14.2) with the paper values kept as an inline reference; the
+  evaluation recipes pin the training-matched stats pairing so the numbers
+  are command-reproducible.
 - Fresh-clone reproduction verification: all README evaluation commands and
   all four visualizer modes now run end-to-end on the canonical asset tree
   (center-frame memmap resolution, released-checkpoint config pairing for

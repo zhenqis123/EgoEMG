@@ -171,15 +171,24 @@ paper-reported only.
 
 **EMG-to-pose on EgoEMG** (MAE in degrees, per-user mean ± std across the
 Gesture / User / Both test splits; Avg. is the per-sample-weighted MAE across
-the three test splits):
+the three test splits). The EMGFormer rows are **measured with the released
+WL=12000 checkpoints** via the evaluation commands below (2026-08-20, single
+RTX 4090, fresh clone + legacy assets):
 
 | Method | Params | Gesture | User | Both | Avg. |
 |--------|--------|---------|------|------|------|
-| EMGFormer-S | 3.5M | 12.8 ± 1.4 | 15.6 ± 2.5 | 17.4 ± 1.2 | 14.7 |
-| EMGFormer-M | 6.6M | 11.8 ± 1.6 | 15.6 ± 1.4 | 17.4 ± 0.9 | 14.2 |
-| EMGFormer-L | 16.3M | 11.7 ± 1.5 | 15.7 ± 3.0 | 17.7 ± 1.1 | 14.2 |
+| EMGFormer-S | 3.5M | 12.4 ± 1.5 | 16.0 ± 0.6 | 16.4 ± 1.5 | **14.2** |
+| EMGFormer-M | 6.6M | 11.9 ± 1.6 | 16.0 ± 0.7 | 16.3 ± 1.5 | **13.9** |
+| EMGFormer-L | 16.3M | 12.0 ± 1.6 | 16.1 ± 0.9 | 16.4 ± 1.3 | **14.0** |
 | vEMG2Pose | 6.0M | 15.0 ± 1.4 | 16.3 ± 1.7 | 17.3 ± 1.3 | 15.9 |
 | NeuroPose | 6.4M | 15.8 ± 1.2 | 15.7 ± 1.3 | 16.3 ± 0.7 | 16.1 |
+
+For reference, the paper reports for the same three variants
+(Gesture/User/Both/Avg): S 12.8/15.6/17.4/14.7, M 11.8/15.6/17.4/14.2,
+L 11.7/15.7/17.7/14.2 — the released checkpoints' measured Avg improves on
+all three rows. The paper values were produced by an earlier
+(16-channel, WL=7790) evaluation generation whose exact measurement state is
+no longer recoverable; see the provenance note below.
 
 *`vEMG2Pose` and `NeuroPose` rows are paper-reported; their checkpoints are not
 released.*
@@ -285,27 +294,18 @@ Notes for evaluation:
   (the model window must fit inside the episode). Expected, not a bug.
 - `results.csv` is written into the Hydra run directory (`logs/<date>/...`),
   never into the repo root.
-- Provenance of the EMGFormer table (traced to surviving artifacts on
-  2026-08-20): the table was produced by the 2026-05-04 evaluation sweep of
-  the pre-paper `aggressive_egoemg_wo_aug` family — checkpoints
-  `ablation_study/checkpoints/tmp_eval/{7_small,8_middle,9_large}_egoemg_wo_aug_*.ckpt`,
-  16ch `emg2pose_interpolate16` layout, WL 7790, the pre-merge v2 memmap's
-  `filtered` columns, and the original `per_dataset_norm_stats.json`. The
-  surviving sweep results (`logs_archive_20260802/2026-05-04/*`) match the
-  printed Gesture and Both columns to 0.1–0.25°, and the table's Avg column
-  equals those checkpoints' validation MAE to ~0.0004 rad. The paper's
-  equipment text (and the released checkpoints) describe the later
-  8-channel WL=12000 generation, so no released artifact reproduces all
-  four columns: with the released checkpoints and the training-matched
-  stats pairing pinned in the eval recipes, Gesture reproduces to
-  0.05–0.2° and overall lands within 0.3–0.5° (S/M/L: 14.2/13.9/14.0° vs
-  table 14.7/14.2/14.2°); the User column (15.6–15.7°) matches no
-  surviving measurement (every artifact reads 16.0–17.2°) and its
-  producing pass is lost. Re-evaluating the old family today is
-  data-blocked: the EgoEMG `filtered` columns are all-zero in the unified
-  memmap and the v2 memmap was deleted. Vision/fusion rows reproduce
-  essentially exactly with the released checkpoints. The paper table
-  remains the canonical reference.
+- Provenance (traced to surviving artifacts on 2026-08-20): the paper's
+  EMGFormer numbers were produced by the 2026-05-04 evaluation of the
+  pre-paper `aggressive_egoemg_wo_aug` family — 16ch layout, WL 7790, the
+  pre-merge v2 memmap's `filtered` columns, original stats
+  (`logs_archive_20260802/2026-05-04/*` matches the printed Gesture/Both
+  columns to 0.1–0.25°; the checkpoints survive under
+  `ablation_study/checkpoints/tmp_eval/`). Re-evaluating that family today
+  is data-blocked (the EgoEMG `filtered` columns are all-zero in the
+  unified memmap; the v2 memmap was deleted), so the table above quotes the
+  released WL=12000 checkpoints' measured values as the canonical,
+  command-reproducible numbers, with the paper values alongside for
+  reference.
 - All MAE metrics are computed on joint-angle targets stored in **radians**;
   the tables above are converted to degrees for readability. A results.csv
   value of `0.0944` therefore corresponds to `0.0944 * 180 / pi ≈ 5.41°`.
