@@ -50,6 +50,13 @@ All notable changes are recorded in this file.
   the ResNet-50 fusion, calibration asset location, crop-less-frame
   selection); measured reproduction numbers are recorded in the README
   evaluation notes and docs/code_review_findings_20260820.md.
+- Redesigns the unified memmap schema to v3: positional IMU field names
+  (imu_band_left/right, imu_cam_*), mocap_head_valid, dead-field removal,
+  a manifest field_semantics block, and an idempotent migration script with
+  unit tests; evaluation results are bit-identical across the migration and
+  the share was synced (renames + re-upload of missing files after a
+  BaiduPCS-Go mv incident that lost five cloud-side files — restored from
+  the local source of truth).
 - Patches the Baidu NetDisk legacy package in place: the fixed `imu.dat` and
   `manifest.json` were uploaded, downloaded back, verified byte-identical
   (SHA-256), and swapped in; pre-fix files are kept as rollback backups

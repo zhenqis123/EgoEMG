@@ -45,9 +45,11 @@
   `/data/xiziheng/EgoEMG_unified_memmap`（合并期快照，**保持 pre-fix**，
   作为修复前参考，勿再用于训练）。
 
-### 2. emg_left_filtered 缺失（且 emg_right_filtered 管线不可复现）
+### 2. emg_left_filtered 缺失（且 emg_right_filtered 管线不可复现） → ✅ v3 已通过删除孤儿列关闭
 
-- **状态**：🟡 待统一重建或文档化
+- **状态**：✅ v3 schema 迁移（2026-08-20）删除了 `emg_right_filtered` 孤儿列
+  （仅 Incre 行有数据、无左对手、管线不可复现）。v3 起双手只保留
+  `*_raw` 与 `*_filtered_paper` 两个变体，左右对称。
 - **现象**：memmap 有 `emg_right_filtered`（**仅 Incre 行有数据，EgoEMG 行实测全零**）但无
   `emg_left_filtered`；`emg_right_filtered` 的滤波管线**无法复现**——
   仓库中三个滤波实现（`scripts/realtime/filter.py`、
@@ -94,9 +96,11 @@
   "external RGB-D" 宣称（IMU 部分另见 #1 的通道重排修复）。剩余工作：legacy
   数据发布包内的 README.txt 如含相同措辞，正式数据发布时一并修正。
 
-### 19. Incre 行 mocap_valid 位与零 keypoints 矛盾
+### 19. Incre 行 mocap_valid 位与零 keypoints 矛盾 → ✅ 实测已为 False；v3 加防护
 
-- **状态**：🟡 数据级待决策（重刷位 or 文档标注）
+- **状态**：✅ 2026-08-20 全量实测 Incre 段 `mocap_*_valid` 已全 False（与
+  source_policies 一致；此前审查报告的"全 True"结论未复现）。v3 迁移脚本
+  保留幂等清位步骤作为防护，且 `field_semantics.validity` 明确记载该约定。
 - **现象**：unified memmap 中 Incre 源（ep 63 起）`mocap_{left,right}_valid`
   全为 True，但 `mocap_*_keypoints` 全零、manifest `source_policies` 声明
   "valid=False"。且仓库 `merge_datasets_to_unified_memmap.py` 的

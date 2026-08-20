@@ -155,12 +155,22 @@ python scripts/prepare/fix_egoemg_imu_channel_order.py \
   --memmap-dir <path to EgoEMG_unified_memmap> --apply
 ```
 
-**Verify against the canonical fixed files:**
+**Verify against the canonical fixed files** (v3 schema names; the content
+of `imu_band_left.dat` is byte-identical to the pre-v3 `imu.dat`):
 
 | File | SHA-256 |
 | --- | --- |
-| `imu.dat` | `9a0bb4565272f746f35b6a2922e7ba421e4f485fb87f9f2c01260df825b01a6e` |
-| `manifest.json` | `3aa0a7abe04a1f698e8e51e6b6c5e7b1cb8b87352aead35cf87874bafee7e8c8` |
+| `imu_band_left.dat` | `9a0bb4565272f746f35b6a2922e7ba421e4f485fb87f9f2c01260df825b01a6e` |
+| `manifest.json` | `07b64ce159b908ff8fbbc35c2c49a70b2cfc4821c813f968265c8d83f0c42d4f` |
+
+**Schema v3 (2026-08-20).** The share now serves the v3 schema
+(`format_version: egoemg_v3_memmap`): IMU fields renamed to the positional
+taxonomy (`imu_band_left/right`, `imu_cam_head`, `imu_cam_wrist_left/right`),
+`mocap_head_tracked` → `mocap_head_valid`, dead fields dropped
+(`task_index`, `source_index`, `is_terminal`, `emg_right_filtered`,
+`timestamp`), and a comprehensive `field_semantics` block added to the
+manifest. Older v2 copies can be upgraded in place with
+`python scripts/data/migrate_unified_memmap_v3.py --memmap-dir <dir> --apply`.
 
 **Maintainer: Baidu NetDisk copy — patched 2026-08-20.** The cloud package
 (`/EgoEMG_release/dataset_egoemg_unified/`) now serves the fixed `imu.dat`

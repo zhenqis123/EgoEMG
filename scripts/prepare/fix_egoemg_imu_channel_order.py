@@ -35,7 +35,7 @@ from pathlib import Path
 import numpy as np
 
 REORDER_INDEX = np.array([3, 4, 5, 0, 1, 2])
-BACKUP_NAME = "imu.dat.bak_prelayout"
+BACKUP_NAME = "imu.dat.bak_prelayout"  # keeps the v2-era filename regardless of schema
 # ep0 sample: |acc| p50 is ~0.21 pre-fix (noise side) / ~9.24 post-fix.
 PRE_FIXED_MAX, FIXED_MIN = 1.0, 7.0
 
@@ -96,7 +96,9 @@ def main() -> int:
     root = args.memmap_dir
     with open(root / "manifest.json") as f:
         manifest = json.load(f)
-    imu_spec = manifest["fields"]["imu"]
+    # v3 renamed the field; accept both schemas.
+    imu_key = "imu_band_left" if "imu_band_left" in manifest["fields"] else "imu"
+    imu_spec = manifest["fields"][imu_key]
     src_spec = manifest["fields"]["dataset_source_id"]
     n_rows, width = imu_spec["shape"]
     assert width == 6, f"imu width {width} != 6"
