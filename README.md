@@ -290,10 +290,18 @@ Notes for evaluation:
   table numbers essentially exactly — vision ResNet-18 5.85° (table 5.84),
   vision ViT-S 6.04° (6.02), ViT-S fusion 5.56° (5.54); the released
   ResNet-50 fusion checkpoint measures 5.36° (its row is not in the table —
-  see the coverage note). The EMGFormer table rows reproduce within
-  ~0.7° under the current windowed evaluation protocol (e.g. EMGFormer-S
-  overall 14.1° vs table 14.7); the table values come from the paper
-  protocol and are kept as the canonical reference.
+  see the coverage note). The EMGFormer rows reproduce with split-level
+  offsets that are identical in direction and size across S/M/L (user
+  +0.3–0.4°, both −0.7–−1.1°, gesture ±0.6°, overall −0.3–−0.6°; e.g.
+  EMGFormer-S overall 14.1° vs table 14.7). Verified causes that are ruled
+  out: evaluation-code changes (bit-identical results on the pre-change
+  commit) and normalization statistics (the alias file matches the
+  checkpoints' training-time path; swapping in the other stats file degrades
+  S to 16.7°). The residual is a systematic per-split evaluation-state
+  difference against the paper-table measurement environment (pre-merge v2
+  memmap / training-time evaluation), whose original artifacts were deleted
+  (see docs/data_known_issues.md); the table values remain the canonical
+  reference.
 - All MAE metrics are computed on joint-angle targets stored in **radians**;
   the tables above are converted to degrees for readability. A results.csv
   value of `0.0944` therefore corresponds to `0.0944 * 180 / pi ≈ 5.41°`.

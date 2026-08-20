@@ -83,6 +83,8 @@
 - rn50 fusion（发布检查点）5.36°（表无此行，见 README 覆盖说明）
 - EMGFormer-S：gesture 12.21/user 16.15/both 16.70/overall 14.08° vs 表 12.8/15.6/17.4/14.7 —— **新旧提交逐位一致**（f1b575c 对照实验），差异为既有评估口径差，非本轮改动引入；已在 README 注记
 - 四种可视化全部实跑通过：vision（29 帧 overlay+双手 crop MP4，mesh/marker/bbox 对齐人工核验）、timeline（PNG）、mesh（8 帧 GLB+markers+occlusion）、fk_vs_mano（GLB 对）
+- **V5（后续排查）**：EMGFormer-Large 评估配方 decoder.in_channels=384 导致 input_proj 缺失、检查点加载失败 → 改 256（匹配 tds_slim 输出与检查点），实测通过
+- **EMG 表差异根因结论**：S/M/L 三模型偏差按 split 同向同量级（user +0.3–0.4°、both −0.7–−1.1°、gesture ≈0、overall −0.3–−0.6°）→ 系统性评估状态差异（论文表测量于合并前 v2 memmap/训练期评估环境，其原始工件已删除）；已排除：本轮代码改动（旧提交逐位一致）、归一化统计（换错 stats 文件 S 掉至 16.7°，alias 文件与训练路径一致）、配置与检查点不匹配（hparams 逐项核对）。详见 README evaluation notes
 
 ## 观察项（与设计一致或当前不可达，仅记录）
 
