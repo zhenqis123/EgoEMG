@@ -96,7 +96,31 @@ FIELD_SEMANTICS = {
     ),
     "timestamps": (
         "timestamp_us (int64, microseconds since epoch) is authoritative; "
-        "v3 dropped the redundant float64 seconds copy."
+        "v3 dropped the redundant float64 seconds copy. The ROW INDEX is the "
+        "nominal 2 kHz time axis: timestamps are quantized (about half the "
+        "rows repeat the previous value), contain gaps up to ~10 ms, are NOT "
+        "monotonic across episodes, and Incre rows average ~1.56 kHz wall-"
+        "clock rate. Do not derive dt from np.diff(timestamp_us)."
+    ),
+    "recording_marks": (
+        "is_first/is_last mark RECORDING boundaries as merged from the "
+        "sources (928 recordings; ShowEE sessions carry one mark per action "
+        "recording), NOT episode boundaries — use "
+        "metadata.npz:episode_start_idx/episode_end_idx for those. Incre "
+        "rows carry no marks."
+    ),
+    "sentinels": (
+        "Per-source fill conventions on unavailable data: Incre rows store "
+        "label_gesture_class = 0 (NOT -1) with label_gesture_active = False; "
+        "image_*_frame_index = 0 (NOT -1) with image_*_stale = True; "
+        "image_*_delta_ms uses INT32_MAX (2147483647) for missing deltas. "
+        "Always pair index/class reads with their stale/active companions."
+    ),
+    "episode_fields": (
+        "episode_fields arrays are RECORDING-level (928 rows, one per "
+        "source recording). Index them with "
+        "metadata.npz:episode_beta_idx[episode] — NOT episode_index (71 "
+        "episodes; ShowEE sessions group ~40 recordings each)."
     ),
     "gesture": (
         "label_gesture_class uses -1 for 'no active gesture'; "
@@ -178,6 +202,36 @@ def main() -> int:
     # 5) manifest rebuild
     m["format_version"] = "egoemg_v3_memmap"
     m["field_semantics"] = FIELD_SEMANTICS
+    # Mirror of egoemg MODALITY_GROUPS so third-party readers can discover
+    # the field grouping without installing the package.
+    m["modality_groups"] = {
+        "emg": ["emg_left_raw", "emg_right_raw",
+                "emg_left_filtered_paper", "emg_right_filtered_paper"],
+        "imu": ["imu_band_left", "imu_band_right", "imu_cam_head",
+                "imu_cam_wrist_left", "imu_cam_wrist_right"],
+        "mocap_hands": ["mocap_left_keypoints", "mocap_right_keypoints",
+                        "mocap_left_valid", "mocap_right_valid"],
+        "wrist": ["mocap_left_wrist_position", "mocap_left_wrist_orientation",
+                  "mocap_left_wrist_pitch", "mocap_left_wrist_yaw",
+                  "mocap_left_wrist_angles_valid", "mocap_left_wrist_rigid_markers",
+                  "mocap_right_wrist_position", "mocap_right_wrist_orientation",
+                  "mocap_right_wrist_pitch", "mocap_right_wrist_yaw",
+                  "mocap_right_wrist_angles_valid", "mocap_right_wrist_rigid_markers"],
+        "head_mocap": ["mocap_head_position", "mocap_head_orientation",
+                       "mocap_head_valid", "mocap_head_rigid_markers"],
+        "video_index": ["image_zed_frame_index", "image_head_frame_index",
+                        "image_wrist_left_frame_index", "image_wrist_right_frame_index",
+                        "image_zed_stale", "image_head_stale",
+                        "image_wrist_left_stale", "image_wrist_right_stale",
+                        "image_zed_delta_ms", "image_head_delta_ms",
+                        "image_wrist_left_delta_ms", "image_wrist_right_delta_ms"],
+        "labels": ["label_gesture_class", "label_gesture_active",
+                   "generated_label_valid",
+                   "generated_joint_angles_left", "generated_joint_angles_right"],
+        "mano": ["generated_mano_left_pose", "generated_mano_right_pose"],
+        "timing": ["timestamp_us", "episode_index", "frame_index",
+                   "subject_id", "is_first", "is_last"],
+    }
     if "imu_semantics" in m:
         for old, new in RENAMES.items():
             if old in m["imu_semantics"]:

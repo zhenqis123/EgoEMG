@@ -50,6 +50,16 @@ All notable changes are recorded in this file.
   the ResNet-50 fusion, calibration asset location, crop-less-frame
   selection); measured reproduction numbers are recorded in the README
   evaluation notes and docs/code_review_findings_20260820.md.
+- Format-review fixes (independent agent audit): per-file checksums.json
+  (64 files) plus scripts/data/validate_memmap.py for one-stop
+  schema/episode/source-policy/integrity checks; manifest field_semantics
+  extended with timestamp non-uniformity, recording-level is_first/is_last,
+  per-source sentinel conventions, and the recording-level episode_fields
+  indexing rule; MODALITY_GROUPS mirrored into the manifest; metadata.npz
+  normalized (single-encoded string columns, schema_version);
+  gesture_classes.json description corrected to 0-59/-1; the dataset share
+  README rewritten for v3 with a dependency-free numpy read example; loader
+  default emg_field_preference moved to filtered_paper.
 - Redesigns the unified memmap schema to v3: positional IMU field names
   (imu_band_left/right, imu_cam_*), mocap_head_valid, dead-field removal,
   a manifest field_semantics block, and an idempotent migration script with

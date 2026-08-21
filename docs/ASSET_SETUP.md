@@ -161,7 +161,12 @@ of `imu_band_left.dat` is byte-identical to the pre-v3 `imu.dat`):
 | File | SHA-256 |
 | --- | --- |
 | `imu_band_left.dat` | `9a0bb4565272f746f35b6a2922e7ba421e4f485fb87f9f2c01260df825b01a6e` |
-| `manifest.json` | `07b64ce159b908ff8fbbc35c2c49a70b2cfc4821c813f968265c8d83f0c42d4f` |
+
+The full per-file checksum table lives in the share itself as
+`dataset_egoemg_unified/checksums.json` (64 files); verify any download
+with `sha256sum -c checksums.json` inside the directory, or run
+`python scripts/data/validate_memmap.py --memmap-dir <dir> --checksums`
+for schema/episode/source-policy checks as well.
 
 **Schema v3 (2026-08-20).** The share now serves the v3 schema
 (`format_version: egoemg_v3_memmap`): IMU fields renamed to the positional
@@ -183,6 +188,13 @@ files remain as rollback backups in
 
 Fresh downloads therefore need no repair; only copies saved before
 2026-08-20 need the in-place fix command above.
+
+**Packaging note (~44 GB of sparse zeros).** The Incre source rows leave
+many fields entirely zero; the directory stores them as sparse holes on
+the build machine (`du` 182 GB vs 226 GB apparent). Archives that do not
+preserve sparse files will materialize those zeros. When re-packaging use
+`tar -S` (or `rsync -S`), or split archives per source so the Incre volume
+can document its zero fields explicitly.
 
 Post-fix verification evidence (original parquet bitwise comparison,
 per-episode gravity statistics, ShowEE/Incre guard checksums) is recorded in

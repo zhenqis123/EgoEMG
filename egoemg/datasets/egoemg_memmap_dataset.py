@@ -200,7 +200,7 @@ class EgoEmgMemmapDataset(Dataset):
     video_streams: Sequence[str] | None = None
     decode_video: bool = False
     target_hand: str | None = None
-    emg_field_preference: str = "filtered"
+    emg_field_preference: str = "filtered_paper"
     emg_layout: str = "target_hand"
     emg2pose_channel_indices: Sequence[int] | None = None
     channel_interpolate: bool = True  # True: sparse_ring_interpolate to 16ch; False: place_sparse_channels (zero-fill)

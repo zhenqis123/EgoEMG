@@ -371,7 +371,7 @@ class EMG2PoseEvaluation:
                         'allowed_splits': [split_name],
                         'modalities': ['emg', 'joint_angles', 'labels'],
                         'target_hand': hand,
-                        'emg_field_preference': self.config.get('egoemg_emg_field_preference', 'filtered'),
+                        'emg_field_preference': self.config.get('egoemg_emg_field_preference', 'filtered_paper'),
                         'emg_layout': emg_layout,
                         'emg2pose_channel_indices': channel_indices,
                         'channel_interpolate': channel_interpolate,
