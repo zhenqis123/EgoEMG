@@ -102,12 +102,13 @@ def check_sources(root: Path, manifest: dict, full: bool) -> None:
 
 
 def generate_checksums(root: Path) -> None:
-    names = sorted(p.name for p in root.iterdir()
-                   if p.is_file() and p.suffix in (".dat", ".json", ".npz"))
+    names = sorted(str(p.relative_to(root)) for p in root.rglob("*")
+                   if p.is_file() and p.suffix in (".dat", ".json", ".npz")
+                   and p.name != "checksums.json")
     out: dict[str, str] = {}
     for i, name in enumerate(names):
         h = hashlib.sha256()
-        with open(root / name, "rb") as f:
+        with open(root / name, "rb") as f:  # subdirectory-safe relative paths
             for chunk in iter(lambda: f.read(1 << 24), b""):
                 h.update(chunk)
         out[name] = h.hexdigest()

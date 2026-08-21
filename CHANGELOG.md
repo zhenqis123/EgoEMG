@@ -50,6 +50,14 @@ All notable changes are recorded in this file.
   the ResNet-50 fusion, calibration asset location, crop-less-frame
   selection); measured reproduction numbers are recorded in the README
   evaluation notes and docs/code_review_findings_20260820.md.
+- Group the unified memmap's flat .dat files into modality subdirectories
+  (core/emg/imu/labels/mano/mocap_hands/mocap_wrist/mocap_head/vision) via
+  scripts/data/group_memmap_layout.py — pure renames plus manifest pointer
+  updates, byte-identical content (evaluation bit-identical; validator all
+  green; checksums keys remapped). center_frame resolves episode/split
+  arrays through the manifest instead of hardcoded root paths, and the
+  validator checksum generation walks subdirectories. Both in-directory
+  READMEs rewritten for v3.
 - Format-review fixes (independent agent audit): per-file checksums.json
   (64 files) plus scripts/data/validate_memmap.py for one-stop
   schema/episode/source-policy/integrity checks; manifest field_semantics

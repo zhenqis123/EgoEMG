@@ -168,7 +168,15 @@ with `sha256sum -c checksums.json` inside the directory, or run
 `python scripts/data/validate_memmap.py --memmap-dir <dir> --checksums`
 for schema/episode/source-policy checks as well.
 
-**Schema v3 (2026-08-20).** The share now serves the v3 schema
+**Directory layout (local, grouped).** The working directory groups the 61
+`.dat` files into modality subdirectories
+(`core/ emg/ imu/ labels/ mano/ mocap_hands/ mocap_wrist/ mocap_head/ vision/`;
+`scripts/data/group_memmap_layout.py` performs the move and rewrites the
+manifest). The share currently still carries the flat v3 layout — the two
+are byte-identical in content and interchangeable via the manifest's
+`filename` pointers; the release repackage will adopt the grouped layout.
+
+**Schema v3 (2026-08-20).** The share serves the v3 schema
 (`format_version: egoemg_v3_memmap`): IMU fields renamed to the positional
 taxonomy (`imu_band_left/right`, `imu_cam_head`, `imu_cam_wrist_left/right`),
 `mocap_head_tracked` → `mocap_head_valid`, dead fields dropped
