@@ -104,7 +104,8 @@ def check_sources(root: Path, manifest: dict, full: bool) -> None:
 def generate_checksums(root: Path) -> None:
     names = sorted(str(p.relative_to(root)) for p in root.rglob("*")
                    if p.is_file() and p.suffix in (".dat", ".json", ".npz")
-                   and p.name != "checksums.json")
+                   and p.name != "checksums.json"
+                   and not str(p.relative_to(root)).startswith("vision_index"))
     out: dict[str, str] = {}
     for i, name in enumerate(names):
         h = hashlib.sha256()
@@ -131,6 +132,55 @@ def verify_checksums(root: Path, path: Path) -> None:
         report(f"checksum: {name}", h.hexdigest() == want)
 
 
+def check_structure(root: Path, manifest: dict, meta: dict) -> None:
+    """Groups/files/marks/labels/schema cross-checks (fast, no hashing)."""
+    # modality_groups covers every frame field exactly once; groups match dirs
+    if "modality_groups" in manifest:
+        grouped: dict[str, list[str]] = {}
+        for name, spec in manifest["fields"].items():
+            grouped.setdefault(spec["filename"].split("/")[0], []).append(name)
+        declared = {g: {f.replace(" (episode-level)", "") for f in v}
+                    for g, v in manifest["modality_groups"].items()}
+        frame_fields = set(manifest["fields"].keys())
+        for g, fields in grouped.items():
+            # a declared group is allowed to also list episode-level entries;
+            # its frame-field subset must equal the directory's contents
+            report(f"modality_groups matches dir {g}/",
+                   declared.get(g, set()) & frame_fields == set(fields))
+        covered = {f for v in declared.values() for f in v}
+        report("modality_groups covers all fields",
+               (covered & frame_fields) == frame_fields)
+    # no orphan .dat files outside the manifest
+    declared_files = {spec["filename"] for spec in manifest["fields"].values()} \
+        | {spec["filename"] for spec in manifest["episode_fields"].values()}
+    orphans = sorted(str(p.relative_to(root)) for p in root.rglob("*.dat")
+                     if str(p.relative_to(root)) not in declared_files)
+    report("no orphan .dat files", not orphans, ", ".join(orphans[:5]))
+    # is_first/is_last pairing and beta-table cardinality
+    n = manifest["total_rows"]
+    # boundary marks are sparse (928 marks in 132M rows): read fully
+    fi = _arr(root, manifest, "is_first", np.arange(n))
+    la = _arr(root, manifest, "is_last", np.arange(n))
+    n_first, n_last = int(fi.sum()), int(la.sum())
+    beta_rows = next(iter(manifest["episode_fields"].values()))["shape"][0]
+    report("is_first count == beta rows (928)", n_first == beta_rows, f"{n_first} vs {beta_rows}")
+    report("is_last count == is_first count", n_last == n_first, f"{n_last} vs {n_first}")
+    # gesture labels within envelope
+    gc = _arr(root, manifest, "label_gesture_class", _sample(n, False))
+    report("label_gesture_class in [-1, 59]",
+           bool(((gc >= -1) & (gc <= 59)).all()))
+    # schema version cross-check
+    sv = str(meta.get("schema_version", [""])[0]) if "schema_version" in meta else ""
+    report("metadata schema_version matches format_version family",
+           "v3" in sv and "v3" in manifest.get("format_version", ""), sv)
+
+
+def _arr(root: Path, manifest: dict, name: str, idx: np.ndarray) -> np.ndarray:
+    spec = manifest["fields"][name]
+    return np.asarray(np.memmap(root / spec["filename"], dtype=spec["dtype"],
+                                mode="r", shape=tuple(spec["shape"]))[idx])
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--memmap-dir", type=Path, required=True)
@@ -138,6 +188,8 @@ def main() -> int:
     ap.add_argument("--generate-checksums", action="store_true")
     ap.add_argument("--checksums", type=Path, default=None,
                     help="verify against a checksums.json (defaults to <dir>/checksums.json if present)")
+    ap.add_argument("--no-checksums", action="store_true",
+                    help="skip checksum verification even if checksums.json exists")
     args = ap.parse_args()
 
     root = args.memmap_dir
@@ -150,9 +202,12 @@ def main() -> int:
 
     if args.generate_checksums:
         generate_checksums(root)
-    ck = args.checksums or (root / "checksums.json" if (root / "checksums.json").exists() else None)
+    ck = None if args.no_checksums else (
+        args.checksums or (root / "checksums.json" if (root / "checksums.json").exists() else None)
+    )
     if ck:
         verify_checksums(root, ck)
+    check_structure(root, manifest, meta)
 
     if FAILURES:
         print(f"\n{len(FAILURES)} check(s) FAILED")

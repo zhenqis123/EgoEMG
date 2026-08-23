@@ -50,6 +50,20 @@ All notable changes are recorded in this file.
   the ResNet-50 fusion, calibration asset location, crop-less-frame
   selection); measured reproduction numbers are recorded in the README
   evaluation notes and docs/code_review_findings_20260820.md.
+- Independent structure-review fixes: modality_groups rebuilt from the
+  directory layout (9 groups covering all 59 frame fields + 2 episode-level
+  entries — the previous 5-group hand copy missed 35 fields); the sentinel
+  doc corrected (Incre frame_index is -1, not 0); recording_marks updated
+  (Incre carries 8 marks) and the single missing is_last byte at row
+  127,369,286 patched (928/928 paired, checksums refreshed); ShowEE beta
+  index lossiness documented in episode_fields semantics; vision_index
+  declared as a manifest sidecar (regenerable, excluded from checksums);
+  validator gains structural checks (groups<->fields<->directories
+  consistency, orphan .dat detection, is_first/is_last pairing vs the 928
+  beta rows, gesture-label envelope, metadata/manifest schema
+  cross-check) plus --no-checksums; both READMEs' verify commands and
+  field counts corrected with a copy-paste numpy example; center_frame
+  tolerates manifests with implicit filenames.
 - Group the unified memmap's flat .dat files into modality subdirectories
   (core/emg/imu/labels/mano/mocap_hands/mocap_wrist/mocap_head/vision) via
   scripts/data/group_memmap_layout.py — pure renames plus manifest pointer

@@ -41,13 +41,17 @@ def collect_val_centers(
     val_split_ids = [labels.index(name) for name in ("user", "gesture", "both") if name in labels]
     if not val_split_ids:
         val_split_ids = [1, 2, 3]
+    def _path(name: str, spec: dict) -> Path:
+        # filename is implicit when a spec omits it (synthetic/legacy manifests)
+        return memmap_dir / spec.get("filename", f"{name}.dat")
+
     ei = m["fields"]["episode_index"]
     episode_idx = np.memmap(
-        memmap_dir / ei["filename"], dtype=ei["dtype"], mode="r", shape=tuple(ei["shape"])
+        _path("episode_index", ei), dtype=ei["dtype"], mode="r", shape=tuple(ei["shape"])
     )
     fs = m["fields"]["frame_split_id"]
     split = np.memmap(
-        memmap_dir / fs["filename"],
+        _path("frame_split_id", fs),
         dtype=fs["dtype"], mode="r", shape=tuple(fs["shape"]),
     )
 
