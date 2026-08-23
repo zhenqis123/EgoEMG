@@ -15,12 +15,10 @@
   <a href="#-license"><img src="https://img.shields.io/badge/Code-MIT-blue" alt="Code license"></a>
   <a href="https://github.com/zhenqis123/EgoEMG/actions"><img src="https://img.shields.io/github/actions/workflow/status/zhenqis123/EgoEMG/main.yml?branch=main" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11-blue" alt="Python">
-  <img src="https://img.shields.io/badge/version-0.1.0-brightgreen" alt="Version">
 </p>
 
 <p align="center">
-  [ <a href="#-release-status">Release status</a> ·
-    <a href="#-setup">Setup</a> ·
+  [ <a href="#-setup">Setup</a> ·
     <a href="#-training">Training</a> ·
     <a href="#-visualization">Visualization</a> ·
     <a href="#-results-and-evaluation">Results</a> ·
@@ -32,53 +30,10 @@
 
 ## ✨ Highlights
 
-- **🧠 EMG-to-pose** — EMGFormer (small / middle / large) predicts hand pose
-  from bilateral surface EMG; **13.9° Avg MAE** with the released
-  EMGFormer-M checkpoint, command-reproducible end to end.
-- **👁️ Vision-to-pose** — ResNet / ViT single-frame predictors on the
-  egocentric webcam stream (**5.85°** with the released ResNet-18).
-- **🔀 EMG+vision fusion** — combines EMG and visual cues on identical center
-  frames for the best of both (measured **5.36°** with the released
-  ResNet-50 fusion; see coverage note under the fusion table).
-- **🎥 One-command visualization** — overlay videos with projected meshes and
-  mocap markers, straight from the released memmap and videos.
-
-## 🚧 Release Status
-
-The complete EgoEMG dataset release is still in preparation. Until then,
-the canonical workflows in this README — EMGFormer training, ResNet-18
-vision/fusion, evaluation, and visualization — run on the earlier legacy
-data/checkpoint package.
-
-Follow [Legacy Asset Setup](docs/ASSET_SETUP.md) before running these workflows.
-It distinguishes the single-episode preview from the complete legacy asset tree,
-lists the expected directory layout, and documents external MANO requirements.
-See also [the code pre-release support boundary](docs/PRERELEASE_LIMITATIONS.md)
-and the [data-card placeholder](docs/DATA_CARD.md).
-
-<details>
-<summary><b>Legacy material</b></summary>
-
-Some legacy artifacts may remain in repository history or third-party storage.
-They are not part of this release contract: availability, integrity, license
-scope, compatibility, and result reproducibility are not guaranteed. Do not
-redistribute or cite them as the forthcoming EgoEMG dataset.
-</details>
-
-<details>
-<summary><b>Dataset IMU note (updated 2026-08-20)</b></summary>
-
-The unified memmap's `imu_band_left` field (v3 schema; named `imu` before the
-2026-08-20 v3 redesign) carries real wrist-band inertial data in a single
-`[acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z]` layout (m/s², gravity ≈ 9.2–9.7
-at rest; the EgoEMG band's gyro_x axis is dead and stored as 0).
-Legacy-release copies downloaded **before 2026-08-20** store the EgoEMG rows
-with the two halves swapped; run
-`scripts/prepare/fix_egoemg_imu_channel_order.py --memmap-dir <dir> --apply`
-to repair them in place, or re-download `imu.dat` / `manifest.json` — see
-[Legacy Asset Setup](docs/ASSET_SETUP.md#7-imu-channel-order-fix-2026-08-20)
-for checksums and details.
-</details>
+- **🧠 EMG-to-pose** — EMGFormer (S/M/L): **13.9° Avg MAE** with the released M checkpoint.
+- **👁️ Vision-to-pose** — ResNet / ViT on the egocentric webcam stream: **5.85°** with ResNet-18.
+- **🔀 Fusion** — EMG + vision on identical center frames: **5.36°** with ResNet-50 fusion.
+- **🎥 One-command visualization** — overlay videos with meshes and markers from the released memmap.
 
 ## ⚙️ Setup
 
@@ -87,39 +42,44 @@ conda env create -f environment.yml && conda activate emg2pose
 pip install -e '.[viz]'
 ```
 
-For core code only, use `pip install -e .`; the `viz` extra installs public
-visualization dependencies. `environment.yml` selects the tested CUDA-enabled
-PyTorch build. Download and configure legacy data/checkpoints with
-[Legacy Asset Setup](docs/ASSET_SETUP.md).
+Download data and checkpoints with [Asset Setup](docs/ASSET_SETUP.md), then set
+`export EMG2POSE_ROOT=/path/to/egoemg_assets`.
+
+<details>
+<summary><b>Asset details</b></summary>
+
+The complete dataset release is still in preparation; current workflows run on
+the earlier legacy package. [Asset Setup](docs/ASSET_SETUP.md) lists the
+directory layout and external MANO requirements. See also the
+[support boundary](docs/PRERELEASE_LIMITATIONS.md) and
+[data card](docs/DATA_CARD.md).
+</details>
+
+<details>
+<summary><b>Dataset IMU note</b></summary>
+
+Legacy copies downloaded before 2026-08-20 store EgoEMG IMU rows with the
+acc/gyro halves swapped. Run
+`scripts/prepare/fix_egoemg_imu_channel_order.py --memmap-dir <dir> --apply`
+to repair, or re-download `imu.dat` / `manifest.json`. Details:
+[Asset Setup §7](docs/ASSET_SETUP.md#7-imu-channel-order-fix-2026-08-20).
+</details>
 
 ## 🚀 Training
 
-Supervised EMG, vision, and fusion training use `egoemg.train`; the Hydra
-experiment selects the model family. These are maintainer workflow sketches —
-they require the unreleased legacy assets from
-[Legacy Asset Setup](docs/ASSET_SETUP.md). Before running any experiment
-config other than the ones below, run
-`python scripts/release/audit_portability.py` to see whether it has
-research-only local/private references.
-
-> **Hardware:** the reference recipes use NVIDIA GPUs with CUDA 11.8. The EMG
-> example below is a six-GPU run and the fusion example uses five GPUs. For a
-> one-GPU smoke run, set `trainer.devices=[0]` and reduce `batch_size` (and
-> `val_batch_size` when applicable) to fit your GPU memory.
-
 ```shell
-# EMG-to-pose (EMGFormer-M regression recipe on EgoEMG)
+# EMG-to-pose (EMGFormer-M)
 python -m egoemg.train \
   experiment=emgformer/regression_egoemg \
   'trainer.devices=[0,1,2,3,4,5]' '+trainer.strategy=ddp' \
   batch_size=500
 
-# Vision-only single-frame baseline (ResNet-18)
+# Vision-only (ResNet-18)
 python -m egoemg.train \
   experiment=fusion/vision_resnet18 \
   train=true eval=true 'trainer.devices=[0]'
 
-# EMG+vision fusion (ResNet-18 + EMGFormer-S, center-supervised)
+# EMG+vision fusion
 python -m egoemg.train \
   experiment=fusion/fusion_rn18_s_center_16ch_wl7790 \
   train=true eval=true 'trainer.devices=[0,1,2,3,4]'
@@ -130,27 +90,23 @@ python -m egoemg.train_pretrain \
   train=true eval=false 'trainer.devices=[0]'
 ```
 
-Active experiments live in `config/experiment/emgformer/` and
-`config/experiment/fusion/`, plus classic-baseline recipes in
-`config/experiment/emg2pose/`; shell launchers for the paper experiments
-live in `experiments/`. For evaluation, use `egoemg.test_analysis` (see
-[Evaluation](#evaluation)): fusion configs default to `train=true`, so the
-training entrypoint would otherwise start a new run.
+> **Hardware:** the EMG example uses six GPUs, fusion five. For a single-GPU
+> smoke run, set `trainer.devices=[0]` and reduce `batch_size`.
+
+Experiment configs live in `config/experiment/{emgformer,fusion,emg2pose}/`.
+For evaluation use `egoemg.test_analysis` — fusion configs default to
+`train=true`, so the training entrypoint would start a new run.
 
 ## 🎥 Visualization
 
-One entrypoint, four modes — all headless:
-
-| Mode | What you get |
-|------|--------------|
-| `vision` | head-view overlay MP4 (hand meshes, projected mocap markers, per-hand boxes) plus one precomputed-crop MP4 per hand |
-| `timeline` | EMG / joint-angle timeline PNG for an episode |
-| `mesh` | world-space MANO/FK meshes as GLB, with marker and occlusion renders |
-| `fk_vs_mano` | side-by-side forward-kinematics vs MANO comparison |
+| Mode | Output |
+|------|--------|
+| `vision` | overlay MP4 + per-hand crop MP4s |
+| `timeline` | EMG / joint-angle timeline PNG |
+| `mesh` | world-space MANO/FK meshes (GLB) + occlusion renders |
+| `fk_vs_mano` | FK vs MANO comparison |
 
 ```shell
-export EMG2POSE_ROOT=/absolute/path/to/egoemg_assets  # per docs/ASSET_SETUP.md §1
-
 python scripts/viz/visualize_dataset.py vision \
   --memmap-dir ${EMG2POSE_ROOT}/data/EgoEMG_unified_memmap \
   --allintra-root ${EMG2POSE_ROOT}/data/EgoEMG_allintra \
@@ -161,24 +117,15 @@ python scripts/viz/visualize_dataset.py vision \
 ```
 
 <p align="center">
-  <img src="images/viz_example.jpg" width="70%" alt="vision-mode overlay output: hand meshes, projected mocap markers, and per-hand boxes on the egocentric frame">
+  <img src="images/viz_example.jpg" width="70%" alt="vision-mode overlay: hand meshes, projected mocap markers, per-hand boxes">
 </p>
-
-For the required precomputed-crop behavior and unsupported external assets, see
-[the code pre-release support boundary](docs/PRERELEASE_LIMITATIONS.md). For a
-larger visual check or WiLoR-specific setup notes, see
-[the EgoEMG/WiLoR training guide](docs/egoemg_wilor_training.md).
 
 ## 📊 Results and evaluation
 
-Bold values are measured from the released checkpoints via the commands below
-(2026-08-20, single RTX 4090, fresh clone + the
-[legacy assets](docs/ASSET_SETUP.md)); all other rows are paper-reported.
-MAE in degrees throughout.
+Bold = measured from the released checkpoints (single RTX 4090, commands
+below); all other rows are paper-reported. MAE in degrees.
 
-**EMG-to-pose on EgoEMG** (per-user mean ± std across the Gesture / User /
-Both test splits; Avg. is the per-sample-weighted MAE across the three
-splits):
+**EMG-to-pose on EgoEMG** (per-user mean ± std; Avg = per-sample-weighted):
 
 | Method | Params | Gesture | User | Both | Avg. |
 |--------|--------|---------|------|------|------|
@@ -188,21 +135,8 @@ splits):
 | vEMG2Pose | 6.0M | 15.0 ± 1.4 | 16.3 ± 1.7 | 17.3 ± 1.3 | 15.9 |
 | NeuroPose | 6.4M | 15.8 ± 1.2 | 15.7 ± 1.3 | 16.3 ± 0.7 | 16.1 |
 
-**EMG-to-pose on the EMG2Pose benchmark** (per-user mean ± std across the
-User / Stage / User+Stage test splits):
-
-| Method | Params | User | Stage | User+Stage |
-|--------|--------|------|-------|------------|
-| EMGFormer-S | 3.5M | 12.5 ± 1.1 | 11.1 ± 1.2 | 12.3 ± 1.1 |
-| EMGFormer-M | 6.6M | 12.4 ± 1.1 | 10.2 ± 1.1 | 12.4 ± 1.1 |
-| EMGFormer-L | 16.3M | 12.3 ± 1.1 | 9.3 ± 1.1 | 12.3 ± 1.1 |
-
-*The legacy checkpoint bundle contains the EMGFormer-S/M/L checkpoints for
-all three rows; evaluate the corresponding released checkpoint with the command below.*
-
-**Vision and EMG+vision fusion on EgoEMG** (identical center frames;
-Frz./FT = frozen/fine-tuned visual predictor; Avg. is the per-sample-weighted
-MAE, Δavg the fusion gain):
+**Vision and fusion on EgoEMG** (identical center frames; Frz./FT =
+frozen/fine-tuned; Δavg = fusion gain):
 
 | Backbone | Update | Vision Avg | Fusion Avg | Δavg |
 |----------|--------|-----------|-----------|------|
@@ -214,97 +148,63 @@ MAE, Δavg the fusion gain):
 | ViT-L/14 | Frz. | 5.39 | 5.36 | +0.03 |
 | WiLoR | Frz. | 4.73 | 4.68 | +0.04 |
 
-*Coverage: the released checkpoints reproduce the fine-tuned ResNet-18 /
-ViT-S vision-only rows (5.84 / 6.02) and the ViT-S fusion row (5.54).
-The bundle's ResNet-50 fusion checkpoint is a **fine-tuned** recipe with no
-paper row above — it measures **5.36°** (±0.03° evaluation tolerance on all measured values); the table's ResNet-50 row (Frz.,
-5.19) is paper-reported. The fine-tuned ResNet-18 fusion row and all
-remaining rows are paper-reported only.*
+*The bundle's ResNet-50 fusion checkpoint is fine-tuned with no paper row;
+it measures 5.36°. The fine-tuned ResNet-18 fusion row is paper-reported only.*
 
 ### Evaluation
-
-After completing [Legacy Asset Setup](docs/ASSET_SETUP.md), use these commands
-with the matching legacy data and checkpoint assets.
-The EgoEMG experiment configs enable `per_group_stats` by default, so the
-output reports the per-user / per-gesture mean ± std (matching the paper
-tables) plus an `overall` MAE: the same per-sample-weighted aggregate reported
-in the paper's Avg column:
 
 ```shell
 export EMG2POSE_ROOT=/absolute/path/to/dataset_root
 
-# EgoEMG EMGFormer (8ch target_hand layout); reports per-group stats + overall
+# EgoEMG EMGFormer (per-group stats + overall)
 python -m egoemg.test_analysis \
   experiment=emgformer/egoemg_emgformer_small \
   'checkpoint=checkpoints/egoemg_emgformer_small.ckpt'
 
-# EMG2Pose benchmark EMGFormer (16ch)
+# EMG2Pose benchmark
 python -m egoemg.test_analysis \
   experiment=emgformer/emg2pose_emgformer_small \
   'checkpoint=checkpoints/emg2pose_emgformer_small.ckpt' \
   data_location=${EMG2POSE_ROOT}/data/emg_corpus/emg2pose_v3_memmap
-```
 
-**Vision and fusion** checkpoints use the same `test_analysis` entrypoint;
-their experiment configs enable `center_frame_eval`, which evaluates on
-identical center frames and reports the per-hand MAE. The config must match
-the checkpoint's training setup (EMG channels, window length) — the commands
-below pin the matching recipe for each released checkpoint:
-
-```shell
-# Vision-only ResNet18
+# Vision-only ResNet-18
 python -m egoemg.test_analysis \
   experiment=fusion/vision_resnet18 \
   'checkpoint=checkpoints/vision_resnet18.ckpt'
 
-# Vision-only DINOv2 ViT-S/14
+# Vision-only ViT-S/14
 python -m egoemg.test_analysis \
   experiment=fusion/vision_vit_small \
   'checkpoint=checkpoints/vision_vit_small.ckpt'
 
-# EMG+vision fusion (ResNet-50 + 8ch EMG featurizer, WL 12000)
+# Fusion (ResNet-50 + 8ch EMG, WL 12000)
 python -m egoemg.test_analysis \
   experiment=fusion/fusion_rn50_m_center_eval_released \
   'checkpoint=checkpoints/fusion_resnet_emgfusion_center.ckpt'
 
-# EMG+vision fusion (DINOv2 ViT-S/14 + 16ch EMG featurizer, WL 7790)
+# Fusion (ViT-S/14 + 16ch EMG, WL 7790)
 python -m egoemg.test_analysis \
   experiment=fusion/fusion_vits_s_center_eval_released \
   'checkpoint=checkpoints/fusion_vit_emgfusion_center.ckpt'
 ```
 
-The released fusion checkpoints are the fine-tuned ResNet-50 and ViT-S fusion
-models; the `*_center_eval_released` recipes pin the matching architectures
-and null the training-time branch-initialization paths so only the released
-assets are needed.
-
 <details>
 <summary><b>Evaluation notes</b></summary>
 
-- Checkpoint filenames containing `=` (e.g. `epoch=011-val_mae=0.1022.ckpt`)
-  cannot be passed through Hydra CLI overrides; symlink to a `=`-free path or
-  set the `checkpoint:` field in a user config.
-- Fusion and vision evals use the same 2096/2082 center frames per hand.
-  If a fusion eval reports fewer samples, its evaluation window is longer
-  than the reference WL=7790 grid and frames near episode edges are dropped
-  (the model window must fit inside the episode). Expected, not a bug.
-- `results.csv` is written into the Hydra run directory (`logs/<date>/...`),
-  never into the repo root.
-- MAE is computed on joint-angle targets stored in **radians**; the tables
-  above are converted to degrees (`0.0944 rad ≈ 5.41°`). The evaluation
-  recipes already pin the per-dataset statistics keys that match each
-  released checkpoint's training; only custom configs evaluating
-  unified-trained checkpoints need `+eval_dataset_name=egoemg_unified`.
+- Checkpoint filenames containing `=` cannot be passed through Hydra CLI;
+  symlink to a `=`-free path.
+- Vision/fusion evals use 2096/2082 center frames per hand. Longer windows
+  drop edge frames (expected).
+- `results.csv` lands in the Hydra run directory (`logs/<date>/...`).
+- MAE is in **radians** in results.csv (`0.0944 rad ≈ 5.41°`); tables above
+  are in degrees.
 </details>
 
 ## 🗂️ Repository Layout
 
 ```text
-egoemg/        models, dataset loaders, training/eval entrypoints,
-               vendored UmeTrack FK utilities
-config/        Hydra experiment tree
-  ├─ experiment/{emgformer,fusion,emg2pose}/   active experiment recipes
-  └─ lineage/                                  shared per-lineage defaults
+egoemg/        models, datasets, training/eval, vendored UmeTrack FK
+config/        Hydra experiments ({emgformer,fusion,emg2pose}/ + lineage/)
 scripts/       data conversion, downloads, visualization, paper figures
 experiments/   shell launchers for the paper's experiments
 docs/          config architecture, asset setup, dataset notes
@@ -313,15 +213,11 @@ assets/        EMG layout figures and normalization statistics
 
 ## 📜 License
 
-Project-authored code is distributed under the **MIT License**. This repository
-also contains third-party material with different terms, including UmeTrack
-(CC-BY-NC-4.0); the current **EgoEMG dataset is not released**. See
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and the license files in the
-corresponding directories before use or redistribution.
+Code: **MIT**. Third-party material (incl. UmeTrack, CC-BY-NC-4.0) under
+their own terms — see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## 📖 Citing EgoEMG
 
-The paper is currently under review. Until a public paper version is available,
-please cite this repository and the exact commit used for your work — GitHub
-renders the citation file ([CITATION.cff](CITATION.cff)); pin the commit hash
-in addition.
+The paper is under review. Until a public version is available, cite this
+repository and the exact commit — GitHub renders
+[CITATION.cff](CITATION.cff).
