@@ -30,12 +30,6 @@
 
 ---
 
-> [!NOTE]
-> **v0.1.0.** Every workflow and quoted result in this
-> README is measured from — and command-reproducible with — the earlier legacy
-> data/checkpoint package, not the forthcoming dataset release. See
-> [Release Status](#-release-status).
-
 ## ✨ Highlights
 
 - **🧠 EMG-to-pose** — EMGFormer (small / middle / large) predicts hand pose
