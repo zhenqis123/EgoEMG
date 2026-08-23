@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="#-release-status"><img src="https://img.shields.io/badge/release-v0.1.0-brightgreen" alt="Release status"></a>
+  <img src="https://img.shields.io/badge/release-v0.1.0-brightgreen" alt="Release">
   <a href="#-license"><img src="https://img.shields.io/badge/Code-MIT-blue" alt="Code license"></a>
   <a href="https://github.com/zhenqis123/EgoEMG/actions"><img src="https://img.shields.io/github/actions/workflow/status/zhenqis123/EgoEMG/main.yml?branch=main" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11-blue" alt="Python">
@@ -74,8 +74,7 @@ python -m egoemg.train_pretrain \
 > smoke run, set `trainer.devices=[0]` and reduce `batch_size`.
 
 Experiment configs live in `config/experiment/{emgformer,fusion,emg2pose}/`.
-For evaluation use `egoemg.test_analysis` — fusion configs default to
-`train=true`, so the training entrypoint would start a new run.
+For evaluation use `egoemg.test_analysis` (fusion configs default `train=true`).
 
 ## 🎥 Visualization
 
@@ -102,8 +101,8 @@ python scripts/viz/visualize_dataset.py vision \
 
 ## 📊 Results and evaluation
 
-Bold = measured from the released checkpoints (single RTX 4090, commands
-below); all other rows are paper-reported. MAE in degrees.
+Bold = measured with the released checkpoints (commands below); other rows
+are paper-reported. MAE in degrees.
 
 **EMG-to-pose on EgoEMG** (per-user mean ± std; Avg = per-sample-weighted):
 
@@ -128,8 +127,7 @@ frozen/fine-tuned; Δavg = fusion gain):
 | ViT-L/14 | Frz. | 5.39 | 5.36 | +0.03 |
 | WiLoR | Frz. | 4.73 | 4.68 | +0.04 |
 
-*The bundle's ResNet-50 fusion checkpoint is fine-tuned with no paper row;
-it measures 5.36°. The fine-tuned ResNet-18 fusion row is paper-reported only.*
+*The ResNet-50 fusion checkpoint is fine-tuned (no paper row); it measures 5.36°.*
 
 ### Evaluation
 
