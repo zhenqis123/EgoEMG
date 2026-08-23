@@ -45,16 +45,6 @@ pip install -e '.[viz]'
 Download data and checkpoints with [Asset Setup](docs/ASSET_SETUP.md), then set
 `export EMG2POSE_ROOT=/path/to/egoemg_assets`.
 
-<details>
-<summary><b>Dataset IMU note</b></summary>
-
-Legacy copies downloaded before 2026-08-20 store EgoEMG IMU rows with the
-acc/gyro halves swapped. Run
-`scripts/prepare/fix_egoemg_imu_channel_order.py --memmap-dir <dir> --apply`
-to repair, or re-download `imu.dat` / `manifest.json`. Details:
-[Asset Setup §7](docs/ASSET_SETUP.md#7-imu-channel-order-fix-2026-08-20).
-</details>
-
 ## 🚀 Training
 
 ```shell
