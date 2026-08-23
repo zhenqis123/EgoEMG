@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this pre-release software, please cite the repository and exact commit."
 title: "EgoEmg: A Multimodal Egocentric Dataset with Bilateral EMG and Vision for Hand Pose Estimation"
 type: software
-version: "0.1.0rc1"
+version: "0.1.0"
 repository-code: "https://github.com/zhenqis123/EgoEMG"
 authors:
   - given-names: Ziheng

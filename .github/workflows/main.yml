@@ -41,7 +41,7 @@ jobs:
 
         citation = yaml.safe_load(Path("CITATION.cff").read_text())
         assert citation["type"] == "software"
-        assert citation["version"] == "0.1.0rc1"
+        assert citation["version"] == "0.1.0"
         assert "date-released" not in citation
         PY
 
@@ -77,7 +77,7 @@ jobs:
       run: |
         python -m build --wheel --outdir dist
         python -m pip install --force-reinstall --no-deps dist/*.whl
-        python -c 'import importlib.resources as r; import egoemg; assert egoemg.__version__ == "0.1.0rc1"; assert r.files("egoemg.UmeTrack").joinpath("dataset/generic_hand_model.json").is_file()'
+        python -c 'import importlib.resources as r; import egoemg; assert egoemg.__version__ == "0.1.0"; assert r.files("egoemg.UmeTrack").joinpath("dataset/generic_hand_model.json").is_file()'
         python -c 'import egoemg.models, egoemg.models.decoders, egoemg.models.featurizers, egoemg.utils, egoemg.lightning, egoemg.test_analysis'
 
     - name: Run unit tests

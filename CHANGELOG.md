@@ -2,7 +2,7 @@
 
 All notable changes are recorded in this file.
 
-## 0.1.0rc1 — unreleased code pre-release
+## 0.1.0 — first public release (2026-08-23)
 
 - Declares the repository as a code pre-release; the current dataset release is
   not ready, while the earlier legacy data/checkpoint release remains supported

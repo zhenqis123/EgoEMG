@@ -577,7 +577,12 @@ class EgoEmgMemmapDataset(Dataset):
         std_for_check = (
             float(np.mean(self._emg_std)) if used_per_channel else self._emg_std
         )
-        if std_for_check >= 20.0 and self.emg_field_preference not in {"raw"}:
+        # The 16-channel layouts zero-fill half the channels, so the scalar
+        # fallback can legitimately carry a raw-scale std even for filtered
+        # EMG; only flag the 8-channel per-hand path where the mismatch is
+        # actually a bug.
+        _sixteen_ch = self.emg_layout in {"emg2pose_sparse16", "emg2pose_interpolate16"}
+        if std_for_check >= 20.0 and self.emg_field_preference not in {"raw"} and not _sixteen_ch:
             log.warning(
                 "norm stats for dataset=%s emg_field=%s have std=%.2f, which "
                 "looks like raw-EMG statistics. If you intended to normalize "

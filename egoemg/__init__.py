@@ -6,4 +6,4 @@
 
 """egoemg: sEMG hand-pose estimation benchmark + EgoEMG vision/fusion models."""
 
-__version__ = "0.1.0rc1"
+__version__ = "0.1.0"

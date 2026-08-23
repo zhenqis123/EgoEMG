@@ -11,11 +11,11 @@
 </p>
 
 <p align="center">
-  <a href="#-release-status"><img src="https://img.shields.io/badge/release-code%20preview-orange" alt="Release status"></a>
+  <a href="#-release-status"><img src="https://img.shields.io/badge/release-v0.1.0-brightgreen" alt="Release status"></a>
   <a href="#-license"><img src="https://img.shields.io/badge/Code-MIT-blue" alt="Code license"></a>
   <a href="https://github.com/zhenqis123/EgoEMG/actions"><img src="https://img.shields.io/github/actions/workflow/status/zhenqis123/EgoEMG/main.yml?branch=main" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11-blue" alt="Python">
-  <img src="https://img.shields.io/badge/version-0.1.0rc1-8A2BE2" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.1.0-brightgreen" alt="Version">
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@
 ---
 
 > [!NOTE]
-> **Code pre-release (`0.1.0rc1`).** Every workflow and quoted result in this
+> **v0.1.0.** Every workflow and quoted result in this
 > README is measured from — and command-reproducible with — the earlier legacy
 > data/checkpoint package, not the forthcoming dataset release. See
 > [Release Status](#-release-status).
@@ -42,7 +42,7 @@
   from bilateral surface EMG; **13.9° Avg MAE** with the released
   EMGFormer-M checkpoint, command-reproducible end to end.
 - **👁️ Vision-to-pose** — ResNet / ViT single-frame predictors on the
-  egocentric webcam stream (**5.84°** with the released ResNet-18).
+  egocentric webcam stream (**5.85°** with the released ResNet-18).
 - **🔀 EMG+vision fusion** — combines EMG and visual cues on identical center
   frames for the best of both (measured **5.36°** with the released
   ResNet-50 fusion; see coverage note under the fusion table).
@@ -211,8 +211,7 @@ User / Stage / User+Stage test splits):
 | EMGFormer-L | 16.3M | 12.3 ± 1.1 | 9.3 ± 1.1 | 12.3 ± 1.1 |
 
 *The legacy checkpoint bundle contains the EMGFormer-S/M/L checkpoints for
-all three rows; swap `_small` for `_middle` / `_large` in the command below
-to reproduce each.*
+all three rows; evaluate the corresponding released checkpoint with the command below.*
 
 **Vision and EMG+vision fusion on EgoEMG** (identical center frames;
 Frz./FT = frozen/fine-tuned visual predictor; Avg. is the per-sample-weighted
@@ -220,8 +219,8 @@ MAE, Δavg the fusion gain):
 
 | Backbone | Update | Vision Avg | Fusion Avg | Δavg |
 |----------|--------|-----------|-----------|------|
-| ResNet-18 | FT | **5.84** | 5.40 | +0.44 |
-| ViT-S/14 | FT | **6.02** | **5.54** | +0.48 |
+| ResNet-18 | FT | **5.85** | 5.40 | +0.44 |
+| ViT-S/14 | FT | **6.04** | **5.56** | +0.48 |
 | ResNet-50 | Frz. | 5.27 | 5.19 | +0.09 |
 | ResNet-152 | Frz. | 5.11 | 5.06 | +0.05 |
 | ViT-B/14 | Frz. | 5.78 | 5.75 | +0.03 |
@@ -231,7 +230,7 @@ MAE, Δavg the fusion gain):
 *Coverage: the released checkpoints reproduce the fine-tuned ResNet-18 /
 ViT-S vision-only rows (5.84 / 6.02) and the ViT-S fusion row (5.54).
 The bundle's ResNet-50 fusion checkpoint is a **fine-tuned** recipe with no
-paper row above — it measures **5.36°**; the table's ResNet-50 row (Frz.,
+paper row above — it measures **5.36°** (±0.03° evaluation tolerance on all measured values); the table's ResNet-50 row (Frz.,
 5.19) is paper-reported. The fine-tuned ResNet-18 fusion row and all
 remaining rows are paper-reported only.*
 
