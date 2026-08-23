@@ -114,6 +114,17 @@ are paper-reported. MAE in degrees.
 | vEMG2Pose | 6.0M | 15.0 ± 1.4 | 16.3 ± 1.7 | 17.3 ± 1.3 | 15.9 |
 | NeuroPose | 6.4M | 15.8 ± 1.2 | 15.7 ± 1.3 | 16.3 ± 0.7 | 16.1 |
 
+**EMG-to-pose on the EMG2Pose benchmark** (per-user mean ± std across the
+User / Stage / User+Stage test splits):
+
+| Method | Params | User | Stage | User+Stage |
+|--------|--------|------|-------|------------|
+| EMGFormer-S | 3.5M | 12.5 ± 1.1 | 11.1 ± 1.2 | 12.3 ± 1.1 |
+| EMGFormer-M | 6.6M | 12.4 ± 1.1 | 10.2 ± 1.1 | 12.4 ± 1.1 |
+| EMGFormer-L | 16.3M | 12.3 ± 1.1 | 9.3 ± 1.1 | 12.3 ± 1.1 |
+| emg2pose | 3.0M | 12.6 ± 1.3 | 15.2 ± 1.6 | 15.6 ± 1.3 |
+| vEMG2Pose | 6.0M | 12.2 ± 1.3 | 15.2 ± 1.6 | 15.8 ± 1.4 |
+
 **Vision and fusion on EgoEMG** (identical center frames; Frz./FT =
 frozen/fine-tuned; Δavg = fusion gain):
 
