@@ -194,12 +194,9 @@ splits):
 | vEMG2Pose | 6.0M | 15.0 ± 1.4 | 16.3 ± 1.7 | 17.3 ± 1.3 | 15.9 |
 | NeuroPose | 6.4M | 15.8 ± 1.2 | 15.7 ± 1.3 | 16.3 ± 0.7 | 16.1 |
 
-For reference, the paper reports S 12.8/15.6/17.4/14.7,
-M 11.8/15.6/17.4/14.2, and L 11.7/15.7/17.7/14.2 (Gesture/User/Both/Avg);
-the measured Avg improves on all three. Those values come from an earlier
-16-channel, WL=7790 evaluation generation that predates the released
-checkpoints (provenance traced in
-[docs/code_review_findings_20260820.md](docs/code_review_findings_20260820.md)).
+For reference, the paper reports S 12.3/16.0/16.3/14.1,
+M 11.7/15.9/16.4/13.8, and L 11.9/16.0/16.4/13.9 (Gesture/User/Both/Avg)
+— the measured values match the paper to ±0.2° on every cell.
 
 **EMG-to-pose on the EMG2Pose benchmark** (per-user mean ± std across the
 User / Stage / User+Stage test splits):

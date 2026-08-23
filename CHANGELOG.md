@@ -4,6 +4,11 @@ All notable changes are recorded in this file.
 
 ## 0.1.0 — first public release (2026-08-23)
 
+- Paper table updated to the WL=12000 generation; README's EMGFormer
+  reference values now match the measured values to ±0.2° on every cell
+  (previously the paper carried WL=7790-era numbers with systematic
+  User/Both offsets of ±0.5-1.0°).
+
 - Declares the repository as a code pre-release; the current dataset release is
   not ready, while the earlier legacy data/checkpoint release remains supported
   for the canonical workflows documented in `docs/ASSET_SETUP.md`.
