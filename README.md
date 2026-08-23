@@ -46,16 +46,6 @@ Download data and checkpoints with [Asset Setup](docs/ASSET_SETUP.md), then set
 `export EMG2POSE_ROOT=/path/to/egoemg_assets`.
 
 <details>
-<summary><b>Asset details</b></summary>
-
-The complete dataset release is still in preparation; current workflows run on
-the earlier legacy package. [Asset Setup](docs/ASSET_SETUP.md) lists the
-directory layout and external MANO requirements. See also the
-[support boundary](docs/PRERELEASE_LIMITATIONS.md) and
-[data card](docs/DATA_CARD.md).
-</details>
-
-<details>
 <summary><b>Dataset IMU note</b></summary>
 
 Legacy copies downloaded before 2026-08-20 store EgoEMG IMU rows with the
