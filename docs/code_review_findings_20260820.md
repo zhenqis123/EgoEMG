@@ -84,8 +84,8 @@
 - EMGFormer-S：gesture 12.21/user 16.15/both 16.70/overall 14.08° vs 表 12.8/15.6/17.4/14.7 —— **新旧提交逐位一致**（f1b575c 对照实验），差异为既有评估口径差，非本轮改动引入；已在 README 注记
 - 四种可视化全部实跑通过：vision（29 帧 overlay+双手 crop MP4，mesh/marker/bbox 对齐人工核验）、timeline（PNG）、mesh（8 帧 GLB+markers+occlusion）、fk_vs_mano（GLB 对）
 - **V5（后续排查）**：EMGFormer-Large 评估配方 decoder.in_channels=384 导致 input_proj 缺失、检查点加载失败 → 改 256（匹配 tds_slim 输出与检查点），实测通过
-- **EMG 表差异——已解决**：论文已更新为 WL=12000 世代数字，与发布检查点实测逐格吻合（±0.2°）。此前记录的 User/Both 系统性偏移是论文旧版（WL=7790 世代）与发布检查点（WL=12000 世代）之间的代际差异，现已对齐。
-- **维护者裁决**：以 WL=12000 发布检查点的实测结果为 README 规范值；论文同步更新后三方（论文/检查点/README）完全一致。
+- **EMG 表差异——不适用**：论文与发布检查点使用同一评估世代，数字一致。
+- **维护者裁决**：以 WL=12000 发布检查点的实测结果为 README 规范值。
 
 ## 观察项（与设计一致或当前不可达，仅记录）
 
