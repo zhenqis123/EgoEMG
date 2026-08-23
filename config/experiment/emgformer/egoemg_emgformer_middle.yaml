@@ -20,7 +20,7 @@ pretrained_strict: false
 egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
 # These checkpoints were trained on the unified memmap with dataset_name
 # egoemg_unified; evaluation must resolve the same per-dataset stats keys.
-eval_dataset_name: egoemg_unified
+eval_dataset_name: egoemg
 egoemg_emg_field_preference: filtered_paper
 egoemg_emg_layout: target_hand
 egoemg_emg2pose_channel_indices: null
@@ -60,7 +60,7 @@ datamodule:
   norm_mode: per-dataset
   # Match the checkpoint's training-time pairing: these were trained
   # on the unified memmap (dataset_name egoemg_unified stats keys).
-  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_unified.json
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
   skip_ik_failures: false
 
 optimizer:
