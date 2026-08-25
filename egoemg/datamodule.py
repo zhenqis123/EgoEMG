@@ -1,20 +1,115 @@
 from __future__ import annotations
 
 import logging
+import math
 import os
 import time
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from typing import Any
 
+import numpy as np
 import pytorch_lightning as pl
+import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from torch.utils.data import ConcatDataset, DataLoader, Dataset
+from torch.utils.data.distributed import DistributedSampler
 
 from egoemg import transforms
 from egoemg.datasets.pretrain_wrapper import _resolve_transform
 
 log = logging.getLogger(__name__)
+
+
+class SessionShuffleSampler(DistributedSampler):
+    """Session-grouped sampler for memmap-backed window datasets.
+
+    Window reads from a multi-hundred-GB memmap are only fast when they are
+    sequential. This sampler keeps each rank's reads session-sequential while
+    approximating uniform shuffling:
+
+    1. Sessions are shuffled and their index streams concatenated in temporal
+       order, then split into ``num_replicas`` equal contiguous chunks
+       (cyclically padded, exactly like ``DistributedSampler``): perfect
+       balance, exact coverage, deterministic on every rank, no communication.
+    2. The rank's chunk is cut into blocks of ``batch_size * block_batches``
+       consecutive windows. Block order is shuffled across the chunk and
+       window order is shuffled within each block. One block's span stays
+       resident in the page cache, so intra-block random access is RAM-cheap
+       while disk still only sees block-sized sequential reads.
+
+    Subclassing ``DistributedSampler`` makes Lightning treat instances as
+    already distributed-aware (no re-wrapping) and lets it call
+    ``set_epoch()`` so sessions and blocks are re-shuffled every epoch.
+    """
+
+    def __init__(
+        self,
+        session_groups: Sequence[np.ndarray],
+        *,
+        batch_size: int,
+        block_batches: int = 16,
+        num_replicas: int | None = None,
+        rank: int | None = None,
+        seed: int = 0,
+    ) -> None:
+        if num_replicas is None:
+            num_replicas = (
+                torch.distributed.get_world_size()
+                if torch.distributed.is_available() and torch.distributed.is_initialized()
+                else 1
+            )
+        if rank is None:
+            rank = (
+                torch.distributed.get_rank()
+                if torch.distributed.is_available() and torch.distributed.is_initialized()
+                else 0
+            )
+        if not 0 <= rank < num_replicas:
+            raise ValueError(f"Invalid rank {rank} for {num_replicas} replicas")
+
+        self.session_groups = [np.asarray(g, dtype=np.int64) for g in session_groups]
+        self.batch_size = int(batch_size)
+        self.block_batches = int(block_batches)
+        self.num_replicas = num_replicas
+        self.rank = rank
+        self.seed = seed
+        self.epoch = 0
+        total = sum(len(g) for g in self.session_groups)
+        # Pad each rank's shard to a whole number of blocks (cyclic
+        # repetition, like DistributedSampler padding): every yielded block
+        # is exactly block_size, the shard divides evenly into batches, and
+        # ~2% of windows repeat per epoch.
+        block = max(1, self.batch_size * self.block_batches)
+        per_rank = math.ceil(total / self.num_replicas) if total else 0
+        self.num_samples = math.ceil(per_rank / block) * block
+        self.total_size = self.num_samples * self.num_replicas
+
+    def _rank_stream(self, epoch: int) -> np.ndarray:
+        if not self.session_groups:
+            return np.empty(0, dtype=np.int64)
+        rng = np.random.default_rng(self.seed + epoch)
+        order = rng.permutation(len(self.session_groups))
+        stream = np.concatenate([self.session_groups[si] for si in order])
+        if len(stream) < self.total_size:  # cyclic padding, like DistributedSampler
+            reps = -(-self.total_size // len(stream))
+            stream = np.tile(stream, reps)[: self.total_size]
+        return stream[self.rank * self.num_samples : (self.rank + 1) * self.num_samples]
+
+    def __iter__(self) -> Iterator[int]:
+        rng = np.random.default_rng(self.seed + self.epoch)
+        stream = self._rank_stream(self.epoch)
+        if len(stream) == 0:
+            return iter(())
+        block_size = max(1, self.batch_size * self.block_batches)
+        blocks = [stream[i : i + block_size] for i in range(0, len(stream), block_size)]
+        rng.shuffle(blocks)  # blocks is a list of ndarrays
+        for b in blocks:
+            rng.shuffle(b)
+        return iter(int(i) for b in blocks for i in b)
+
+    def __len__(self) -> int:
+        return self.num_samples
 
 
 def _debug_steps_enabled() -> bool:
@@ -70,6 +165,8 @@ class WindowedEmgDataModule(pl.LightningDataModule):
         persistent_workers: bool = True,
         prefetch_factor: int = 2,
         max_open_files: int = 32,
+        session_shuffle: bool = True,
+        session_block_batches: int = 16,
         dataset_repeat: int = 1,
         norm_mode: str | None = None,
         norm_stats_path: str | None = None,
@@ -97,6 +194,8 @@ class WindowedEmgDataModule(pl.LightningDataModule):
         self.persistent_workers = persistent_workers
         self.prefetch_factor = prefetch_factor
         self.max_open_files = max_open_files
+        self.session_shuffle = session_shuffle
+        self.session_block_batches = session_block_batches
         self.dataset_repeat = dataset_repeat
         self.norm_mode = norm_mode
         self.norm_stats_path = norm_stats_path
@@ -242,6 +341,26 @@ class WindowedEmgDataModule(pl.LightningDataModule):
             "pin_memory": self.pin_memory,
             "collate_fn": self._collate_fn,  # Use custom collate function
         }
+        worker_init = getattr(dataset, "_worker_init", None)
+        if worker_init is not None and loader_num_workers > 0:
+            kwargs["worker_init_fn"] = worker_init
+        # Session-grouped sequential reading for memmap datasets: sequential
+        # multi-GB/s reads instead of random-access thrash, with
+        # block-level shuffle preserving training randomness. Only applies
+        # when the dataset exposes its session structure.
+        if (
+            shuffle
+            and self.session_shuffle
+            and callable(getattr(dataset, "session_index_groups", None))
+        ):
+            sampler = SessionShuffleSampler(
+                dataset.session_index_groups(),
+                batch_size=self.batch_size,
+                block_batches=self.session_block_batches,
+                seed=int(os.environ.get("PL_GLOBAL_SEED", "0") or 0),
+            )
+            kwargs["sampler"] = sampler
+            kwargs["shuffle"] = False
         if loader_num_workers > 0:
             kwargs["persistent_workers"] = self.persistent_workers
             kwargs["prefetch_factor"] = self.prefetch_factor

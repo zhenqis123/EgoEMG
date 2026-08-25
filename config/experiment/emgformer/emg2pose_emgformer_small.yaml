@@ -27,23 +27,37 @@ module:
 num_workers: 12
 
 datamodule:
-  norm_mode: null
+  # The released S checkpoint is trained with per-dataset normalization,
+  # same recipe as M/L.
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
+  # 50% window overlap: one epoch covers every row exactly once at 1/5th
+  # the window count of the legacy stride 780 (90% overlap).
+  stride: 3900
+  # Validation workers fork only at the first validation, long after the
+  # parent's CUDA context is heavily used; forked children then die on
+  # 'CUDA error: initialization error' when deallocating inherited CUDA
+  # tensors. Spawn gives eval workers a clean interpreter instead.
+  eval_multiprocessing_context: spawn
 
 dataset:
   train:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
       window_length: ${datamodule.window_length}
       stride: ${datamodule.stride}
       padding: [0, 0]
       jitter: true
       skip_ik_failures: False
       allowed_splits: [train]
+      # 'time' never reaches the training sample dict; skipping it saves
+      # ~9% of read+IPC+H2D payload per batch.
+      skip_fields: [time]
   val:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
       padding: [0, 0]
@@ -53,7 +67,7 @@ dataset:
   test:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
       window_length: ${datamodule.val_test_window_length}
       stride: ${datamodule.val_test_stride}
       padding: [0, 0]

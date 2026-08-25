@@ -145,7 +145,13 @@ class Emg2PoseDataset(Dataset):
         )
 
     def _load_memmaps(self) -> None:
-        """Load memmap files from manifest.json."""
+        """Store memmap file specs from manifest; open lazily per process.
+
+        Deferring the actual np.memmap call to first access avoids each
+        DataLoader worker inheriting a 465 GB virtual mapping on fork,
+        which kills DDP training. Each worker opens its own mapping on
+        first __getitem__ instead.
+        """
         manifest_path = self.memmap_dir / "manifest.json"
         if not manifest_path.exists():
             raise FileNotFoundError(f"Missing manifest: {manifest_path}")
@@ -153,16 +159,42 @@ class Emg2PoseDataset(Dataset):
         with open(manifest_path) as f:
             self._manifest = json.load(f)
 
-        # Load memmap arrays
+        self._memmap_specs: dict[str, dict] = {}
         for field_name, info in self._manifest["fields"].items():
             dat_path = self.memmap_dir / info["filename"]
             if not dat_path.exists():
                 continue
-            dtype = np.dtype(info["dtype"])
-            shape = tuple(info["shape"])
-            self._memmaps[field_name] = np.memmap(
-                str(dat_path), dtype=dtype, mode="r", shape=shape,
+            self._memmap_specs[field_name] = {
+                "path": str(dat_path),
+                "dtype": np.dtype(info["dtype"]),
+                "shape": tuple(info["shape"]),
+            }
+
+    def _ensure_memmaps(self) -> None:
+        """Open memmap views lazily (per-process, after fork)."""
+        if self._memmaps:
+            return
+        for name, spec in self._memmap_specs.items():
+            self._memmaps[name] = np.memmap(
+                spec["path"], dtype=spec["dtype"], mode="r", shape=spec["shape"],
             )
+
+    def session_index_groups(self) -> list[np.ndarray]:
+        """Sample indices grouped by session, temporal order within each group.
+
+        Exposes the dataset's session structure so samplers can keep
+        __getitem__ reads sequential per session (memmap-friendly) while
+        shuffling at the session/block level. One array per session.
+        """
+        parts: dict[int, list[np.ndarray]] = {}
+        for bi in range(len(self._block_start)):
+            sid = int(self._block_session_idx[bi])
+            span = np.arange(self._block_cumsum[bi], self._block_cumsum[bi + 1])
+            parts.setdefault(sid, []).append(span)
+        return [
+            spans[0] if len(spans) == 1 else np.concatenate(spans)
+            for _, spans in sorted(parts.items())
+        ]
 
     def _load_metadata(self) -> None:
         """Load session metadata from metadata.npz."""
@@ -303,6 +335,14 @@ class Emg2PoseDataset(Dataset):
             self._block_end = np.asarray([], dtype=np.int64)
             self._block_cumsum = np.asarray([0], dtype=np.int64)
 
+    @staticmethod
+    def _worker_init(worker_id: int) -> None:
+        """Reset memmaps in forked workers so they open fresh mappings."""
+        import torch.utils.data as _tud
+        info = _tud.get_worker_info()
+        if info is not None and info.dataset is not None:
+            info.dataset._memmaps = {}
+
     def _prepare_norm_stats(self) -> None:
         self._emg_mean = 0.0
         self._emg_std = 1.0
@@ -350,6 +390,7 @@ class Emg2PoseDataset(Dataset):
 
     def _get_window(self, start: int, end: int) -> dict[str, Any]:
         n = end - start
+        self._ensure_memmaps()
         mm = self._memmaps
         result: dict[str, Any] = {}
 
@@ -391,6 +432,7 @@ class Emg2PoseDataset(Dataset):
     def __getitem__(self, idx: int) -> dict[str, Any]:
         if idx < 0 or idx >= len(self):
             raise IndexError(idx)
+        self._ensure_memmaps()
 
         bi = int(np.searchsorted(self._block_cumsum, idx, side="right") - 1)
         si = int(self._block_session_idx[bi])
