@@ -205,7 +205,7 @@ Same architecture as `regression_emgformer_middle_aggressive`.
 
 **Dataset:** `EgoEmgMemmapDataset` with pre-crop LMDBs
 
-**Pre-crops:** `data/EgoEMG_v2_crops/` — per-episode LMDB files containing
+**Pre-crops:** `data/EgoEMG_crops/` — per-episode LMDB files containing
 JPEG-encoded 256×256 hand crops at `FF:NNNNNNNN_H` keys (frame index + hand code).
 
 **EMG data:** `data/EgoEMG_v2_memmap/` — EgoEMG v2 memmap with 8-channel EMG layout

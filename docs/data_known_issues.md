@@ -31,7 +31,7 @@
   - Windows 原始 parquet 全量扫描报告 `scripts/release/imu_verify_report_windows_original.json`
     （41/41 episode，`observation.imu` 100% 非零，重力侧=后 3 通道，死轴=ch0）；
   - 修复后 41/41 episode 的 |acc| p50 与原始报告一致（tol 0.01）；
-  - 与未修改的 `/data/xiziheng/EgoEMG_unified_memmap` 副本逐位等价
+  - 与未修改的 `/data/xiziheng/EgoEMG_full_memmap` 副本逐位等价
     （EgoEMG 行 = 旧行置换；ShowEE/Incre 行逐位相同）；
   - 从 Windows 原始 parquet 抽取 ep0 行块（rows 500–600、900000–900100）
     与修复后 memmap **逐位相等**；
@@ -40,10 +40,8 @@
 - **备注**：11 个 episode（3,4,18,21,22,24,29,30,33,34,35,37,38）|acc|
   中位数偏低（3.0–7.3）**在原始数据中即如此**（非转换伪影），未做幅值
   修正，已在 manifest 注明；ep4 为 5 秒退化片段。gyro_x 死轴如实保留。
-- **副本状态**：`/mnt/nvme/xiziheng/EgoEMG_unified_memmap`（活动，已修复；
-  `EgoEMG_release/dataset_egoemg_unified` 是它的符号链接，同步修复）；
-  `/data/xiziheng/EgoEMG_unified_memmap`（合并期快照，**保持 pre-fix**，
-  作为修复前参考，勿再用于训练）。
+- **副本状态**：活动副本已修复并同步到发布分享；另有一份合并期快照
+  **保持 pre-fix**，仅作修复前参考，勿再用于训练。
 
 ### 2. emg_left_filtered 缺失（且 emg_right_filtered 管线不可复现） → ✅ v3 已通过删除孤儿列关闭
 
@@ -110,7 +108,7 @@
   但任何用 `mocap_valid`/wrist stale 做过滤的下游会被误导。
 - **待办**：用补丁脚本重刷 Incre 行的 valid/stale 位（或至少在 manifest
   source_policies 中如实标注现状）；同时修 merge 脚本的 stale 位清单。
-- **来源**：2026-08-20 数据管线独立审查（见 docs/code_review_findings_20260820.md P1）。
+- **来源**：2026-08-20 数据管线独立审查。
 
 ---
 
@@ -152,23 +150,3 @@
 | 16 | **webcam → head 彻底重命名**（字段/视频/代码/文档） | `rename_webcam_to_head.py` + 163 处代码替换 | pytest 42 通过、四流读取正常 |
 | 17 | **ShowEE wrist×2 + ZED 会话视频与帧号** | 66 个会话级视频 + 4 路帧号 + 元数据路径 + 数据集四流支持 | 帧数精确和、逐帧对齐、e2e 读取通过 |
 | 18 | **ShowEE/Incre 缺失 IMU 补齐** | `fill_showee_incre_imu.py`：imu_right/imu_head/imu_wrist_left/imu_wrist_right（weili acc 按 9.8/5.4 标定） | ShowEE 96–100%、Incre 5/8 会话 |
-
----
-
-## 四、工程遗留（非数据问题）
-
-- **未提交 git**：`scripts/prepare/` 下新增脚本（`fix_showee_session_frame_indices`、
-  `rebuild_session_metadata`、`rename_webcam_to_head`、`build_showee_session_videos`、
-  `build_showee_wrist_zed_indices`、`finalize_release_metadata`、
-  `repair_unfinalized_mp4`、`fill_showee_incre_imu`、
-  `fix_egoemg_imu_channel_order`、`verify_original_lerobot_imu`）、
-  `scripts/release/imu_verify_report_windows_original.json`（原始数据验证报告）、
-  `egoemg/tests/test_egoemg_imu_reorder.py`、
-  `scripts/viz/visualize_dataset.py`（统一数据集可视化入口）。
-- **备份文件清理**：两个 memmap 的 `.bak`/`.orig928`/`.npz.bak2/3`/`.json.bak`、
-  `imu.dat.bak_prelayout`（3.2 GB，#1 修复前快照，确认修复稳定后可删）、
-  损坏 mkv 的 `.mkv.broken`（3 个，确认修复后可删）。
-- **/tmp 旧 readme 草稿**：`videos_readme2.txt`/`crops_readme2.txt` 等描述旧的
-  928-per-action 方案，已被实际发布状态取代。
-- **root 盘空间**：/ 曾 100% 满（已清理 /tmp 历史垃圾 ~17GB），发布/构建时注意
-  `/tmp` 用量。

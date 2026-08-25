@@ -2,8 +2,8 @@
 
 ## Scope
 
-This policy covers the `egoemg` source code repository during the `0.1.0rc1`
-code pre-release. The dataset release, hosted model checkpoints, and
+This policy covers the `egoemg` source code repository (`0.1.0` code
+release). The dataset release, hosted model checkpoints, and
 third-party assets (MANO, WiLoR) are out of scope until they are published.
 
 ## Reporting a vulnerability
@@ -15,7 +15,7 @@ Include reproduction steps and affected commits when possible.
 
 We aim to acknowledge reports within 7 days. Fixes for accepted issues are
 released in a patch release or documented as a known limitation in
-`docs/PRERELEASE_LIMITATIONS.md`.
+`docs/SUPPORT_SCOPE.md`.
 
 ## Invariants
 

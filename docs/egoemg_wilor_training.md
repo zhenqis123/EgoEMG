@@ -8,11 +8,11 @@ implementation constraints that keep startup and decoding fast.
 
 The training entrypoint expects three data roots:
 
-- `data_location`: EgoEMG memmap directory, for example `data/EgoEMG_unified_memmap`.
+- `data_location`: EgoEMG memmap directory, for example `data/EgoEMG_full_memmap`.
 - `video_root`: raw EgoEMG dataset root containing the original head-view paths and
   reprojection assets, for example `data/EgoEMG`.
 - `allintra_root`: all-intra re-encoded head-view videos, for example
-  `data/EgoEMG_allintra`.
+  `data/EgoEMG_videos`.
 
 `EgoEmgVisionDataset` reads labels and transforms from the memmap, but reads
 head-view frames from all-intra videos only. Video decoding is done with `decord`
@@ -27,8 +27,8 @@ startup.
 
 ```bash
 python scripts/data/build_egoemg_vision_index.py \
-    --memmap-dir data/EgoEMG_unified_memmap \
-    --output-dir data/EgoEMG_unified_memmap/vision_index
+    --memmap-dir data/EgoEMG_full_memmap \
+    --output-dir data/EgoEMG_full_memmap/vision_index
 ```
 
 The index stores valid frame ids per split, episode, and hand. At runtime the
@@ -39,9 +39,9 @@ If you need to create all-intra videos, use the repository conversion script:
 
 ```bash
 python scripts/prepare/reencode_egoemg_webcam_allintra.py \
-    --memmap-dir data/EgoEMG_unified_memmap \
+    --memmap-dir data/EgoEMG_full_memmap \
     --data-root data/EgoEMG \
-    --output-root data/EgoEMG_allintra
+    --output-root data/EgoEMG_videos
 ```
 
 ## Dataset Smoke Test
@@ -51,8 +51,8 @@ head-view episode with projected MANO meshes, mocap markers, and mesh boxes.
 
 ```bash
 python scripts/viz/visualize_dataset.py vision \
-    --memmap-dir data/EgoEMG_unified_memmap \
-    --allintra-root data/EgoEMG_allintra \
+    --memmap-dir data/EgoEMG_full_memmap \
+    --allintra-root data/EgoEMG_videos \
     --output-dir /tmp/egoemg_vision_dataset_viz \
     --episode-id episode_000000 --stride 10 --max-frames 300
 ```
@@ -67,10 +67,10 @@ from pathlib import Path
 from egoemg.datasets.egoemg_vision_dataset import EgoEmgVisionDataset
 
 dataset = EgoEmgVisionDataset(
-    memmap_dir=Path("data/EgoEMG_unified_memmap"),
+    memmap_dir=Path("data/EgoEMG_full_memmap"),
     video_root=Path("data/EgoEMG"),
-    allintra_root=Path("data/EgoEMG_allintra"),
-    vision_index_dir=Path("data/EgoEMG_unified_memmap/vision_index"),
+    allintra_root=Path("data/EgoEMG_videos"),
+    vision_index_dir=Path("data/EgoEMG_full_memmap/vision_index"),
     target_hand="both",
     allowed_splits=["train"],
     stride=30,
@@ -123,10 +123,10 @@ The training entrypoint is:
 ```bash
 python -m egoemg.train \
     experiment=fusion/vision_resnet_middle_egoemg_showee \
-    data_location=data/EgoEMG_unified_memmap \
+    data_location=data/EgoEMG_full_memmap \
     video_root=data/EgoEMG \
-    allintra_root=data/EgoEMG_allintra \
-    vision_index_dir=data/EgoEMG_unified_memmap/vision_index \
+    allintra_root=data/EgoEMG_videos \
+    vision_index_dir=data/EgoEMG_full_memmap/vision_index \
     mano_model_path=../WiLoR/mano_data \
     wilor_checkpoint_path=../WiLoR/pretrained_models/wilor_final.ckpt \
     train=True \
@@ -148,10 +148,10 @@ Example evaluation-only run:
 ```bash
 python -m egoemg.train \
     experiment=fusion/vision_resnet_middle_egoemg_showee \
-    data_location=data/EgoEMG_unified_memmap \
+    data_location=data/EgoEMG_full_memmap \
     video_root=data/EgoEMG \
-    allintra_root=data/EgoEMG_allintra \
-    vision_index_dir=data/EgoEMG_unified_memmap/vision_index \
+    allintra_root=data/EgoEMG_videos \
+    vision_index_dir=data/EgoEMG_full_memmap/vision_index \
     checkpoint=/path/to/checkpoints/last.ckpt \
     train=False \
     eval=True

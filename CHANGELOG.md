@@ -4,13 +4,19 @@ All notable changes are recorded in this file.
 
 ## 0.1.0 — first public release (2026-08-23)
 
-
-- Declares the repository as a code pre-release; the current dataset release is
-  not ready, while the earlier legacy data/checkpoint release remains supported
-  for the canonical workflows documented in `docs/ASSET_SETUP.md`.
+- First public code release. The README training, evaluation, and
+  visualization workflows are supported against the data and checkpoint
+  assets documented in `docs/ASSET_SETUP.md`; a reviewed data card and the
+  formal dataset release remain future work (`docs/DATA_CARD.md`).
 - Adds package metadata, optional dependency groups, source-distribution rules,
   and a wheel installation smoke check.
-- Documents release limitations, data-card requirements, and third-party notices.
+- Adds `scripts/download/organize_downloads.sh` to place downloaded share
+  packages into the canonical local layout (`docs/ASSET_SETUP.md`).
+- Adds the fine-tuned ResNet-18 fusion checkpoint
+  (`fusion_resnet18_emgfusion_center.ckpt`, 16ch + WL 7790) to the released
+  bundle; it measures 5.41° on the center-frame evaluation, matching the
+  paper's 5.40° to 0.01°.
+- Documents the support scope, data-card requirements, and third-party notices.
 - Makes `vision` fail clearly when precomputed crop LMDB data is unavailable or
   incomplete, rather than silently encoding placeholder crop frames.
 - Data repair: the EgoEMG-source rows of the unified-memmap `imu` field were
@@ -25,8 +31,8 @@ All notable changes are recorded in this file.
   scripts support surface in `scripts/README.md`.
 - Records the original-data IMU verification report at
   `scripts/release/imu_verify_report_windows_original.json`.
-- Review-driven correctness batch (independent five-agent audit, tracked in
-  `docs/code_review_findings_20260820.md`): fixes the SDPA bool-mask semantic
+- Review-driven correctness batch (independent five-agent audit): fixes the
+  SDPA bool-mask semantic
   inversion in rotary attention (future leakage + NaN under `causal=true`),
   the multitask pretraining heads missing `_target_` and the 8-vs-16-channel
   featurizer mismatch, vision validity on missing precomputed crops, MixUp
@@ -37,19 +43,17 @@ All notable changes are recorded in this file.
   downloads), pooled-evaluation pairing by key, dtype-preserving numpy
   augmentations, and early validation of missing EMG variants. Center-frame
   evaluation keeps including missing-crop black frames by maintainer decision.
-- Documents the legacy-release IMU channel-order fix for downloaders
-  (checksums and self-patch command in `docs/ASSET_SETUP.md` §7) and notes
-  it in the README release status.
+- Documents the IMU channel-order fix for downloaders (integrity
+  verification and self-patch command in `docs/ASSET_SETUP.md`).
 - README's EMGFormer table quotes the measured results of the released
-  WL=12000 checkpoints (Avg 14.2/13.9/14.0 deg, matching the paper to
-  ±0.2°); the evaluation recipes pin the training-matched stats pairing
-  so the numbers are command-reproducible.
+  checkpoints (S/M/L Avg 14.1/13.8/13.9 deg, matching the paper to ±0.2°);
+  the evaluation recipes pin the training-matched stats pairing so the
+  numbers are command-reproducible.
 - Fresh-clone reproduction verification: all README evaluation commands and
   all four visualizer modes now run end-to-end on the canonical asset tree
-  (center-frame memmap resolution, released-checkpoint config pairing for
-  the ResNet-50 fusion, calibration asset location, crop-less-frame
+  (center-frame memmap resolution, calibration asset location, crop-less-frame
   selection); measured reproduction numbers are recorded in the README
-  evaluation notes and docs/code_review_findings_20260820.md.
+  evaluation notes.
 - Independent structure-review fixes: modality_groups rebuilt from the
   directory layout (9 groups covering all 59 frame fields + 2 episode-level
   entries — the previous 5-group hand copy missed 35 fields); the sentinel
@@ -86,13 +90,10 @@ All notable changes are recorded in this file.
   (imu_band_left/right, imu_cam_*), mocap_head_valid, dead-field removal,
   a manifest field_semantics block, and an idempotent migration script with
   unit tests; evaluation results are bit-identical across the migration and
-  the share was synced (renames + re-upload of missing files after a
-  BaiduPCS-Go mv incident that lost five cloud-side files — restored from
-  the local source of truth).
-- Patches the Baidu NetDisk legacy package in place: the fixed `imu.dat` and
-  `manifest.json` were uploaded, downloaded back, verified byte-identical
-  (SHA-256), and swapped in; pre-fix files are kept as rollback backups
-  under `_imu_fix_20260820/` on the share.
+  the distribution share was synced to the migrated layout.
+- Patches the distribution share in place with the fixed `imu.dat` and
+  `manifest.json` (uploaded, downloaded back, and verified byte-identical
+  by SHA-256).
 - Static-analysis cleanup: removes unused imports and unused locals across the
   package, declares the visualization re-export surface with `__all__`, and
   extends CI lint to fail on unused-import/unused-variable regressions in the

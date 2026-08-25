@@ -29,6 +29,6 @@ What the documentation said should happen:
 
 For visualization/evaluation: do you already have the required memmap,
 all-intra videos, calibration, MANO assets, and precomputed crop LMDB files
-(see `docs/ASSET_SETUP.md` and `docs/PRERELEASE_LIMITATIONS.md`)? Note that
+(see `docs/ASSET_SETUP.md` and `docs/SUPPORT_SCOPE.md`)? Note that
 research configs referencing `logs/`, `test_results/`, or `../WiLoR` paths are
 not part of the public support surface.
