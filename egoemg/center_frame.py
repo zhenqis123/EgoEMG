@@ -34,7 +34,6 @@ def collect_val_centers(
     window of ``required_window_length`` inside their episode.
     """
     m = json.load(open(memmap_dir / "manifest.json"))
-    n = m["total_rows"]
     # Resolve val split ids by name so a memmap with a different split-table
     # order is not silently mis-selected (legacy hardcode was [1, 2, 3]).
     labels = list(m.get("frame_split_labels") or [])

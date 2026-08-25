@@ -8,13 +8,11 @@ from __future__ import annotations
 
 import importlib.util
 import json
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 _SCRIPT = Path(__file__).resolve().parents[2] / "scripts/data/migrate_unified_memmap_v3.py"
 spec = importlib.util.spec_from_file_location("migrate_v3", _SCRIPT)
