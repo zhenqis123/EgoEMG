@@ -17,7 +17,7 @@ checkpoint:
 pretrained_checkpoint: null
 pretrained_strict: false
 
-egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
+egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_full_memmap
 egoemg_emg_field_preference: filtered_paper
 egoemg_emg_layout: target_hand
 egoemg_channel_interpolate: false

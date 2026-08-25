@@ -58,8 +58,8 @@ SHOWEE_MEMMAP_DIR=${SHOWEE_MEMMAP_DIR:-$(first_existing_path \
     "${REPO}/data/ShowEE_202607_memmap" "${SHARED_ROOT}/data/ShowEE_202607_memmap" \
     data/ShowEE_202607_memmap)}
 EGOEMG_CROPS_DIR=${EGOEMG_CROPS_DIR:-$(first_existing_path \
-    "${REPO}/data/EgoEMG_v2_crops" "${SHARED_ROOT}/data/EgoEMG_v2_crops" \
-    data/EgoEMG_v2_crops)}
+    "${REPO}/data/EgoEMG_crops" "${SHARED_ROOT}/data/EgoEMG_crops" \
+    data/EgoEMG_crops)}
 SHOWEE_CROPS_DIR=${SHOWEE_CROPS_DIR:-$(first_existing_path \
     "${REPO}/data/ShowEE_202607_crops" "${SHARED_ROOT}/data/ShowEE_202607_crops" \
     data/ShowEE_202607_crops)}

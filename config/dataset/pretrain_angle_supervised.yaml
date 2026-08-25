@@ -8,7 +8,7 @@ dataset:
       angle_dim: 22
       base:
         _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
-        memmap_dir: ${data_root}/emg2pose_v3_memmap
+        memmap_dir: ${data_root}/emg2pose_memmap
         window_length: ${datamodule.window_length}
         stride: ${datamodule.stride}
         padding: ${datamodule.padding}
@@ -80,7 +80,7 @@ dataset:
       angle_dim: 22
       base:
         _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
-        memmap_dir: ${data_root}/emg2pose_v3_memmap
+        memmap_dir: ${data_root}/emg2pose_memmap
         window_length: ${datamodule.val_test_window_length}
         stride: ${datamodule.val_test_stride}
         padding: ${datamodule.padding}

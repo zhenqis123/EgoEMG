@@ -16,7 +16,7 @@ defaults:
   - _self_
 
 data_root: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus
-data_location: ${data_root}/emg2pose_v3_memmap
+data_location: ${data_root}/emg2pose_memmap
 
 # Load pretrain checkpoint
 checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/pretrain/2026-04-20/22-54-57/pretrain_resume_no_mask/version_0/checkpoints/last.ckpt

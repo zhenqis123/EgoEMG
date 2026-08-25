@@ -29,7 +29,7 @@ LR="${LR:-0.0005}"
 EPOCHS="${EPOCHS:-150}"
 SEED="${SEED:-6}"
 BASE_LOG="logs/regression/egoemg_window_ablation_wl${WL}_${EMG_FIELD}_8ch"
-EGOEMG_DATA="${EGOEMG_DATA:-data/EgoEMG_unified_memmap}"
+EGOEMG_DATA="${EGOEMG_DATA:-data/EgoEMG_full_memmap}"
 
 echo "=== EgoEMG window-ablation WL=${WL} (aligned recipe, 8ch target_hand) ==="
 echo "Base config: ${BASE_CONFIG}"

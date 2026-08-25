@@ -14,10 +14,10 @@ set -euo pipefail
 # Fix libffi/libstdc++ conflicts between conda base and system libraries.
 export LD_PRELOAD="/lib/x86_64-linux-gnu/libffi.so.7:${CONDA_PREFIX:-$HOME/miniconda3/envs/emg2pose_env}/lib/libstdc++.so.6"
 
-MEMMAP_DIR="${MEMMAP_DIR:-data/EgoEMG_unified_memmap}"
+MEMMAP_DIR="${MEMMAP_DIR:-data/EgoEMG_full_memmap}"
 VIDEO_ROOT="${VIDEO_ROOT:-${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG}"
-ALLINTRA_ROOT="${ALLINTRA_ROOT:-data/EgoEMG_allintra}"
-OUTPUT_DIR="${OUTPUT_DIR:-data/EgoEMG_v2_crops}"
+ALLINTRA_ROOT="${ALLINTRA_ROOT:-data/EgoEMG_videos}"
+OUTPUT_DIR="${OUTPUT_DIR:-data/EgoEMG_crops}"
 
 PATCH_SIZE="${PATCH_SIZE:-256}"
 JPEG_QUALITY="${JPEG_QUALITY:-90}"

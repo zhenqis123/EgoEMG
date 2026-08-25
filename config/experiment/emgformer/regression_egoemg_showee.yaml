@@ -8,7 +8,7 @@ defaults:
   - _self_
 
 showee_memmap_dir: data/ShowEE_202607_memmap
-egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
+egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_full_memmap
 showee_video_root: ${oc.env:EMG2POSE_ROOT,.}/data/showee
 showee_allintra_root: data/ShowEE_202607_allintra
 showee_per_episode_crops_dir: data/ShowEE_202607_crops

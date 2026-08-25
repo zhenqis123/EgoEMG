@@ -24,7 +24,7 @@ def main() -> None:
     )
     p.add_argument(
         "--memmap-dir",
-        default="./data/emg_corpus/emg2pose_v3_memmap",
+        default="./data/emg2pose_memmap",
     )
     p.add_argument("--num-samples", type=int, default=2_000_000)
     p.add_argument("--seed", type=int, default=42)

@@ -15,7 +15,7 @@ the memmap).  Run after ``build_showee_session_videos.py`` and
 Usage::
 
     python scripts/prepare/finalize_release_metadata.py \
-        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_unified_memmap
+        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_full_memmap
 """
 from __future__ import annotations
 

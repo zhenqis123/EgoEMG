@@ -1,7 +1,7 @@
 # Experiment configuration status
 
 All configurations under this directory are retained as research records during
-the `0.1.0rc1` code pre-release. They compose successfully, but they are not a
+the `0.1.0` code release. They compose successfully, but they are not a
 promise of portable public training or evaluation: many require unpublished
 data, checkpoints, or separately licensed WiLoR/MANO assets.
 

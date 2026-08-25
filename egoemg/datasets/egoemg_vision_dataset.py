@@ -761,7 +761,7 @@ class EgoEmgVisionDataset(Dataset):
         self.allintra_root = (
             Path(self.allintra_root)
             if self.allintra_root is not None
-            else self.video_root.parent / "EgoEMG_allintra"
+            else self.video_root.parent / "EgoEMG_videos"
         )
         self.calibration_path = (
             Path(self.calibration_path)

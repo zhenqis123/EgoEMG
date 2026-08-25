@@ -10,7 +10,7 @@ defaults:
   - _self_
 
 data_root: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus
-data_location: ${data_root}/emg2pose_v3_memmap
+data_location: ${data_root}/emg2pose_memmap
 
 checkpoint: null
 pretrained_strict: true

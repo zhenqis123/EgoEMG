@@ -26,7 +26,7 @@ defaults:
 lineage: emgformer
 
 # ── Shared data path (unified EgoEMG memmap). Experiments may override.
-egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
+egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_full_memmap
 
 # Fresh training reads the unified memmap (dataset_name: egoemg_unified), so
 # the per-dataset stats must contain the egoemg_unified__* keys. Legacy

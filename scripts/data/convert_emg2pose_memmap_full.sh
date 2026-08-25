@@ -10,7 +10,7 @@
 set -e
 
 ZARR_ROOT="${EMG2POSE_ROOT:-$(pwd)}/data/emg_corpus/emg2pose_v3"
-MEMMAP_ROOT="${EMG2POSE_ROOT:-$(pwd)}/data/emg_corpus/emg2pose_v3_memmap"
+MEMMAP_ROOT="${EMG2POSE_ROOT:-$(pwd)}/data/emg2pose_memmap"
 LOG_FILE="/tmp/emg2pose_memmap_convert.log"
 
 echo "========================================"

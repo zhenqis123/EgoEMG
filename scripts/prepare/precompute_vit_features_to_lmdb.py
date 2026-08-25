@@ -22,7 +22,7 @@ markers — existing episodes are skipped.
 
 Usage:
     python scripts/prepare/precompute_vit_features_to_lmdb.py \\
-        --crops-dir data/EgoEMG_v2_crops \\
+        --crops-dir data/EgoEMG_crops \\
         --output-dir data/EgoEMG_v2_vit_features_lmdb \\
         --pretrained-path ../WiLoR/pretrained_models/wilor_final.ckpt
 

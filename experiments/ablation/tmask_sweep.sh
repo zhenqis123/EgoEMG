@@ -11,7 +11,7 @@ LR=0.0005
 EPOCHS=4
 SEED=50
 BASE_LOG="logs/ablation/tmask_sweep"
-DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_unified_memmap"
+DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_full_memmap"
 
 # Disable all aug, then enable only target
 NOAUG_EXCEPT="batch_augmentation.random_gain.mask_prob=0.0 \

@@ -12,7 +12,7 @@ defaults:
   - _self_
 
 data_root: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus
-data_location: ${data_root}/emg2pose_v3_memmap
+data_location: ${data_root}/emg2pose_memmap
 
 checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-08/17-05-45_emg2pose/logs/emg2pose_finetune/finetune_from_pretrain/version_0/checkpoints/finetune-epoch=026-val_mae=0.2300.ckpt
 pretrained_strict: true

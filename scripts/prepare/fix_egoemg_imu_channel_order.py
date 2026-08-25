@@ -20,7 +20,7 @@ byte checksums taken before and after).
 Usage::
 
     python scripts/prepare/fix_egoemg_imu_channel_order.py \
-        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_unified_memmap \
+        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_full_memmap \
         --apply --update-manifest      # omit --apply for dry-run
 """
 from __future__ import annotations

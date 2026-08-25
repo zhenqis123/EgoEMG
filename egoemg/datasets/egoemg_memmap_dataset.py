@@ -228,7 +228,7 @@ class EgoEmgMemmapDataset(Dataset):
         self.allintra_root = (
             Path(self.allintra_root)
             if self.allintra_root is not None
-            else self.video_root.parent / "EgoEMG_allintra"
+            else self.video_root.parent / "EgoEMG_videos"
         )
         self.stride = self.stride or self.window_length
         if self.target_hand not in {None, "left", "right"}:
@@ -587,9 +587,8 @@ class EgoEmgMemmapDataset(Dataset):
                 "norm stats for dataset=%s emg_field=%s have std=%.2f, which "
                 "looks like raw-EMG statistics. If you intended to normalize "
                 "filtered EMG with raw-EMG stats, predictions will be "
-                "compressed into noise (root cause of the WL14638 "
-                "reproduction issue, see docs/egoemg_filtered_repro_issue.md). "
-                "Add a field-aware key 'egoemg__%s' to the stats file.",
+                "compressed into noise. Add a field-aware key 'egoemg__%s' "
+                "to the stats file.",
                 self.dataset_name, self.emg_field_preference, std_for_check,
                 self.emg_field_preference,
             )

@@ -11,7 +11,7 @@ Example:
     python scripts/prepare/reencode_egoemg_webcam_allintra.py \
         --memmap-dir data/EgoEMG_memmap \
         --data-root data/EgoEMG \
-        --output-root data/EgoEMG_allintra \
+        --output-root data/EgoEMG_videos \
         --jobs 4
 """
 
@@ -29,7 +29,7 @@ import numpy as np
 
 DEFAULT_MEMMAP_DIR = Path("data/EgoEMG_memmap")
 DEFAULT_DATA_ROOT = Path("data/EgoEMG")
-DEFAULT_OUTPUT_ROOT = Path("data/EgoEMG_allintra")
+DEFAULT_OUTPUT_ROOT = Path("data/EgoEMG_videos")
 
 
 def parse_args() -> argparse.Namespace:

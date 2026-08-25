@@ -42,9 +42,9 @@
   16ch + WL=7790 → use `fusion_*_center_16ch_wl7790.yaml` / `vision_*` configs.
   See CLAUDE.md for examples and pitfalls.
 - Build the EgoEMG vision sidecar index once:
-  `python scripts/data/build_egoemg_vision_index.py --memmap-dir /path/to/EgoEMG_unified_memmap --output-dir /path/to/EgoEMG_unified_memmap/vision_index`.
+  `python scripts/data/build_egoemg_vision_index.py --memmap-dir /path/to/EgoEMG_full_memmap --output-dir /path/to/EgoEMG_full_memmap/vision_index`.
 - Render a unified EgoEMG or ShowEE episode video with projected mesh and markers:
-  `python scripts/viz/visualize_dataset.py vision --memmap-dir /path/to/EgoEMG_unified_memmap --allintra-root /path/to/EgoEMG_allintra --episode-id episode_000000 --stride 10 --max-frames 300 --output-dir /tmp/egoemg_vision_viz`.
+  `python scripts/viz/visualize_dataset.py vision --memmap-dir /path/to/EgoEMG_full_memmap --allintra-root /path/to/EgoEMG_videos --episode-id episode_000000 --stride 10 --max-frames 300 --output-dir /tmp/egoemg_vision_viz`.
 - Merge EgoEMG + ShowEE + Incre into one unified memmap, then train with
   `dataset=egoemg_unified_angle_regression`:
   `python scripts/data/merge_datasets_to_unified_memmap.py --egoemg <dir> --showee <dir> --incre <egoemg_incre>/data_right_merged --out <dir>` followed by

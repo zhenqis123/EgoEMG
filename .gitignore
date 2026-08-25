@@ -289,3 +289,4 @@ ablation_study/
 
 # Editor workspace files
 *.code-workspace
+regression_emg2pose/

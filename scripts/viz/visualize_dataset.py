@@ -17,9 +17,9 @@ Modes (dataset itself, ground truth only):
 
 Shared options (available in every mode):
 
-    --memmap-dir      data/EgoEMG_unified_memmap
+    --memmap-dir      data/EgoEMG_full_memmap
     --data-root       data
-    --allintra-root   data/EgoEMG_allintra
+    --allintra-root   data/EgoEMG_videos
     --output-dir      <mode-specific default under /tmp/egoemg_viz/>
     --device          cuda (cpu/cuda)
     --seed            42
@@ -891,10 +891,10 @@ def run_fk_vs_mano(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--memmap-dir", type=Path,
-                        default=Path("data/EgoEMG_unified_memmap"))
+                        default=Path("data/EgoEMG_full_memmap"))
     common.add_argument("--data-root", type=Path, default=Path("data"))
     common.add_argument("--allintra-root", type=Path,
-                        default=Path("data/EgoEMG_allintra"))
+                        default=Path("data/EgoEMG_videos"))
     common.add_argument("--allintra-suffix", default="_allintra")
     common.add_argument("--output-dir", type=Path, default=None)
     common.add_argument("--device", default="cuda", choices=["cpu", "cuda"])
@@ -918,7 +918,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--bbox-pad", type=int, default=15)
     p.add_argument("--mano-model-path", type=Path, default=None)
     p.add_argument("--calibration-json", type=Path, default=None)
-    p.add_argument("--crops-dir", type=Path, default=Path("data/EgoEMG_v2_crops"),
+    p.add_argument("--crops-dir", type=Path, default=Path("data/EgoEMG_crops"),
                    help="directory containing precomputed per-episode crop LMDBs")
     p.add_argument("--output", type=Path, default=None)
 

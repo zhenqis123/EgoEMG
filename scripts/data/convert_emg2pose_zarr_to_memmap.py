@@ -11,20 +11,20 @@ Usage:
     # Full conversion (all fields):
     python scripts/data/convert_emg2pose_zarr_to_memmap.py \
         --zarr-root /path/to/emg2pose_v3 \
-        --out-root /path/to/emg2pose_v3_memmap \
+        --out-root /path/to/emg2pose_memmap \
         --fields emg joint_angles valid_mask time
 
     # Incremental conversion (add missing fields):
     python scripts/data/convert_emg2pose_zarr_to_memmap.py \
         --zarr-root /path/to/emg2pose_v3 \
-        --out-root /path/to/emg2pose_v3_memmap \
+        --out-root /path/to/emg2pose_memmap \
         --fields joint_angles time \
         --append
 
     # Small-scale test:
     python scripts/data/convert_emg2pose_zarr_to_memmap.py \
         --zarr-root /path/to/emg2pose_v3 \
-        --out-root /path/to/emg2pose_v3_memmap_test \
+        --out-root /path/to/emg2pose_memmap_test \
         --fields emg joint_angles valid_mask \
         --max-rows 1000000
 """
@@ -301,7 +301,7 @@ def main() -> None:
     parser.add_argument(
         "--out-root",
         type=Path,
-        default=Path("data/emg_corpus/emg2pose_v3_memmap"),
+        default=Path("data/emg2pose_memmap"),
         help="Output memmap root directory.",
     )
     parser.add_argument(

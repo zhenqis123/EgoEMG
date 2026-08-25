@@ -17,7 +17,7 @@
 #                  a label — the actual num_layers=6 values come from
 #                  middle_aggressive.yaml)
 #   head         = mlp with hidden_sizes=[512]
-#   emg_field    = filtered (use data/EgoEMG_unified_memmap emg_*_filtered columns)
+#   emg_field    = filtered (use data/EgoEMG_full_memmap emg_*_filtered columns)
 #   emg_layout   = target_hand (8ch, no interpolation)
 #   seed=6, batch_size=194
 #   loss_weights = mae:1.0 + fingertip_distance:0.01 (no landmark/fingertip)
@@ -42,7 +42,7 @@ LR="${LR:-0.0005}"
 EPOCHS="${EPOCHS:-150}"
 SEED="${SEED:-6}"
 BASE_LOG="logs/regression/egoemg_window_ablation_wl14638_aligned_${EMG_FIELD}_8ch"
-EGOEMG_DATA="${EGOEMG_DATA:-data/EgoEMG_unified_memmap}"
+EGOEMG_DATA="${EGOEMG_DATA:-data/EgoEMG_full_memmap}"
 
 echo "=== EgoEMG window-ablation WL=14638 (aligned to trial_0006) ==="
 echo "Reference: egoemg-window-v4/trial_0006_2026-05-21_11-25-39"

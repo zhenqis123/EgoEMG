@@ -35,7 +35,7 @@ Manifest:
 
 Usage:
   python scripts/data/migrate_unified_memmap_v3.py \
-    --memmap-dir /path/to/EgoEMG_unified_memmap [--apply]
+    --memmap-dir /path/to/EgoEMG_full_memmap [--apply]
 """
 from __future__ import annotations
 

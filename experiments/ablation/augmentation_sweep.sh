@@ -11,7 +11,7 @@ LR=0.0005
 EPOCHS=2
 BASE_SEED=42
 BASE_LOG="logs/ablation/aug_sweep"
-DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_unified_memmap"
+DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_full_memmap"
 
 # Common Hydra args for all experiments
 common_args() {

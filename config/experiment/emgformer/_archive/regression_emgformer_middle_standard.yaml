@@ -38,7 +38,7 @@ dataset:
   train:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]
@@ -48,7 +48,7 @@ dataset:
   val:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]
@@ -58,7 +58,7 @@ dataset:
   test:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
+      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]

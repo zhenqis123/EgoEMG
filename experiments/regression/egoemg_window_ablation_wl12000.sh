@@ -20,7 +20,7 @@ LR="${LR:-0.0005}"
 EPOCHS="${EPOCHS:-150}"
 SEED="${SEED:-42}"
 BASE_LOG="logs/regression/egoemg_window_ablation_wl${WL}_${EMG_FIELD}"
-EGOEMG_DATA="${PROJECT_DIR}/data/EgoEMG_unified_memmap"
+EGOEMG_DATA="${PROJECT_DIR}/data/EgoEMG_full_memmap"
 
 echo "=== EgoEMG window-ablation recipe reproduction ==="
 echo "Config: ${BASE_CONFIG}"

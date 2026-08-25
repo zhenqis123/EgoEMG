@@ -15,8 +15,8 @@ Fixes two latent inconsistencies left by the session-layout rebuild:
 Usage::
 
     python scripts/prepare/rebuild_session_metadata.py \
-        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_unified_memmap \
-        --source-memmap-dir /data/xiziheng/EgoEMG_unified_memmap
+        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_full_memmap \
+        --source-memmap-dir /data/xiziheng/EgoEMG_full_memmap
 
 Safety: writes ``metadata.npz.bak`` before regenerating.
 """

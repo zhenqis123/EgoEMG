@@ -30,10 +30,10 @@ the previous action's first frame.
 Usage::
 
     python scripts/prepare/fix_showee_session_frame_indices.py \
-        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_unified_memmap \
-        --source-memmap-dir /data/xiziheng/EgoEMG_unified_memmap \
+        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_full_memmap \
+        --source-memmap-dir /data/xiziheng/EgoEMG_full_memmap \
         --showee-root /mnt/nvme/xiziheng \
-        --allintra-root /mnt/nvme/xiziheng/EgoEMG_allintra
+        --allintra-root /mnt/nvme/xiziheng/EgoEMG_videos
 
 Safety: backs up ``image_head_frame_index.dat`` to ``.bak`` before
 writing (unless ``--dry-run``).

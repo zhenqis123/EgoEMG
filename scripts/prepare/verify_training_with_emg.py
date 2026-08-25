@@ -30,7 +30,7 @@ from tqdm import tqdm
 # ── Paths ──────────────────────────────────────────────────────────────────
 DEFAULT_MEMMAP_DIR = Path("data/EgoEMG_v2_memmap")
 DEFAULT_DATA_ROOT = Path("./data/EgoEMG")
-DEFAULT_VIDEO_ROOT = Path("data/EgoEMG_allintra")
+DEFAULT_VIDEO_ROOT = Path("data/EgoEMG_videos")
 MANO_MODEL_PATH = "../WiLoR/mano_data/models"
 DEFAULT_EMG_CKPT = (
     "./logs/2026-04-30/23-28-41_emg2pose/"

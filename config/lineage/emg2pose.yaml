@@ -23,7 +23,7 @@ defaults:
 lineage: emg2pose
 
 # ── Shared data path (unified EgoEMG memmap). Experiments may override.
-egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_unified_memmap
+egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_full_memmap
 
 # ── Uniform training-framework defaults ─────────────────────────────────────
 

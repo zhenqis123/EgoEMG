@@ -12,7 +12,7 @@ RESNET50_WEIGHTS=${TORCH_HOME}/hub/checkpoints/resnet50-0676ba61.pth
 
 EGOEMG_MEMMAP_DIR=${EGOEMG_MEMMAP_DIR:-${SHARED_ROOT}/data/EgoEMG_memmap}
 SHOWEE_MEMMAP_DIR=${SHOWEE_MEMMAP_DIR:-${SHARED_ROOT}/data/ShowEE_202607_memmap}
-EGOEMG_CROPS_DIR=${EGOEMG_CROPS_DIR:-${SHARED_ROOT}/data/EgoEMG_v2_crops}
+EGOEMG_CROPS_DIR=${EGOEMG_CROPS_DIR:-${SHARED_ROOT}/data/EgoEMG_crops}
 SHOWEE_CROPS_DIR=${SHOWEE_CROPS_DIR:-${SHARED_ROOT}/data/ShowEE_202607_crops}
 
 # Profiled with the exact model/configuration: 19.50 GiB at batch 180 on a

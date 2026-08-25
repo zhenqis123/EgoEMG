@@ -8,7 +8,7 @@ Usage:
     # emg2pose (emg + valid_mask only for recon pretraining):
     python scripts/convert_data/zarr_to_memmap.py \
         --zarr-root data/emg_corpus/emg2pose_v3 \
-        --output-dir data/emg_corpus/emg2pose_v3_memmap \
+        --output-dir data/emg2pose_memmap \
         --fields emg valid_mask
 
     # emg2qwerty (emg_left + emg_right + time):

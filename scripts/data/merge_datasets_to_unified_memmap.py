@@ -36,7 +36,7 @@ Usage:
         --egoemg /path/to/egoemg_v2_memmap \
         --showee /path/to/showee_memmap \
         --incre  data/EgoEMG_incre/data_right_merged \
-        --out    data/EgoEMG_unified_memmap
+        --out    data/EgoEMG_full_memmap
 
 Requires ~229 GB of free disk at --out.  Idempotent on a per-field basis: a
 field whose output .dat already exists with the correct shape is skipped, so

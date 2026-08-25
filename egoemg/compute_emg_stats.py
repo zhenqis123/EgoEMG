@@ -88,7 +88,7 @@ def main():
     ))
 
     datasets = [
-        ("emg2pose_v3", emg_corpus / "emg2pose_v3_memmap" / "manifest.json", "emg"),
+        ("emg2pose_v3", emg_corpus / "emg2pose_memmap" / "manifest.json", "emg"),
         ("pimforce_v3", emg_corpus / "pimforce_v3_memmap" / "manifest.json", "emg"),
         ("ninapro_DB1", emg_corpus / "Ninapro_relabeled_memmap" / "DB1" / "manifest.json", "emg"),
         ("ninapro_DB2", emg_corpus / "Ninapro_relabeled_memmap" / "DB2" / "manifest.json", "emg"),

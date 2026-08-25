@@ -11,8 +11,8 @@ showee_allintra_root: ${oc.env:EMG2POSE_ROOT,.}/data/ShowEE_202607_allintra
 showee_per_episode_crops_dir: ${oc.env:EMG2POSE_ROOT,.}/data/ShowEE_202607_crops
 
 egoemg_video_root: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG
-egoemg_allintra_root: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_allintra
-egoemg_per_episode_crops_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_v2_crops
+egoemg_allintra_root: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_videos
+egoemg_per_episode_crops_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_crops
 
 datamodule:
   per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json

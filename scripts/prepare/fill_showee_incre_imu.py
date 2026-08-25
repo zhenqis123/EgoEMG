@@ -22,8 +22,8 @@ Incre's IMU (right wrist band) goes into ``imu_right``; the three
 Usage::
 
     python scripts/prepare/fill_showee_incre_imu.py \
-        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_unified_memmap \
-        --source-memmap-dir /data/xiziheng/EgoEMG_unified_memmap \
+        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_full_memmap \
+        --source-memmap-dir /data/xiziheng/EgoEMG_full_memmap \
         --showee-root /mnt/nvme/xiziheng/showee/downloads \
         --showee-root /mnt/nvme/xiziheng \
         --incre-root /home/xiziheng/develop/emg2pose/data

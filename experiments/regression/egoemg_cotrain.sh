@@ -15,8 +15,8 @@ LR=0.0005
 EPOCHS=150
 SEED=42
 BASE_LOG="logs/regression/egoemg_cotrain"
-DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_unified_memmap"
-EMG2POSE_DATA="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/emg_corpus/emg2pose_v3_memmap"
+DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_full_memmap"
+EMG2POSE_DATA="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/emg2pose_memmap"
 
 echo "=== Co-Training: EgoEMG + emg2pose (8ch aligned) ==="
 echo "Config: ${BASE_CONFIG}"

@@ -75,7 +75,7 @@ def main():
     parser.add_argument("--data-root", default="data/EgoEMG",
                         help="Root of EgoEMG video data (for head-view frames).")
     parser.add_argument("--allintra-root",
-                        default="data/EgoEMG_allintra",
+                        default="data/EgoEMG_videos",
                         help="Root of all-intra re-encoded head-view videos.")
     args = parser.parse_args()
 

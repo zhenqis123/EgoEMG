@@ -7,8 +7,8 @@
 # Usage:
 #   python -m egoemg.train \
 #     experiment=emgformer/regression_egoemg_cotrain \
-#     egoemg_unified_memmap_dir=/path/to/EgoEMG_unified_memmap \
-#     emg2pose_memmap_dir=/path/to/emg2pose_v3_memmap \
+#     egoemg_unified_memmap_dir=/path/to/EgoEMG_full_memmap \
+#     emg2pose_memmap_dir=/path/to/emg2pose_memmap \
 #     'trainer.devices=[0,1,2,3,4,5]' \
 #     +trainer.strategy=ddp \
 #     batch_size=300
@@ -16,7 +16,7 @@ defaults:
   - /experiment/emgformer/regression_egoemg
   - _self_
 
-emg2pose_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
+emg2pose_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
 
 checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/regression/egoemg_cotrain/regression_egoemg/version_3/checkpoints/last.ckpt
 

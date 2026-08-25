@@ -13,7 +13,7 @@ LR=0.0005
 EPOCHS=150
 SEED=42
 BASE_LOG="logs/regression/egoemg_clean"
-DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_unified_memmap"
+DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_full_memmap"
 
 # No augmentation — clean baseline
 AUG="batch_augmentation=null"

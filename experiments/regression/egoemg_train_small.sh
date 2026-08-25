@@ -20,7 +20,7 @@ EPOCHS=150
 SEED=42
 export EMG2POSE_DEBUG_STEPS="${EMG2POSE_DEBUG_STEPS:-0}"
 BASE_LOG="logs/regression/egoemg_only_small"
-EGOEMG_DATA="${PROJECT_DIR}/data/EgoEMG_unified_memmap"
+EGOEMG_DATA="${PROJECT_DIR}/data/EgoEMG_full_memmap"
 
 echo "=== EgoEMG-only small training ==="
 echo "Config: ${BASE_CONFIG}"

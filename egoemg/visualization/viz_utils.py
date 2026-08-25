@@ -842,7 +842,7 @@ def fk_mesh_world(
 
 def make_memmap_dataset(
     *,
-    memmap_dir: str | Path = "data/EgoEMG_unified_memmap",
+    memmap_dir: str | Path = "data/EgoEMG_full_memmap",
     hand: str = "right",
     window_length: int = 1000,
     stride: int | None = None,

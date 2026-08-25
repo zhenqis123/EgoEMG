@@ -5,7 +5,7 @@
 # Prerequisites:
 #   - GPU 2,3,4,5 available (4 GPUs)
 #   - data/EgoEMG_memmap and data/EgoEMG_incre/data_right_merged present
-#   - Vision crops at data/EgoEMG_v2_crops
+#   - Vision crops at data/EgoEMG_crops
 #   - Vision-only checkpoints at logs/fusion/vision_resnet/version_9/ and vision_vit_small/version_0/
 #
 # Usage:

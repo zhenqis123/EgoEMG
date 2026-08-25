@@ -16,7 +16,7 @@ dataset:
         skip_ik_failures: ${datamodule.skip_ik_failures}
         allowed_splits: [train]
         skip_fields: [joint_angles, time]
-        memmap_dir: ${data_root}/emg2pose_v3_memmap
+        memmap_dir: ${data_root}/emg2pose_memmap
 
     - _target_: egoemg.datasets.pretrain_wrapper.PretrainWrapperDataset
       name: emg2qwerty
@@ -45,6 +45,6 @@ dataset:
         jitter: false
         skip_ik_failures: ${datamodule.skip_ik_failures}
         allowed_splits: [val]
-        memmap_dir: ${data_root}/emg2pose_v3_memmap
+        memmap_dir: ${data_root}/emg2pose_memmap
 
   test: []

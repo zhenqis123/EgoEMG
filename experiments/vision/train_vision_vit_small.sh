@@ -8,8 +8,8 @@ set -euo pipefail
 CONFIG="experiment=fusion/vision_vit_small"
 
 # ── Data paths (override if needed) ────────────────────────────────────────────
-EGOEMG_MEMMAP="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_unified_memmap"
-CROPS_LMDB="data/EgoEMG_v2_crops"
+EGOEMG_MEMMAP="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_full_memmap"
+CROPS_LMDB="data/EgoEMG_crops"
 
 # ── Run training ───────────────────────────────────────────────────────────────
 python -m egoemg.train \

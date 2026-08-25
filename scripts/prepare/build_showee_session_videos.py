@@ -17,10 +17,10 @@ skip order (missing actions contribute zero frames).
 Usage::
 
     python scripts/prepare/build_showee_session_videos.py \
-        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_unified_memmap \
+        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_full_memmap \
         --showee-root /mnt/nvme/xiziheng/showee/downloads \
         --showee-root /mnt/nvme/xiziheng \
-        --allintra-root /mnt/nvme/xiziheng/EgoEMG_allintra \
+        --allintra-root /mnt/nvme/xiziheng/EgoEMG_videos \
         --streams wrist_left wrist_right zed \
         --jobs 8
 """

@@ -22,11 +22,11 @@ skipping actions whose recording is missing — exactly the skip order of
 Usage::
 
     python scripts/prepare/build_showee_wrist_zed_indices.py \
-        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_unified_memmap \
-        --source-memmap-dir /data/xiziheng/EgoEMG_unified_memmap \
+        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_full_memmap \
+        --source-memmap-dir /data/xiziheng/EgoEMG_full_memmap \
         --showee-root /mnt/nvme/xiziheng/showee/downloads \
         --showee-root /mnt/nvme/xiziheng \
-        --allintra-root /mnt/nvme/xiziheng/EgoEMG_allintra
+        --allintra-root /mnt/nvme/xiziheng/EgoEMG_videos
 """
 from __future__ import annotations
 

@@ -9,8 +9,8 @@ Usage:
     python scripts/eval/find_fusion_wins.py \
         --config-name experiment/fusion/vision_resnet_small_emgfusion_center \
         --checkpoint logs/fusion/resnet_small_emgfusion_center/version_12/checkpoints/resnet-small-centerfusion-epoch=039-val_mae=0.0978.ckpt \
-        --data-location data/EgoEMG_unified_memmap \
-        --video-root data/EgoEMG_allintra \
+        --data-location data/EgoEMG_full_memmap \
+        --video-root data/EgoEMG_videos \
         --num-samples 20 \
         --output-dir ./fusion_wins_viz
 """
@@ -1099,8 +1099,8 @@ def main():
         description="Find samples where fusion most outperforms vision-only")
     parser.add_argument("--config-name", default="experiment/fusion/vision_resnet_small_emgfusion_center")
     parser.add_argument("--checkpoint", required=True)
-    parser.add_argument("--data-location", default="data/EgoEMG_unified_memmap")
-    parser.add_argument("--video-root", default="data/EgoEMG_allintra")
+    parser.add_argument("--data-location", default="data/EgoEMG_full_memmap")
+    parser.add_argument("--video-root", default="data/EgoEMG_videos")
     parser.add_argument("--num-samples", type=int, default=100)
     parser.add_argument("--output-dir", default="./fusion_wins_viz")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")

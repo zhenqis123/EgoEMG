@@ -10,7 +10,7 @@ PYTHON_BIN=${PYTHON_BIN:-python}
 
 INPUT_ROOT=${SHARED_ROOT}/experiment_inputs
 EGOEMG_MEMMAP_DIR=${EGOEMG_MEMMAP_DIR:-${SHARED_ROOT}/data/EgoEMG_memmap}
-EGOEMG_CROPS_DIR=${EGOEMG_CROPS_DIR:-${SHARED_ROOT}/data/EgoEMG_v2_crops}
+EGOEMG_CROPS_DIR=${EGOEMG_CROPS_DIR:-${SHARED_ROOT}/data/EgoEMG_crops}
 VISION_CKPT=${VISION_CKPT:-${INPUT_ROOT}/vision_checkpoints/rn50.ckpt}
 EMG_CKPT=${EMG_CKPT:-${INPUT_ROOT}/emgformer_s_egoemg_incre_cotrain.ckpt}
 

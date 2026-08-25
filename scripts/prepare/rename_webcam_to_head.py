@@ -17,8 +17,8 @@ are rewritten).  All changes are backed up.
 Usage::
 
     python scripts/prepare/rename_webcam_to_head.py \
-        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_unified_memmap \
-        --allintra-root /mnt/nvme/xiziheng/EgoEMG_allintra
+        --memmap-dir /mnt/nvme/xiziheng/EgoEMG_full_memmap \
+        --allintra-root /mnt/nvme/xiziheng/EgoEMG_videos
 """
 from __future__ import annotations
 
