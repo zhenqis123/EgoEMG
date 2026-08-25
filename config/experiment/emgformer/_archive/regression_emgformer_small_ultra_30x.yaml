@@ -32,7 +32,7 @@ datamodule:
   window_length: 7_790
   val_test_window_length: 7_790
   norm_mode: batch
-  norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/emg_norm_stats.npz
+  norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/emg_norm_stats.npz
   skip_ik_failures: False
 
 optimizer:
@@ -41,8 +41,8 @@ optimizer:
 dataset:
   train:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
+      root_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg2pose_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]
@@ -51,8 +51,8 @@ dataset:
       allowed_splits: [train]
   val:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
+      root_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg2pose_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]
@@ -61,8 +61,8 @@ dataset:
       allowed_splits: [val]
   test:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
+      root_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg2pose_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]

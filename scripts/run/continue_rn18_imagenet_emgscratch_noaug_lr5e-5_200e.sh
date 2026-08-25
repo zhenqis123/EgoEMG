@@ -2,7 +2,7 @@
 # Second no-augmentation continuation: reset a 200-epoch cosine at 5e-5.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 RUN_ROOT=data/logs/full_showee_s_l_all_fusions_20260721/fusion_rn18_s
 SOURCE_CKPT=${SOURCE_CKPT:-${RUN_ROOT}/continue_lr1e-4_eta5e-6_150e/train/version_0/checkpoints/last.ckpt}
 STAGE=continue_lr5e-5_eta5e-6_200e

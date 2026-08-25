@@ -2,14 +2,14 @@
 # Current best last-block fusion recipe with decoder LR doubled to 2e-5.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 LOG_ROOT=${REPO}/logs/20260726
 RUN_NAME=fusion_rn50_m_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_decoder2x_20e
 RUN_DIR="${LOG_ROOT}/${RUN_NAME}/train"
 GPUS=0,1,2,3,4,5
 DEVICES='[0,1,2,3,4,5]'
 
-conda activate emg2pose_env
+conda activate egoemg_env
 
 if [[ -e "${RUN_DIR}/train/version_0" ]]; then
   echo "Refusing to overwrite existing run: ${RUN_DIR}/train/version_0" >&2

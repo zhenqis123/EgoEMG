@@ -4,14 +4,14 @@
 # jobs resume from last.ckpt.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 RUN_ROOT=${REPO}/logs/20260728/fusion_5vision_s_simple_unfrozen_augbest_30e
 WILOR_FROZEN_ROOT=${REPO}/logs/20260728/wilor_s_simple_frozen_exactvision_augbest_lr1e-5_eta5e-6_30e
 # Keep GPU 5 free for unified evaluation while this queue is running.
 DEVICES='[0,1,2,3,4]'
 GPUS=0,1,2,3,4
 
-conda activate emg2pose_env
+conda activate egoemg_env
 cd "${REPO}"
 mkdir -p "${RUN_ROOT}"
 

@@ -1,3 +1,7 @@
+# Local agent/dev instructions (not part of the public repo)
+AGENTS.md
+CLAUDE.md
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

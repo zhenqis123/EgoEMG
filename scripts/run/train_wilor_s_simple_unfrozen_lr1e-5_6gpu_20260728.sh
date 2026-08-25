@@ -2,7 +2,7 @@
 # Train the final Table 4 ablation: unfrozen WiLoR + EMGFormer-S simple fusion.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 PYTHON=python
 RUN_DIR=${REPO}/logs/20260728/fusion_5vision_s_simple_unfrozen_augbest_30e/wilor_s
 

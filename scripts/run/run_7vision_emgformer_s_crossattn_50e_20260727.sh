@@ -3,14 +3,14 @@
 # member; this queue waits for it, then runs the other six in order, WiLoR last.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 RUN_ROOT=${REPO}/logs/20260727/fusion_7vision_emgformer_s_crossattn_50e
 RN50_ROOT=${REPO}/logs/20260727/fusion_rn50_s_egoemg_only_wl12000_crossattn_lastblock_anchor_augbest_50e
 RN50_TMUX=train_rn50_s_crossattn_50e_20260727
 DEVICES='[0,1,2,3,4,5]'
 GPUS=0,1,2,3,4,5
 
-conda activate emg2pose_env
+conda activate egoemg_env
 mkdir -p "$RUN_ROOT"
 ln -sfn "$RN50_ROOT" "${RUN_ROOT}/rn50_s"
 cd "$REPO"

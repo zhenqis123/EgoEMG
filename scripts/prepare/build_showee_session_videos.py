@@ -93,7 +93,7 @@ def _mkv_frames(path: Path) -> int:
         return int(round(float(dur) * int(num) / int(den)))
     import ctypes
     ctypes.CDLL(
-        "/home/xiziheng/miniconda3/envs/emg2pose_env/lib/libstdc++.so.6",
+        "/home/xiziheng/miniconda3/envs/egoemg_env/lib/libstdc++.so.6",
         mode=ctypes.RTLD_GLOBAL)
     from decord import VideoReader, cpu
     return len(VideoReader(str(path), ctx=cpu(0)))

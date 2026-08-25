@@ -11,7 +11,7 @@ defaults:
   # Hydra's defaults-list has an `experiment` group entry to override.
   - experiment: emgformer/regression_egoemg
 
-data_location: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
+data_location: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus/emg2pose_v3
 manus_memmap_dir: data/manus_memmap
 
 seed: 42
@@ -76,19 +76,19 @@ callbacks:
 logger:
   _target_: pytorch_lightning.loggers.TensorBoardLogger
   save_dir: .
-  name: emg2pose
+  name: egoemg
   version: null
   default_hp_metric: false
 
 # Customize hydra directory outputs
 # see: https://hydra.cc/docs/0.11/configure_hydra/workdir/
 hydra:
-  # Keep the launch cwd (repo root / EMG2POSE_ROOT layout) instead of the
-  # per-run directory, so `${oc.env:EMG2POSE_ROOT,.}` relative fallbacks for
+  # Keep the launch cwd (repo root / EGOEMG_ROOT layout) instead of the
+  # per-run directory, so `${oc.env:EGOEMG_ROOT,.}` relative fallbacks for
   # memmap/assets paths resolve identically before and after job start.
   job:
     chdir: false
-    name: emg2pose
+    name: egoemg
     config:
       override_dirname:
         exclude_keys:

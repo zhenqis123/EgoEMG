@@ -9,8 +9,8 @@ defaults:
   - override /module/decoder: transformer/preset/large_aggressive
   - _self_
 
-data_root: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus
-egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
+data_root: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus
+egoemg_memmap_dir: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_memmap
 egoemg_emg_layout: emg2pose_interpolate16
 egoemg_emg2pose_channel_indices: [10, 12, 0, 1, 2, 4, 5, 6]
 egoemg_channel_interpolate: true
@@ -44,7 +44,7 @@ dataset:
       gesture_spaces: null
       angle_dim: 22
       norm_mode: per-dataset
-      norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
+      norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/per_dataset_norm_stats.json
       base:
         _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
         memmap_dir: ${egoemg_memmap_dir}
@@ -62,7 +62,7 @@ dataset:
       gesture_spaces: null
       angle_dim: 22
       norm_mode: per-dataset
-      norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
+      norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/per_dataset_norm_stats.json
       base:
         _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
         memmap_dir: ${egoemg_memmap_dir}
@@ -81,7 +81,7 @@ dataset:
       gesture_spaces: null
       angle_dim: 22
       norm_mode: per-dataset
-      norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
+      norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/per_dataset_norm_stats.json
       base:
         _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
         memmap_dir: ${egoemg_memmap_dir}
@@ -99,7 +99,7 @@ dataset:
       gesture_spaces: null
       angle_dim: 22
       norm_mode: per-dataset
-      norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
+      norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/per_dataset_norm_stats.json
       base:
         _target_: egoemg.datasets.egoemg_memmap_dataset.EgoEmgMemmapDataset
         memmap_dir: ${egoemg_memmap_dir}
@@ -125,7 +125,7 @@ datamodule:
   stride: null
   val_test_stride: null
   norm_mode: per-dataset
-  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
+  per_dataset_norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/per_dataset_norm_stats.json
   skip_ik_failures: false
   prefetch_factor: 2
   persistent_workers: true

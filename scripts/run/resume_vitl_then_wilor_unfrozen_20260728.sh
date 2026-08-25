@@ -2,7 +2,7 @@
 # Resume ViT-L-S unfrozen fusion, then run WiLoR-S unfrozen fusion.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 PYTHON=python
 RUN_ROOT=${REPO}/logs/20260728/fusion_5vision_s_simple_unfrozen_augbest_30e
 DEVICES='[0,1,2,3,4]'

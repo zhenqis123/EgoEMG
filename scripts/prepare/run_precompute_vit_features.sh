@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-export LD_PRELOAD="/lib/x86_64-linux-gnu/libffi.so.7:${CONDA_PREFIX:-$HOME/miniconda3/envs/emg2pose_env}/lib/libstdc++.so.6"
+export LD_PRELOAD="/lib/x86_64-linux-gnu/libffi.so.7:${CONDA_PREFIX:-$HOME/miniconda3/envs/egoemg_env}/lib/libstdc++.so.6"
 
 # ── Configurable via env vars ─────────────────────────────────────────────
 CROPS_DIR="${CROPS_DIR:-data/EgoEMG_crops}"

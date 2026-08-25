@@ -8,8 +8,8 @@ defaults:
   - _self_
 
 showee_memmap_dir: data/ShowEE_202607_memmap
-egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_full_memmap
-showee_video_root: ${oc.env:EMG2POSE_ROOT,.}/data/showee
+egoemg_unified_memmap_dir: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_full_memmap
+showee_video_root: ${oc.env:EGOEMG_ROOT,.}/data/showee
 showee_allintra_root: data/ShowEE_202607_allintra
 showee_per_episode_crops_dir: data/ShowEE_202607_crops
 
@@ -23,7 +23,7 @@ skip_emg_loading: false
 center_target_only: false
 
 datamodule:
-  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
+  per_dataset_norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
 
 logger:
   name: regression_egoemg_incre_showee_alltrain

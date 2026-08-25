@@ -2,7 +2,7 @@
 # One-epoch low-LR probe for fully trainable WiLoR feature extraction + EMGFormer-S.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 PYTHON=python
 RUN_DIR=${REPO}/logs/20260728/wilor_s_unfrozen_lr1e-6_stride1560_repeat1_1epoch
 

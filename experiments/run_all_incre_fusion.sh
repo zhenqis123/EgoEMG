@@ -13,9 +13,9 @@
 #   bash experiments/run_all_incre_fusion.sh --step 1   # run only step 1
 #   bash experiments/run_all_incre_fusion.sh --from 3   # run from step 3
 set -euo pipefail
-cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+cd ${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
-conda activate emg2pose_env
+conda activate egoemg_env
 
 export PYTHONUNBUFFERED=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True

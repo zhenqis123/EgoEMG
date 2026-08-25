@@ -2,7 +2,7 @@
 # Full-time-step EgoEMG test_analysis for the completed full-data EMGFormer S/L runs.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 RUN_ROOT=${RUN_ROOT:-data/logs/full_showee_s_l_all_fusions_20260721}
 OUTPUT_ROOT=${OUTPUT_ROOT:-${RUN_ROOT}/test_analysis_emg}
 DEVICE=${DEVICE:-cuda:0}

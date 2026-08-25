@@ -7,7 +7,7 @@ defaults:
   - transforms: pretrain_mae
   - experiment: emgformer/pretrain_multitask
 
-data_root: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus
+data_root: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus
 data_location: ${data_root}/emg2pose_v3
 
 seed: 42

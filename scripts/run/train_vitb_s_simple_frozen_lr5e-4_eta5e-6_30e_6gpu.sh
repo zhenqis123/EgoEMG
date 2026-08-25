@@ -4,14 +4,14 @@
 # configured initializations on six GPUs.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 PYTHON=python
 RUN_ROOT=${RUN_ROOT:-${REPO}/logs/20260728/vitb_s_simple_frozen_lr5e-4_eta5e-6_30e_stride400_repeat1}
 
 cd "${REPO}"
 mkdir -p "${RUN_ROOT}"
 
-export EMG2POSE_ROOT="${REPO}"
+export EGOEMG_ROOT="${REPO}"
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 

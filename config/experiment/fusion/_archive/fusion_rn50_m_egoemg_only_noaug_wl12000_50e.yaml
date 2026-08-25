@@ -6,8 +6,8 @@ defaults:
   - /experiment/fusion/fusion_rn50_s_egoemg_only_noaug_dense
   - _self_
 
-vision_resnet_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/fusion/vision_resnet50/version_0/checkpoints/resnet50-vision-epoch=145-val_mae=0.0923.ckpt
-pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_middle_incre_cotrain/checkpoints/best.ckpt
+vision_resnet_checkpoint: ${oc.env:EGOEMG_ROOT,.}/logs/fusion/vision_resnet50/version_0/checkpoints/resnet50-vision-epoch=145-val_mae=0.0923.ckpt
+pretrained_emg_checkpoint: ${oc.env:EGOEMG_ROOT,.}/test_results/egoemg_emgformer_middle_incre_cotrain/checkpoints/best.ckpt
 
 trainer:
   max_epochs: 50

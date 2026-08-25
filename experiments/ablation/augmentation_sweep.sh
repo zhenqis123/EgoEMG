@@ -1,7 +1,7 @@
 #!/bin/bash
 # 30 实验增强扫参 — 每个 2 epoch，探索最佳增强策略
 set -e
-cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+cd ${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
 BASE_CONFIG="emgformer/regression_egoemg_with_incre"
 GPUS="0,1,2,3,4,5"
@@ -11,7 +11,7 @@ LR=0.0005
 EPOCHS=2
 BASE_SEED=42
 BASE_LOG="logs/ablation/aug_sweep"
-DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_full_memmap"
+DATA_DIR="${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_full_memmap"
 
 # Common Hydra args for all experiments
 common_args() {

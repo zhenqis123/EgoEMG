@@ -2,7 +2,7 @@
 # RN50 + EMGFormer-M, controlled 50-epoch EgoEMG-only no-augmentation run.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 LOG_ROOT=${REPO}/logs/20260725
 GPUS=0,1,2,3,4,5
 DEVICES='[0,1,2,3,4,5]'

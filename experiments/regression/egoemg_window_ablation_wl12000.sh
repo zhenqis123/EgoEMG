@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 cd "$PROJECT_DIR"
 
-conda activate emg2pose_env
+conda activate egoemg_env
 
 BASE_CONFIG="emgformer/regression_egoemg_window_ablation_wl12000"
 GPUS="${GPUS:-0,1,2,3,4,5}"

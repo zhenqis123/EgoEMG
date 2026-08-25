@@ -7,8 +7,8 @@ defaults:
   - override /transforms: emgformer_regression_aug_best
   - _self_
 
-# checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/pretrain/2026-01-31/00-59-16/tensorboard/version_0/checkpoints/epoch=499-step=110500.ckpt
-# checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-04-24/16-06-41_emg2pose/egoemg/version_0/checkpoints/best-val_mae=val_mae=0.2264.ckpt
+# checkpoint: ${oc.env:EGOEMG_ROOT,.}/logs/pretrain/2026-01-31/00-59-16/tensorboard/version_0/checkpoints/epoch=499-step=110500.ckpt
+# checkpoint: ${oc.env:EGOEMG_ROOT,.}/logs/2026-04-24/16-06-41_emg2pose/egoemg/version_0/checkpoints/best-val_mae=val_mae=0.2264.ckpt
 pretrained_strict: true
 module:
   provide_initial_pos: False
@@ -34,7 +34,7 @@ datamodule:
   window_length: 7_790
   val_test_window_length: 7_790
   norm_mode: null
-  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats.json
+  per_dataset_norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/per_dataset_norm_stats.json
   skip_ik_failures: False
 
 # Hyperparameters
@@ -44,8 +44,8 @@ optimizer:
 dataset:
   train:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
+      root_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg2pose_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]
@@ -54,8 +54,8 @@ dataset:
       allowed_splits: [train]
   val:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
+      root_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg2pose_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]
@@ -64,8 +64,8 @@ dataset:
       allowed_splits: [val]
   test:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
-      root_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus/emg2pose_v3
-      memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/emg2pose_memmap
+      root_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus/emg2pose_v3
+      memmap_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg2pose_memmap
       window_length: 7_790
       stride: null
       padding: [0, 0]

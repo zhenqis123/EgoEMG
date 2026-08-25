@@ -8,7 +8,7 @@ RUN_ROOT=${RUN_ROOT:-${REPO_ROOT}/logs/20260728/sensingdynamics_egoemg_50e_lr1e-
 mkdir -p "${RUN_ROOT}"
 cd "${REPO_ROOT}"
 
-export EMG2POSE_ROOT="${REPO_ROOT}"
+export EGOEMG_ROOT="${REPO_ROOT}"
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 

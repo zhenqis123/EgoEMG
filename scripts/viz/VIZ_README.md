@@ -1,6 +1,6 @@
-# Visualization Guide — EMG2Pose
+# Visualization Guide — EgoEMG
 
-This document covers all visualization capabilities in the EMG2Pose codebase, organized by **output format** and **use case**.
+This document covers all visualization capabilities in the EgoEMG codebase, organized by **output format** and **use case**.
 
 ## Quick Start
 
@@ -153,9 +153,9 @@ prefers the EGL (GPU) backend. EGL needs access to `/dev/dri` nodes —
 grant it once (needs sudo), then set `PYOPENGL_PLATFORM=egl`:
 
 ```bash
-# The emg2pose_env activation hook selects the host GLVND dispatcher,
+# The egoemg_env activation hook selects the host GLVND dispatcher,
 # which is required on this machine for NVIDIA EGL rendering.
-conda activate emg2pose_env
+conda activate egoemg_env
 
 # permanent: add your user to the video/render groups (re-login to apply)
 sudo usermod -aG video,render $USER
@@ -169,7 +169,7 @@ python scripts/viz/visualize_dataset.py vision \
 Verify it is really on the GPU (RTX 4090, not osmesa software fallback):
 
 ```bash
-conda activate emg2pose_env
+conda activate egoemg_env
 python -c "
 from OpenGL import GL
 import numpy as np, pyrender as pr

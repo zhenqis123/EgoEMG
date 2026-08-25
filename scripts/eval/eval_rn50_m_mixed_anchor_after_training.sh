@@ -3,14 +3,14 @@
 # mixed-anchor training run finishes.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 RUN_ROOT=${REPO}/logs/20260726/fusion_rn50_m_egoemg_only_wl12000_crossattn_mixed_anchor_augbest_20e
 VERSION_DIR=${RUN_ROOT}/train/train/version_0
 RESULT_DIR=${REPO}/test_results/fusion/crossattn_mixed_anchor_augbest_20e_20260726
 MODELS_JSON=${RESULT_DIR}/models.json
 OUTPUT_JSON=${RESULT_DIR}/unified_center_eval.json
 
-conda activate emg2pose_env
+conda activate egoemg_env
 cd "$REPO"
 
 python - "$VERSION_DIR/checkpoints/last.ckpt" "$MODELS_JSON" <<'PY'
@@ -37,7 +37,7 @@ models = {
         "ckpt": str(best_path),
         "config_path": str(
             Path(
-                "${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/20260726/"
+                "${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/20260726/"
                 "fusion_rn50_m_egoemg_only_wl12000_crossattn_"
                 "mixed_anchor_augbest_20e/train/hydra/hydra_configs/config.yaml"
             )
@@ -46,13 +46,13 @@ models = {
     },
     "crossattn_zero_anchor_augbest_50e_ep47": {
         "ckpt": (
-            "${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/20260726/"
+            "${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/20260726/"
             "fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_"
             "anchor_augbest_50e/train/train/version_0/checkpoints/"
             "rn18-s-8ch-centerfusion-epoch=047-val_mae=0.0924.ckpt"
         ),
         "config_path": (
-            "${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/20260726/"
+            "${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/20260726/"
             "fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_"
             "anchor_augbest_50e/train/hydra/hydra_configs/config.yaml"
         ),
@@ -60,11 +60,11 @@ models = {
     },
     "vision_rn50": {
         "ckpt": (
-            "${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/vision_resnet50/"
+            "${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/vision_resnet50/"
             "version_0/checkpoints/resnet50-vision-epoch=145-val_mae=0.0923.ckpt"
         ),
         "config_path": (
-            "${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/vision_resnet50/"
+            "${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/logs/fusion/vision_resnet50/"
             "version_0/hparams.yaml"
         ),
         "uses_vision": True,

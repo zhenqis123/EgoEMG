@@ -39,12 +39,12 @@
 ## ⚙️ Setup
 
 ```shell
-conda env create -f environment.yml && conda activate emg2pose
+conda env create -f environment.yml && conda activate egoemg
 pip install -e '.[viz]'
 ```
 
 Download data and checkpoints with [Asset Setup](docs/ASSET_SETUP.md), then set
-`export EMG2POSE_ROOT=/path/to/egoemg_assets`.
+`export EGOEMG_ROOT=/path/to/egoemg_assets`.
 
 ## 🚀 Training
 
@@ -88,10 +88,10 @@ For evaluation use `egoemg.test_analysis` (fusion configs default `train=true`).
 
 ```shell
 python scripts/viz/visualize_dataset.py vision \
-  --memmap-dir ${EMG2POSE_ROOT}/data/EgoEMG_full_memmap \
-  --allintra-root ${EMG2POSE_ROOT}/data/EgoEMG_videos \
-  --crops-dir ${EMG2POSE_ROOT}/data/EgoEMG_crops \
-  --data-root ${EMG2POSE_ROOT}/data \
+  --memmap-dir ${EGOEMG_ROOT}/data/EgoEMG_full_memmap \
+  --allintra-root ${EGOEMG_ROOT}/data/EgoEMG_videos \
+  --crops-dir ${EGOEMG_ROOT}/data/EgoEMG_crops \
+  --data-root ${EGOEMG_ROOT}/data \
   --output-dir /tmp/egoemg_vision_viz \
   --episode-id episode_000000 --stride 10 --max-frames 300
 ```
@@ -143,7 +143,7 @@ frozen/fine-tuned; Δavg = fusion gain):
 ### Evaluation
 
 ```shell
-export EMG2POSE_ROOT=/absolute/path/to/dataset_root
+export EGOEMG_ROOT=/absolute/path/to/dataset_root
 
 # EgoEMG EMGFormer (per-group stats + overall)
 python -m egoemg.test_analysis \
@@ -154,7 +154,7 @@ python -m egoemg.test_analysis \
 python -m egoemg.test_analysis \
   experiment=emgformer/emg2pose_emgformer_small \
   'checkpoint=checkpoints/emg2pose_emgformer_small.ckpt' \
-  data_location=${EMG2POSE_ROOT}/data/emg2pose_memmap
+  data_location=${EGOEMG_ROOT}/data/emg2pose_memmap
 
 # Vision-only ResNet-18
 python -m egoemg.test_analysis \

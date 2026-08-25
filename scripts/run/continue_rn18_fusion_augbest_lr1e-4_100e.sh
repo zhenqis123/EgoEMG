@@ -3,7 +3,7 @@
 # optimizer state, but reset the cosine schedule for another 100 epochs.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 RUN_ROOT=data/logs/full_showee_s_l_all_fusions_20260721/fusion_rn18_s
 SOURCE_RUN=${SOURCE_RUN:-${RUN_ROOT}/fresh_augbest_lr5e-4_eta1e-6_250e}
 SOURCE_CKPT=${SOURCE_CKPT:-${SOURCE_RUN}/train/version_0/checkpoints/last.ckpt}

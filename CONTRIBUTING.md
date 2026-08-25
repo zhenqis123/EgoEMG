@@ -1,4 +1,4 @@
-# Contributing to emg2pose
+# Contributing to EgoEMG
 
 Thanks for your interest in contributing! This project follows a small set of
 conventions to keep the codebase consistent and reproducible.
@@ -6,7 +6,7 @@ conventions to keep the codebase consistent and reproducible.
 ## Development setup
 
 ```shell
-conda env create -f environment.yml && conda activate emg2pose
+conda env create -f environment.yml && conda activate egoemg
 pip install -e . && pip install -e egoemg/UmeTrack
 ```
 

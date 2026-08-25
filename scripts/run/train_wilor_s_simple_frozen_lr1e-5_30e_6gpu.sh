@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 RUN_ROOT=${REPO}/logs/20260728/wilor_s_simple_frozen_exactvision_augbest_lr1e-5_eta5e-6_30e
 
-conda activate emg2pose_env
+conda activate egoemg_env
 cd "$REPO"
 
 exec python -m egoemg.train \

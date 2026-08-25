@@ -1,7 +1,7 @@
 #!/bin/bash
 # 模型大小对比实验 (small/middle/large on EgoEMG)
 set -e
-cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+cd ${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
 EXPERIMENT="emgformer/regression_egoemg"
 GPUS="0,1,2,3,4,5"
@@ -24,7 +24,7 @@ for SIZE in small middle large; do
 
     python -m egoemg.train \
       experiment=${EXPERIMENT} \
-      egoemg_unified_memmap_dir=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_full_memmap \
+      egoemg_unified_memmap_dir=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_full_memmap \
       trainer.devices=[${GPUS}] \
       +trainer.strategy=ddp \
       trainer.max_epochs=${EPOCHS} \

@@ -21,7 +21,7 @@ module:
 
 checkpoint: null
 
-data_root: ${oc.env:EMG2POSE_ROOT,.}/data/emg_corpus
+data_root: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus
 data_location: ${data_root}/emg2pose_memmap
 egoemg_memmap_dir: data/EgoEMG_v2_memmap
 egoemg_emg_layout: emg2pose_interpolate16

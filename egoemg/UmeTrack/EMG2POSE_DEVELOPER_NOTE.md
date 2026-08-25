@@ -1,4 +1,4 @@
-# A Note From the EMG2Pose Developers
+# A Note From the EgoEMG Developers
 
 For forward kinematics (converting joint angles into 3D hand landmark positions), we
 leverage the [UmeTrack](https://github.com/facebookresearch/umetrack) library.

@@ -1,7 +1,7 @@
 #!/bin/bash
 # emg2pose_v3 Middle 回归训练
 set -e
-cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+cd ${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
 EXPERIMENT="emgformer/regression_emg2pose"
 GPUS="0,1,2,3,4,5"

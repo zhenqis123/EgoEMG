@@ -1,7 +1,7 @@
 #!/bin/bash
 # 时间掩码精细扫参 — 10 实验，4 epoch，val 每 10 step
 set -e
-cd ${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+cd ${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 
 BASE_CONFIG="emgformer/regression_egoemg_with_incre"
 GPUS="0,1,2,3,4,5"
@@ -11,7 +11,7 @@ LR=0.0005
 EPOCHS=4
 SEED=50
 BASE_LOG="logs/ablation/tmask_sweep"
-DATA_DIR="${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_full_memmap"
+DATA_DIR="${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG_full_memmap"
 
 # Disable all aug, then enable only target
 NOAUG_EXCEPT="batch_augmentation.random_gain.mask_prob=0.0 \

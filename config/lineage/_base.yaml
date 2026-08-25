@@ -8,6 +8,6 @@
 matmul_precision: high
 ignore_head_tail_dims: 0
 
-# Shared data path. Override via the EMG2POSE_ROOT env var or CLI; the relative
+# Shared data path. Override via the EGOEMG_ROOT env var or CLI; the relative
 # fallback assumes the train entrypoint runs from the repo root.
-egoemg_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_memmap
+egoemg_memmap_dir: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_memmap

@@ -98,7 +98,7 @@ done
 # locations are documented placeholders and do not alter experiment semantics.
 while IFS= read -r -d '' text_file; do
   perl -pi -e 's#data/experiment_inputs/vision_checkpoints#checkpoints/vision#g;' \
-    -e 's#${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}#.#g;' \
+    -e 's#${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}#.#g;' \
     -e 's#${WILOR_PATH:-../WiLoR}#third_party/WiLoR#g;' \
     -e 's#${WILOR_PATH:-../WiLoR}#third_party/WiLoR#g;' \
     -e 's#data/WiLoR#third_party/WiLoR#g;' \

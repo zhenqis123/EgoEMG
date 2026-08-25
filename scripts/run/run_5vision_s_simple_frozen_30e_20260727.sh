@@ -3,12 +3,12 @@
 # EMGFormer-S and the lightweight residual pathway are optimized.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 RUN_ROOT=${REPO}/logs/20260727/fusion_5vision_s_simple_frozen_augbest_30e_bstuned
 DEVICES='[0,1,2,3,4,5]'
 GPUS=0,1,2,3,4,5
 
-conda activate emg2pose_env
+conda activate egoemg_env
 cd "${REPO}"
 mkdir -p "${RUN_ROOT}"
 

@@ -17,14 +17,14 @@ defaults:
   - _self_
 
 # ── Data paths ───────────────────────────────────────────────────────────────
-egoemg_unified_memmap_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_full_memmap
+egoemg_unified_memmap_dir: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_full_memmap
 egoemg_emg_layout: target_hand
 egoemg_emg2pose_channel_indices: null
 egoemg_channel_interpolate: false
 egoemg_emg_field_preference: filtered_paper
 
 # ── Vision (ResNet18, pre-crops) ─────────────────────────────────────────────
-per_episode_crops_dir: ${oc.env:EMG2POSE_ROOT,.}/data/EgoEMG_crops
+per_episode_crops_dir: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_crops
 vision_num_frames: 1
 vision_frame_selection: center
 vision_patch_size: 256
@@ -32,9 +32,9 @@ skip_emg_loading: false
 center_target_only: true
 
 # ── Checkpoints ──────────────────────────────────────────────────────────────
-vision_resnet_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-07-20/00-46-13_emg2pose/logs/fusion/fusion_rn18_m_8ch_augbest_wl12000/version_0/checkpoints/rn18-m-8ch-augbest-epoch=138-val_mae=0.0982.ckpt
-pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-07-20/00-46-13_emg2pose/logs/fusion/fusion_rn18_m_8ch_augbest_wl12000/version_0/checkpoints/rn18-m-8ch-augbest-epoch=138-val_mae=0.0982.ckpt
-checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-07-20/00-46-13_emg2pose/logs/fusion/fusion_rn18_m_8ch_augbest_wl12000/version_0/checkpoints/rn18-m-8ch-augbest-epoch=138-val_mae=0.0982.ckpt
+vision_resnet_checkpoint: ${oc.env:EGOEMG_ROOT,.}/logs/2026-07-20/00-46-13_emg2pose/logs/fusion/fusion_rn18_m_8ch_augbest_wl12000/version_0/checkpoints/rn18-m-8ch-augbest-epoch=138-val_mae=0.0982.ckpt
+pretrained_emg_checkpoint: ${oc.env:EGOEMG_ROOT,.}/logs/2026-07-20/00-46-13_emg2pose/logs/fusion/fusion_rn18_m_8ch_augbest_wl12000/version_0/checkpoints/rn18-m-8ch-augbest-epoch=138-val_mae=0.0982.ckpt
+checkpoint: ${oc.env:EGOEMG_ROOT,.}/logs/2026-07-20/00-46-13_emg2pose/logs/fusion/fusion_rn18_m_8ch_augbest_wl12000/version_0/checkpoints/rn18-m-8ch-augbest-epoch=138-val_mae=0.0982.ckpt
 
 # ── Not used (config compatibility) ──────────────────────────────────────────
 wilor_checkpoint_path: ${oc.env:WILOR_PATH,../WiLoR}/pretrained_models/wilor_final.ckpt
@@ -66,7 +66,7 @@ datamodule:
   eval_center_stride: 7_790  # unified eval center grid across all WLs
   dataset_repeat: 1
   norm_mode: per-dataset
-  per_dataset_norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
+  per_dataset_norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/per_dataset_norm_stats_repro_filtered_paper_alias.json
   skip_ik_failures: false
   persistent_workers: true
   prefetch_factor: 2
@@ -81,7 +81,7 @@ loss_weights:
 module:
   vision_backbone_type: resnet18
   vision_embed_dim: 512
-  vision_pretrained_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/2026-07-20/00-46-13_emg2pose/logs/fusion/fusion_rn18_m_8ch_augbest_wl12000/version_0/checkpoints/rn18-m-8ch-augbest-epoch=138-val_mae=0.0982.ckpt
+  vision_pretrained_checkpoint: ${oc.env:EGOEMG_ROOT,.}/logs/2026-07-20/00-46-13_emg2pose/logs/fusion/fusion_rn18_m_8ch_augbest_wl12000/version_0/checkpoints/rn18-m-8ch-augbest-epoch=138-val_mae=0.0982.ckpt
   skip_vision_backbone: false
   fusion_mode: center_supervised
   moddrop_prob: 0.0

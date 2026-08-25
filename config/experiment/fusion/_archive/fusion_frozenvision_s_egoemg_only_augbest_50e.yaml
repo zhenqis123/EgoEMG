@@ -7,7 +7,7 @@ defaults:
   - _self_
 
 checkpoint: null
-pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
+pretrained_emg_checkpoint: ${oc.env:EGOEMG_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
 
 trainer:
   max_epochs: 50

@@ -11,7 +11,7 @@ RUN_ROOT=${RUN_ROOT:-${REPO_ROOT}/logs/${RUN_DATE}/sensingdynamics_egoemg}
 mkdir -p "${RUN_ROOT}"
 cd "${REPO_ROOT}"
 
-export EMG2POSE_ROOT="${REPO_ROOT}"
+export EGOEMG_ROOT="${REPO_ROOT}"
 export CUDA_VISIBLE_DEVICES="${GPU}"
 
 python -m egoemg.train \

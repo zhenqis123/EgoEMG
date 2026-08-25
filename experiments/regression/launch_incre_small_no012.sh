@@ -11,7 +11,7 @@ PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 cd "$PROJECT_DIR"
 
 # Activate conda
-conda activate emg2pose_env
+conda activate egoemg_env
 
 echo "=== Launching EMG2Pose Incre Small Training (NO Ep 0,1,2) ==="
 echo "Date: $(date)"

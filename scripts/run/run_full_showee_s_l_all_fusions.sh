@@ -5,7 +5,7 @@
 # Fusion training intentionally excludes EgoEMG_incre (no matched vision).
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 RUN_ROOT=${RUN_ROOT:-data/logs/full_showee_s_l_all_fusions_20260721}
 INPUT_ROOT=data/experiment_inputs
 VISION_ROOT=${INPUT_ROOT}/vision_checkpoints

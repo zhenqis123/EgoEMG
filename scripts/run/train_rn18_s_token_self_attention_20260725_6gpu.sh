@@ -2,7 +2,7 @@
 # RN18 + EMGFormer-S direct joint-token pose decoder, 150-epoch continuation.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 LOG_ROOT=${REPO}/logs/20260725
 RUN_NAME=fusion_rn18_s_token_self_attention_direct_pose_continue_lr5e-5_eta5e-6_150e
 RUN_DIR="${LOG_ROOT}/${RUN_NAME}/train"

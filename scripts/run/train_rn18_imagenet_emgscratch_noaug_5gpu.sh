@@ -2,7 +2,7 @@
 # Fresh full-data RN18 + random EMGFormer-S fusion control, no augmentation.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 RUN_ROOT=data/logs/full_showee_s_l_all_fusions_20260721
 RUN_NAME=fresh_imagenet_emgscratch_noaug_lr1e-4_eta5e-6_150e
 OUTPUT_ROOT=${RUN_ROOT}/fusion_rn18_s/${RUN_NAME}

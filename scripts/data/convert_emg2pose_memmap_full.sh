@@ -9,8 +9,8 @@
 
 set -e
 
-ZARR_ROOT="${EMG2POSE_ROOT:-$(pwd)}/data/emg_corpus/emg2pose_v3"
-MEMMAP_ROOT="${EMG2POSE_ROOT:-$(pwd)}/data/emg2pose_memmap"
+ZARR_ROOT="${EGOEMG_ROOT:-$(pwd)}/data/emg_corpus/emg2pose_v3"
+MEMMAP_ROOT="${EGOEMG_ROOT:-$(pwd)}/data/emg2pose_memmap"
 LOG_FILE="/tmp/emg2pose_memmap_convert.log"
 
 echo "========================================"
@@ -22,7 +22,7 @@ echo "日志: $LOG_FILE"
 echo ""
 
 # 检查磁盘空间
-AVAILABLE_GB=$(df -BG ${EMG2POSE_ROOT:-$(pwd)}/data/emg_corpus/ | grep nvme | awk '{print $4}' | sed 's/G//')
+AVAILABLE_GB=$(df -BG ${EGOEMG_ROOT:-$(pwd)}/data/emg_corpus/ | grep nvme | awk '{print $4}' | sed 's/G//')
 REQUIRED_GB=465
 
 echo "可用空间: ${AVAILABLE_GB}GB"

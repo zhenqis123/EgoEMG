@@ -3,16 +3,16 @@
 Data and checkpoints used by the README workflows live under one asset root:
 
 ```shell
-export EMG2POSE_ROOT=/absolute/path/to/egoemg_assets
+export EGOEMG_ROOT=/absolute/path/to/egoemg_assets
 ```
 
 The repository already ships the normalization statistics the configs
 reference; copy them into the asset root once:
 
 ```shell
-mkdir -p "$EMG2POSE_ROOT/assets"
+mkdir -p "$EGOEMG_ROOT/assets"
 cp assets/per_dataset_norm_stats*.json assets/emg_norm_stats.npz \
-   "$EMG2POSE_ROOT/assets/"
+   "$EGOEMG_ROOT/assets/"
 ```
 
 Checkpoints install into the repository-local `checkpoints/` directory (set
@@ -27,10 +27,10 @@ them into the canonical local layout with one command:
 
 ```shell
 bash scripts/download/organize_downloads.sh /path/to/downloaded_folders \
-  "$EMG2POSE_ROOT/data"
+  "$EGOEMG_ROOT/data"
 ```
 
-| Path under `$EMG2POSE_ROOT/data/` | Needed for |
+| Path under `$EGOEMG_ROOT/data/` | Needed for |
 | --- | --- |
 | `EgoEMG_full_memmap` | EMGFormer training/eval; vision & fusion eval |
 | `emg2pose_memmap` | EMG2Pose benchmark |
@@ -45,14 +45,14 @@ Baidu caps single files at 128 GB, so the EMG2Pose memmap ships as 100 GB
 
 ```shell
 bash scripts/download/assemble_emg2pose_parts.sh \
-  "$EMG2POSE_ROOT/data/emg2pose_memmap"
+  "$EGOEMG_ROOT/data/emg2pose_memmap"
 ```
 
 Verify a downloaded memmap against the published checksums and schema:
 
 ```shell
 python scripts/data/validate_memmap.py \
-  --memmap-dir "$EMG2POSE_ROOT/data/EgoEMG_full_memmap" --checksums
+  --memmap-dir "$EGOEMG_ROOT/data/EgoEMG_full_memmap" --checksums
 ```
 
 The `vision` mode additionally resolves a camera-calibration JSON under
@@ -66,7 +66,7 @@ self-contained episode is available:
 
 ```shell
 bash scripts/download/download_egoemg_data.sh \
-  --source gdrive "$EMG2POSE_ROOT/data/dataset_egoemg_preview"
+  --source gdrive "$EGOEMG_ROOT/data/dataset_egoemg_preview"
 ```
 
 ## 2. Checkpoints

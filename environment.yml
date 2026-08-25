@@ -1,6 +1,6 @@
 # conda env create -f environment.yml
 
-name: emg2pose
+name: egoemg
 channels:
   - pytorch
   - nvidia

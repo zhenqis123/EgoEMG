@@ -6,7 +6,7 @@ defaults:
   - /experiment/fusion/fusion_rn50_m_egoemg_only_noaug_wl12000_crossattn_lastblock_anchor_augbest_50e
   - _self_
 
-pretrained_emg_checkpoint: ${oc.env:EMG2POSE_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
+pretrained_emg_checkpoint: ${oc.env:EGOEMG_ROOT,.}/test_results/egoemg_emgformer_small_incre_cotrain/checkpoints/best.ckpt
 
 module:
   decoder:

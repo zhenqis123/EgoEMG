@@ -9,7 +9,7 @@
 set -euo pipefail
 
 # Fix libffi/libstdc++ conflicts between conda base and system libraries.
-export LD_PRELOAD="/lib/x86_64-linux-gnu/libffi.so.7:${CONDA_PREFIX:-$HOME/miniconda3/envs/emg2pose_env}/lib/libstdc++.so.6"
+export LD_PRELOAD="/lib/x86_64-linux-gnu/libffi.so.7:${CONDA_PREFIX:-$HOME/miniconda3/envs/egoemg_env}/lib/libstdc++.so.6"
 
 EXPERIMENT="${EXPERIMENT:-vision/mano_simple_freeze}"
 DEVICES="${DEVICES:-[1,2,3,4,5]}"
@@ -19,13 +19,13 @@ LR="${LR:-1e-5}"
 NUM_WORKERS="${NUM_WORKERS:-8}"
 
 MEMMAP_DIR="${MEMMAP_DIR:-data/EgoEMG_v2_memmap}"
-VIDEO_ROOT="${VIDEO_ROOT:-${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG}"
+VIDEO_ROOT="${VIDEO_ROOT:-${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG}"
 ALLINTRA_ROOT="${ALLINTRA_ROOT:-data/EgoEMG_videos}"
 CROPS_DIR="${CROPS_DIR:-data/EgoEMG_crops}"
 VISION_INDEX_DIR="${VISION_INDEX_DIR:-data/EgoEMG_v2_memmap/vision_index}"
 MANO_MODEL_PATH="${MANO_MODEL_PATH:-${WILOR_PATH:-../WiLoR}/mano_data}"
 WILOR_CHECKPOINT="${WILOR_CHECKPOINT:-${WILOR_PATH:-../WiLoR}/pretrained_models/wilor_final.ckpt}"
-CALIBRATION_PATH="${CALIBRATION_PATH:-${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG/reprojection_assets/GX010023_standard_calibration.json}"
+CALIBRATION_PATH="${CALIBRATION_PATH:-${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG/reprojection_assets/GX010023_standard_calibration.json}"
 
 echo "=============================================="
 echo "WiLoR EgoEMG Fine-tuning"

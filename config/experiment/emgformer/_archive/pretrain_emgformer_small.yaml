@@ -7,7 +7,7 @@ defaults:
   - override /transforms: pretrain_mae
   - _self_
 
-checkpoint: ${oc.env:EMG2POSE_ROOT,.}/logs/pretrain/2026-02-13/01-33-12/tensorboard/version_0/checkpoints/epoch=101-step=30804.ckpt
+checkpoint: ${oc.env:EGOEMG_ROOT,.}/logs/pretrain/2026-02-13/01-33-12/tensorboard/version_0/checkpoints/epoch=101-step=30804.ckpt
 module:
   decoder:
     causal: false
@@ -38,7 +38,7 @@ datamodule:
   window_length: 7_790
   val_test_window_length: 7_790
   norm_mode: batch
-  norm_stats_path: ${oc.env:EMG2POSE_ROOT,.}/assets/emg_norm_stats.npz
+  norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/emg_norm_stats.npz
   skip_ik_failures: False
   prefetch_factor: 2
   persistent_workers: true

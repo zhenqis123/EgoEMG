@@ -4,7 +4,7 @@
 # EgoEMG-only, WL12000, stride=400, repeat=2, LR 5e-4 -> 5e-6, 300 epochs.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 LOG_ROOT=data/logs
 GPUS=0,1,2,3,4,5
 DEVICES='[0,1,2,3,4,5]'

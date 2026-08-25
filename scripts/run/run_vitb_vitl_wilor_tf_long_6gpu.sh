@@ -4,7 +4,7 @@
 # T: trainable visual feature backbone; F: frozen vision backbone + pose head.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 PYTHON=python
 RUN_ROOT=${RUN_ROOT:-${REPO}/logs/20260728/vitb_vitl_wilor_s_simple_tf_lr1e-5_eta1e-6_50e_stride400}
 EPOCHS=${EPOCHS:-50}

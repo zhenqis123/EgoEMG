@@ -2,7 +2,7 @@
 # RN50-M protected residual fusion: fixed vision predictor + EMG correction.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 LOG_ROOT=${REPO}/logs/20260725
 RUN_NAME=fusion_rn50_m_egoemg_only_noaug_wl12000_protected_100e
 RUN_DIR="${LOG_ROOT}/${RUN_NAME}/train"

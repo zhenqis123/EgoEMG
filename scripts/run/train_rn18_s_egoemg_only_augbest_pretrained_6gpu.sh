@@ -2,7 +2,7 @@
 # Fresh EgoEMG-only RN18 + EMGFormer-S fusion experiment on all local GPUs.
 set -Eeuo pipefail
 
-REPO=${EMG2POSE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
+REPO=${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}
 RUN_ROOT=data/logs/fusion_rn18_s_egoemg_only_augbest_no_mixup_dense_lr5e-4_300e_20260724
 RUN_DIR="${RUN_ROOT}/train"
 

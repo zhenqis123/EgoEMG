@@ -10,7 +10,7 @@
 #   bash scripts/download/organize_downloads.sh <downloaded_share_root> <data_root>
 #
 # Example (after downloading the share folders into ~/downloads):
-#   bash scripts/download/organize_downloads.sh ~/downloads "$EMG2POSE_ROOT/data"
+#   bash scripts/download/organize_downloads.sh ~/downloads "$EGOEMG_ROOT/data"
 set -euo pipefail
 
 SRC="${1:?usage: organize_downloads.sh <downloaded_share_root> <data_root>}"
