@@ -76,6 +76,8 @@ python -m egoemg.train_pretrain \
 
 Experiment configs live in `config/experiment/{emgformer,fusion,emg2pose}/`.
 For evaluation use `egoemg.test_analysis` (fusion configs default `train=true`).
+The EMG+vision fusion model (`MidFusionPoseFormer`) is detailed in
+[Fusion Architecture](docs/fusion_architecture.md).
 
 ## 🎥 Visualization
 
@@ -184,7 +186,7 @@ egoemg/        models, datasets, training/eval, vendored UmeTrack FK
 config/        Hydra experiments ({emgformer,fusion,emg2pose}/ + lineage/)
 scripts/       data conversion, downloads, visualization, paper figures
 experiments/   shell launchers for the paper's experiments
-docs/          asset setup, support scope, config architecture, dataset notes
+docs/          asset setup, support scope, config & fusion architecture
 assets/        EMG layout figures and normalization statistics
 ```
 

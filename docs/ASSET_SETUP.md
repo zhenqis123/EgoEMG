@@ -97,8 +97,8 @@ does not crop from bounding boxes at runtime.
 ## 4. Data integrity
 
 The served `dataset_egoemg_unified` already carries the corrected IMU
-channel layout (`[acc, gyro]`; details in `docs/data_known_issues.md` #1).
-Verify any copy with the per-file `checksums.json` inside the package
+channel layout (`[acc, gyro]`). Verify any copy with the per-file
+`checksums.json` inside the package
 (`sha256sum -c checksums.json`) or the validator command above. Copies saved
 before 2026-08-20 can be repaired in place with
 `scripts/prepare/fix_egoemg_imu_channel_order.py`.

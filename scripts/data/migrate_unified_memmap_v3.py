@@ -15,7 +15,7 @@ Drops (dead or misleading):
   source_index      (row index duplicate of frame_index)
   is_terminal       (robotic-episode vestige, meaningless for gesture data)
   emg_right_filtered(orphan column: Incre-only, no left counterpart, pipeline
-                      unreproducible -- see docs/data_known_issues.md #2/#9)
+                      unreproducible)
   timestamp         (float64 seconds copy; timestamp_us is authoritative)
 
 Validity (design revision after full-dataset probing):
@@ -23,7 +23,7 @@ Validity (design revision after full-dataset probing):
   rows 74.4% of frames are partially valid (occlusion), so the per-keypoint
   axis is genuine information. A scalar collapse was considered and rejected.
 
-Data fix (idempotent safety, docs/data_known_issues.md #19):
+Data fix (idempotent safety guard):
   Incre rows (dataset_source_id == 2): mocap_{left,right}_valid forced to
   False. Current data already measures all-False there; the step stays as a
   guard so the policy in the manifest can never drift from the bits.

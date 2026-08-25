@@ -96,22 +96,7 @@ Expresses only the delta from its lineage. Conventions:
 
 ## Why lineage pins only uniform params
 
-Earlier attempts tried to pin "mainstream" values (e.g. window_length=12000 for
-emgformer). But each main line has real dispersion (emgformer has wl=7790 /
-12000 / 14638; fusion has stride=400/780/1200/1560 across 4 module families).
-Pinning a single "mainstream" value silently changed any experiment that used a
-different value. The strict rule **pin only what every experiment already
-agrees on** guarantees migration is behavior-preserving, verified by
-`scripts/migrate/compare_resolved.py` snapshot diffs (every migrated experiment
-resolved identically to its pre-migration state, apart from the harmless
-`lineage:` identifier key).
-
-## Migration tooling
-
-- `scripts/migrate/compare_resolved.py` — composes each experiment via the same
-  path as `egoemg.train`, flattens the resolved config to `{key: value}`, and
-  diffs against a baseline snapshot. Subcommands: `snapshot`, `verify-one`,
-  `diff`, `snapshot-one`.
-- `scripts/migrate/migrate_experiments.py` — batch-migrates a main line's
-  experiments to inherit their lineage (text-preserving edit, then per-file
-  `verify-one`).
+Pinning a single "mainstream" value would silently change any experiment that
+uses a different one (emgformer spans wl=7790/12000/14638; fusion spans
+stride=400–1560). The rule **pin only what every experiment already agrees on**
+keeps lineage inheritance behavior-preserving.

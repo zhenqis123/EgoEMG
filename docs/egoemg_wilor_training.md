@@ -140,41 +140,17 @@ The defaults live in `config/experiment/fusion/vision_resnet_middle_egoemg_showe
 - `num_workers=8`: dataloader workers.
 - `stride=30 val_stride=300 test_stride=300`: sampling density per split.
 - `target_hand=both`: train both hands, or restrict to `left` / `right`.
-- `checkpoint=/path/to/ckpt`: evaluate a trained checkpoint.
-- `train=False eval=True`: evaluation-only mode.
-
-Example evaluation-only run:
-
-```bash
-python -m egoemg.train \
-    experiment=fusion/vision_resnet_middle_egoemg_showee \
-    data_location=data/EgoEMG_full_memmap \
-    video_root=data/EgoEMG \
-    allintra_root=data/EgoEMG_videos \
-    vision_index_dir=data/EgoEMG_full_memmap/vision_index \
-    checkpoint=/path/to/checkpoints/last.ckpt \
-    train=False \
-    eval=True
-```
+- For evaluation only, add `checkpoint=/path/to/ckpt train=False eval=True`.
 
 ## Training Flow
 
-`python -m egoemg.train` (with a fusion or vision-only experiment config)
-performs the following steps:
-
-1. Loads `config/experiment/fusion/vision_resnet_middle_egoemg_showee.yaml` through Hydra.
-2. Builds the WiLoR config from `WiLoR/pretrained_models/model_config.yaml`.
-3. Creates train/val/test `EgoEmgVisionDataset` instances.
-4. Loads all-intra video frames with `decord`.
-5. Emits WiLoR-native batches:
-   `{"img": batch, "mocap": {"hand_pose", "betas", "global_orient"}}`.
-6. Initializes `EgoEMGWiLoRModule`.
-7. Optionally loads `wilor_checkpoint_path`.
-8. Trains with Lightning and checkpoints on `val/loss`.
-9. Loads the best checkpoint and runs test evaluation when `eval=True`.
-
-Hydra writes outputs under the run directory. Checkpoints are saved under
-`checkpoints/`, and TensorBoard logs are saved under `tensorboard/`.
+`python -m egoemg.train` loads the experiment config through Hydra, builds
+`EgoEmgVisionDataset` instances for each split, reads all-intra frames with
+`decord`, emits WiLoR-native batches
+(`{"img": batch, "mocap": {"hand_pose", "betas", "global_orient"}}`) to
+`EgoEMGWiLoRModule`, and — when `eval=True` — loads the best checkpoint and runs
+test evaluation. Outputs land under the Hydra run directory: `checkpoints/` and
+`tensorboard/`.
 
 ## Performance Notes
 

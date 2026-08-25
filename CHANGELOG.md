@@ -24,8 +24,7 @@ All notable changes are recorded in this file.
   `[acc, gyro]` layout (41 episodes / 66,161,725 rows; backup
   `imu.dat.bak_prelayout`; verified bitwise against the original LeRobot
   parquet). The unified memmap's `imu_semantics` manifest entry documents the
-  repair. See `docs/data_known_issues.md` #1 and
-  `scripts/prepare/fix_egoemg_imu_channel_order.py`.
+  repair. See `scripts/prepare/fix_egoemg_imu_channel_order.py`.
 - Adds `SECURITY.md`, `CODE_OF_CONDUCT.md`, issue templates, and a PR template;
   adds a secret-scan step and CLI `--help` smoke tests to CI; declares the
   scripts support surface in `scripts/README.md`.
