@@ -4,7 +4,7 @@
 # Ten checkpoints are provided:
 #   egoemg_emgformer_{small,middle,large} | emg2pose_emgformer_{small,middle,large} |
 #   vision_resnet18 | vision_vit_small |
-#   fusion_resnet_emgfusion_center | fusion_vit_emgfusion_center
+#   fusion_resnet18_emgfusion_center | fusion_vit_emgfusion_center
 #
 # Two mirrored sources are supported:
 #   gdrive    (default) Google Drive folder, via gdown
