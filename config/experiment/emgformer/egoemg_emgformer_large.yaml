@@ -1,8 +1,8 @@
 # @package _global_
 # EMG→pose (EgoEMG) EMGFormer-Large, on the unified EgoEMG memmap.
 #
-# Mirrors the released egoemg_emgformer_large.ckpt architecture (16-ch
-# interpolate16 layout, 3-layer small decoder) and evaluates on the post-merge
+# Mirrors the released egoemg_emgformer_large.ckpt architecture (8-ch
+# target_hand layout, 3-layer small decoder) and evaluates on the post-merge
 # unified memmap (EgoEMG + ShowEE + Incre). EMG field preference = filtered_paper.
 defaults:
   - /module: emgformer
