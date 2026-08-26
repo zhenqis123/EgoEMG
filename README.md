@@ -176,14 +176,6 @@ python -m egoemg.train experiment=emgformer/egoemg_emgformer_small \
   datamodule.per_dataset_norm_stats_path=assets/per_dataset_norm_stats_unified.json
 ```
 
-> **Why the replay may look static** — the `generated_mano_*_pose` labels are
-> zero-filled on rows where `generated_label_valid=false` (~32% of rows) and
-> also contain static plateaus, so replaying those MANO meshes does not track
-> the reference video. Replay the **supervised joint angles + wrist
-> (`generated_joint_angles_*`)** and filter to valid frames instead. Build or
-> inspect the shard with the [Asset Setup](docs/ASSET_SETUP.md#preview-package)
-> script.
-
 ## 📊 Results and evaluation
 
 <details>
@@ -239,16 +231,6 @@ frozen/fine-tuned; Δavg = fusion gain):
 
 S/M/L in this README map to the `small`/`middle`/`large` config and
 checkpoint variants (e.g. `EMGFormer-M` → `egoemg_emgformer_middle.ckpt`).
-
-> **⚠️ EMG channel counts are NOT uniform across the released checkpoints.** A
-> config and its checkpoint must come from the **same family**. The **EgoEMG**
-> EMGFormer S/M/L checkpoints are **8-channel** (single-hand `target_hand`
-> layout, `tds_slim` featurizer); the **EMG2Pose** EMGFormer S/M/L and both
-> fusion checkpoints are **16-channel** (bilateral `emg2pose_interpolate16`
-> layout, `tds_slim_16ch` featurizer). Pairing a 16-channel checkpoint with an
-> 8-channel config (or vice-versa) fails with a featurizer shape mismatch —
-> `egoemg_*` and `emg2pose_*` checkpoints are **not interchangeable** even
-> though both use `_small`/`_middle`/`_large` names.
 
 ```shell
 export EGOEMG_ROOT=/absolute/path/to/dataset_root
