@@ -1,3 +1,11 @@
+
+
+https://github.com/user-attachments/assets/6ddeba94-0988-4ecb-b430-ecdfbb038416
+
+
+
+https://github.com/user-attachments/assets/e2855826-6d60-4162-ab93-de9daaefdb52
+
 <p align="center">
   <img src="images/dataset_stats.svg" width="100%" alt="EgoEMG dataset statistics">
 </p>
@@ -132,6 +140,8 @@ https://github.com/user-attachments/assets/86ab0035-fccc-4117-a66d-f82a5a12e9e6
 
 <p align="center">
   <b>episode_000008 · zbk · user / both</b><br>
+
+https://github.com/user-attachments/assets/80e4646c-51d2-43c4-9d1f-5d63b06e82f7
   <!-- 👉 drag `images/episode_000008_vision.mp4` onto this line in the README editor. -->
   <br>
   <a href="images/episode_000008_left_crop.mp4"><img src="images/episode_000008_left_crop.jpg" width="22%" alt="left wrist crop"></a>
@@ -140,7 +150,7 @@ https://github.com/user-attachments/assets/86ab0035-fccc-4117-a66d-f82a5a12e9e6
 
 <p align="center">
   <b>episode_000028 · wsj · train / gesture</b><br>
-  <!-- 👉 drag `images/episode_000028_vision.mp4` onto this line in the README editor. -->
+  [<!-- 👉 drag `images/episode_000028_vision.mp4` onto this line in the README editor. -->](https://github.com/user-attachments/assets/66da0936-609e-4e83-9077-a626f9b1fe9b)
   <br>
   <a href="images/episode_000028_left_crop.mp4"><img src="images/episode_000028_left_crop.jpg" width="22%" alt="left wrist crop"></a>
   <a href="images/episode_000028_right_crop.mp4"><img src="images/episode_000028_right_crop.jpg" width="22%" alt="right wrist crop"></a>
