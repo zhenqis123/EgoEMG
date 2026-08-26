@@ -1,11 +1,3 @@
-
-
-https://github.com/user-attachments/assets/6ddeba94-0988-4ecb-b430-ecdfbb038416
-
-
-
-https://github.com/user-attachments/assets/e2855826-6d60-4162-ab93-de9daaefdb52
-
 <p align="center">
   <img src="images/dataset_stats.svg" width="100%" alt="EgoEMG dataset statistics">
 </p>
@@ -123,35 +115,43 @@ python scripts/viz/visualize_dataset.py vision \
   --episode-id episode_000000 --stride 10 --max-frames 300
 ```
 
-Sample predictions on the preview shard's three episodes. Each episode shows a
-**vision + MANO-mesh overlay**; the two thumbnails below it are the head-view
-wrist crops (left/right). Click a thumbnail to open GitHub's player for that
-video. The head-view overlay is inlined **[after you drag
-`images/episode_000020_vision.mp4` into the README editor]** — GitHub renders it
-as a native video player when the file is uploaded via *Attach files*.
+Sample predictions on the preview shard's three episodes. Each episode has a
+**vision + MANO-mesh overlay** embedded below as a native video player (uploaded
+via *Attach files*), plus the two head-view wrist crops (left/right). Click a
+thumbnail to open GitHub's player for that video.
 
 <p align="center">
+  <b>episode_000020 · wmh · train / user / gesture / both</b><br>
+  head-view vision · left &amp; right wrist crops
+</p>
 
 https://github.com/user-attachments/assets/86ab0035-fccc-4117-a66d-f82a5a12e9e6
 
+<p align="center">
   <a href="images/episode_000020_left_crop.mp4"><img src="images/episode_000020_left_crop.jpg" width="22%" alt="left wrist crop"></a>
   <a href="images/episode_000020_right_crop.mp4"><img src="images/episode_000020_right_crop.jpg" width="22%" alt="right wrist crop"></a>
 </p>
 
 <p align="center">
   <b>episode_000008 · zbk · user / both</b><br>
+  head-view vision · left &amp; right wrist crops
+</p>
 
 https://github.com/user-attachments/assets/80e4646c-51d2-43c4-9d1f-5d63b06e82f7
-  <!-- 👉 drag `images/episode_000008_vision.mp4` onto this line in the README editor. -->
-  <br>
+
+<p align="center">
   <a href="images/episode_000008_left_crop.mp4"><img src="images/episode_000008_left_crop.jpg" width="22%" alt="left wrist crop"></a>
   <a href="images/episode_000008_right_crop.mp4"><img src="images/episode_000008_right_crop.jpg" width="22%" alt="right wrist crop"></a>
 </p>
 
 <p align="center">
   <b>episode_000028 · wsj · train / gesture</b><br>
-  [<!-- 👉 drag `images/episode_000028_vision.mp4` onto this line in the README editor. -->](https://github.com/user-attachments/assets/66da0936-609e-4e83-9077-a626f9b1fe9b)
-  <br>
+  head-view vision · left &amp; right wrist crops
+</p>
+
+https://github.com/user-attachments/assets/66da0936-609e-4e83-9077-a626f9b1fe9b
+
+<p align="center">
   <a href="images/episode_000028_left_crop.mp4"><img src="images/episode_000028_left_crop.jpg" width="22%" alt="left wrist crop"></a>
   <a href="images/episode_000028_right_crop.mp4"><img src="images/episode_000028_right_crop.jpg" width="22%" alt="right wrist crop"></a>
 </p>
