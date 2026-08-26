@@ -128,21 +128,23 @@ def main() -> int:
 
     # ── Pack ───────────────────────────────────────────────────────────────
     # EMG envelopes are 0..1 normalized -> uint8 (x255). IMU/joints keep
-    # float16. Keeps the payload ~75 KiB so it streams fast on slow CDN
+    # float16. Keeps the payload ~84 KiB so it streams fast on slow CDN
     # links (github.io from CN measured 6-8 s for the float32 blob).
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    parts, offset = [], 0
+    parts, byte_offset = [], 0
     for key, s in series.items():
         if key.startswith("emg_"):
-            parts.append((np.clip(s, 0, 1) * 255.0).round().astype("<u1").tobytes())
+            packed = (np.clip(s, 0, 1) * 255.0).round().astype("<u1")
             dtype = "u1"
         else:
-            parts.append(s.astype("<f2").tobytes())
+            packed = s.astype("<f2")
             dtype = "f2"
         meta["series"][key]["dtype"] = dtype
-        meta["series"][key]["offset"] = offset
+        # Byte offset into the blob — the JS reader indexes a Uint8Array.
+        meta["series"][key]["offset"] = byte_offset
         meta["series"][key]["samples"] = int(s.shape[0])
-        offset += s.size
+        byte_offset += packed.size * packed.itemsize
+        parts.append(packed.tobytes())
     blob = b"".join(parts)
     (args.out_dir / f"{args.basename}.bin").write_bytes(blob)
     (args.out_dir / f"{args.basename}.json").write_text(json.dumps(meta, indent=1))

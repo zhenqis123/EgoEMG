@@ -578,6 +578,10 @@ def run_vision_video(args: argparse.Namespace) -> int:
     total_video_frames = len(unique_frames)
     print(f"[{args.episode_id}] {total_video_frames} unique video frames "
           f"in episode ({length} memmap frames)")
+    if args.skip_video_frames > 0:
+        unique_frames = unique_frames[args.skip_video_frames:]
+        print(f"[{args.episode_id}] skipped first {args.skip_video_frames} "
+              f"unique frames (--skip-video-frames)")
     strided_frames = unique_frames[0::args.stride]
     if args.max_frames > 0:
         strided_frames = strided_frames[:args.max_frames]
@@ -928,6 +932,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--episode-id", required=True)
     p.add_argument("--stride", type=int, default=1)
     p.add_argument("--max-frames", type=int, default=0)
+    p.add_argument(
+        "--skip-video-frames", type=int, default=0,
+        help="skip the first N unique video frames before striding (lets a "
+             "showcase window start mid-episode where both hands are active)")
     p.add_argument("--render-mode", default="wireframe",
                    choices=["wireframe", "mesh"])
     p.add_argument("--line-width", type=int, default=1)
