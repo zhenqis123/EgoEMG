@@ -73,7 +73,9 @@ import smplx
 import trimesh
 
 CONFIG_DIR = str(_PROJECT_DIR / "config")
-MANO_MODEL_PATH = "../WiLoR/mano_data/models"
+MANO_MODEL_PATH = str(
+    Path(os.environ.get("EGOEMG_ROOT", ".")) / "data" / "mano_data" / "models"
+)
 UMETRACK_HAND_MODEL_PATH = str(
     _PROJECT_DIR / "emg2pose" / "UmeTrack" / "dataset" / "generic_hand_model.json"
 )

@@ -729,17 +729,14 @@ class ManoMeshDecoder:
     def _resolve_model_path(explicit: str | Path | None) -> Path:
         if explicit is not None:
             return Path(explicit)
-        env = os.environ.get("WILOR_PATH")
-        if env:
-            cand = Path(env) / "mano_data" / "models"
+        root = os.environ.get("EGOEMG_ROOT", "")
+        if root:
+            cand = Path(root) / "data" / "mano_data" / "models"
             if cand.is_dir():
                 return cand
-        cand = Path(__file__).resolve().parent.parent.parent.parent \
-            / "WiLoR" / "mano_data" / "models"
-        if cand.is_dir():
-            return cand
         raise FileNotFoundError(
-            "MANO model not found; pass --mano-model-path or set WILOR_PATH")
+            "MANO model not found; pass --mano-model-path or place the MANO "
+            "models under $EGOEMG_ROOT/data/mano_data/models")
 
     def decode(
         self,

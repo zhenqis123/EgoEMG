@@ -37,7 +37,7 @@ checkpoint:
 
 # ── Not used (config compatibility) ──────────────────────────────────────────
 wilor_checkpoint_path: ${oc.env:WILOR_PATH,../WiLoR}/pretrained_models/wilor_final.ckpt
-mano_model_path: ${oc.env:WILOR_PATH,../WiLoR}/mano_data
+mano_model_path: ${oc.env:EGOEMG_ROOT,.}/data/mano_data
 
 # ── Training ─────────────────────────────────────────────────────────────────
 seed: 42

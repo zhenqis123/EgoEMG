@@ -110,7 +110,7 @@ and MANO forward passes stay inside the WiLoR model path.
 The default `mano_model_path` points to the existing MANO asset directory:
 
 ```yaml
-mano_model_path: ../WiLoR/mano_data
+mano_model_path: $EGOEMG_ROOT/data/mano_data
 ```
 
 This path is used by the WiLoR model for MANO assets and can be overridden in
@@ -127,7 +127,7 @@ python -m egoemg.train \
     video_root=data/EgoEMG \
     allintra_root=data/EgoEMG_videos \
     vision_index_dir=data/EgoEMG_full_memmap/vision_index \
-    mano_model_path=../WiLoR/mano_data \
+    mano_model_path=$EGOEMG_ROOT/data/mano_data \
     wilor_checkpoint_path=../WiLoR/pretrained_models/wilor_final.ckpt \
     train=True \
     eval=True

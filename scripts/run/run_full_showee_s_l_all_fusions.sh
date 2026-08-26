@@ -190,7 +190,7 @@ fusion_rn152_s|resnet152|2048|${VISION_ROOT}/rn152.ckpt|40|trainer.max_epochs=25
 fusion_vits_s|vit_small|384|${VISION_ROOT}/vits.ckpt|200|
 fusion_vitb_s|vit_base|768|${VISION_ROOT}/vitb.ckpt|100|
 fusion_vitl_s|vit_large|1024|${VISION_ROOT}/vitl.ckpt|32|
-fusion_wilor_s|vit|1280|${VISION_ROOT}/wilor.ckpt|12|module.mano_model_path=data/WiLoR/mano_data
+fusion_wilor_s|vit|1280|${VISION_ROOT}/wilor.ckpt|12|module.mano_model_path=data/mano_data
 EOF
 fi
 
@@ -214,7 +214,7 @@ fusion_rn152_s|resnet152|2048|${VISION_ROOT}/rn152.ckpt|40|trainer.max_epochs=25
 fusion_vits_s|vit_small|384|${VISION_ROOT}/vits.ckpt|200|
 fusion_vitb_s|vit_base|768|${VISION_ROOT}/vitb.ckpt|100|
 fusion_vitl_s|vit_large|1024|${VISION_ROOT}/vitl.ckpt|32|
-fusion_wilor_s|vit|1280|${VISION_ROOT}/wilor.ckpt|12|module.mano_model_path=data/WiLoR/mano_data
+fusion_wilor_s|vit|1280|${VISION_ROOT}/wilor.ckpt|12|module.mano_model_path=data/mano_data
 EOF
 
 log "ALL NINE EXPERIMENTS COMPLETED"

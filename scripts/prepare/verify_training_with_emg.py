@@ -31,7 +31,9 @@ from tqdm import tqdm
 DEFAULT_MEMMAP_DIR = Path("data/EgoEMG_v2_memmap")
 DEFAULT_DATA_ROOT = Path("./data/EgoEMG")
 DEFAULT_VIDEO_ROOT = Path("data/EgoEMG_videos")
-MANO_MODEL_PATH = "../WiLoR/mano_data/models"
+MANO_MODEL_PATH = str(
+    Path(os.environ.get("EGOEMG_ROOT", ".")) / "data" / "mano_data" / "models"
+)
 DEFAULT_EMG_CKPT = (
     "./logs/2026-04-30/23-28-41_emg2pose/"
     "regression_emgformer_small_aggressive_egoemg/version_0/checkpoints/"

@@ -159,14 +159,15 @@ python -m egoemg.test_analysis \
   datamodule.per_dataset_norm_stats_path=assets/per_dataset_norm_stats_unified.json
 
 # Vision overlay (episode_000028 is in the shard; needs MANO model files per
-# docs/ASSET_SETUP.md §3 — set WILOR_PATH or pass --mano-model-path)
+# docs/ASSET_SETUP.md §3 — pass --mano-model-path or place them under
+# $EGOEMG_ROOT/data/mano_data/models)
 python scripts/viz/visualize_dataset.py vision \
   --memmap-dir $EGOEMG_ROOT/data/dataset_egoemg_preview/data/memmap_data \
   --allintra-root $EGOEMG_ROOT/data/dataset_egoemg_preview/data/webcam_videos \
   --crops-dir $EGOEMG_ROOT/data/dataset_egoemg_preview/data/pre-crop_webcam_videoframes \
   --data-root $EGOEMG_ROOT/data/dataset_egoemg_preview/data \
   --episode-id episode_000028 --stride 10 --max-frames 300 \
-  --mano-model-path $WILOR_PATH/mano_data/models
+  --mano-model-path $EGOEMG_ROOT/data/mano_data/models
 
 # Smoke training (1 epoch, 2 batches; small batch_size for a single GPU)
 python -m egoemg.train experiment=emgformer/egoemg_emgformer_small \

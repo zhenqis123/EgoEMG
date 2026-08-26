@@ -182,8 +182,7 @@ The script patches pyrender's EGL device-enumeration bindings (a PyOpenGL
 3.1.10 omission) and falls back to osmesa (software, identical output) with
 a `[pyrender]` message when EGL is unavailable.
 
-MANO model path: explicit `--mano-model-path` > `WILOR_PATH` env > sibling
-`WiLoR/mano_data/models`.
+MANO model path: explicit `--mano-model-path` > `$EGOEMG_ROOT/data/mano_data/models`.
 
 ### `scripts/viz/viz_mano_results.py` — MANO Inference Results Viz
 

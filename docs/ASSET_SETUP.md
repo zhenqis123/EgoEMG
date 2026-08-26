@@ -142,9 +142,9 @@ place it in the repository-local `checkpoints/` directory (set
 
 The `vision` visualizer projects MANO meshes and needs the separately
 licensed MANO model files: pass `--mano-model-path /path/to/mano/models`, or
-set `WILOR_PATH` so that `$WILOR_PATH/mano_data/models` exists. A WiLoR
-checkpoint is not required. `vision` reads the precomputed crop LMDBs; it
-does not crop from bounding boxes at runtime.
+place them under `$EGOEMG_ROOT/data/mano_data/models` (the default resolved
+location). `vision` reads the precomputed crop LMDBs; it does not crop from
+bounding boxes at runtime.
 
 ## 4. Data integrity
 

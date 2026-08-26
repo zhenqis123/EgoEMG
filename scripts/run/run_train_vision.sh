@@ -23,7 +23,7 @@ VIDEO_ROOT="${VIDEO_ROOT:-${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/..
 ALLINTRA_ROOT="${ALLINTRA_ROOT:-data/EgoEMG_videos}"
 CROPS_DIR="${CROPS_DIR:-data/EgoEMG_crops}"
 VISION_INDEX_DIR="${VISION_INDEX_DIR:-data/EgoEMG_v2_memmap/vision_index}"
-MANO_MODEL_PATH="${MANO_MODEL_PATH:-${WILOR_PATH:-../WiLoR}/mano_data}"
+MANO_MODEL_PATH="${MANO_MODEL_PATH:-${EGOEMG_ROOT:-.}/data/mano_data}"
 WILOR_CHECKPOINT="${WILOR_CHECKPOINT:-${WILOR_PATH:-../WiLoR}/pretrained_models/wilor_final.ckpt}"
 CALIBRATION_PATH="${CALIBRATION_PATH:-${EGOEMG_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}/data/EgoEMG/reprojection_assets/GX010023_standard_calibration.json}"
 

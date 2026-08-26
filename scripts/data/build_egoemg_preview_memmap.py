@@ -379,7 +379,7 @@ def main() -> int:
         f"    --data-root {args.out}/data \\\n"
         f"    --calibration-json {calib} \\\n"
         f"    --episode-id {args.episodes[-1]} --stride 10 --max-frames 300 \\\n"
-        f"    --mano-model-path $WILOR_PATH/mano_data/models\n"
+        f"    --mano-model-path $EGOEMG_ROOT/data/mano_data/models\n"
     )
     print(
         "  # Smoke train (1 epoch, 2 batches; small batch_size for a single GPU)\n"

@@ -52,7 +52,9 @@ from egoemg.occlusion import compute_self_occlusion
 import smplx
 
 CONFIG_DIR = str(_PROJECT_DIR / "config")
-MANO_MODEL_PATH = "../WiLoR/mano_data/models"
+MANO_MODEL_PATH = str(
+    Path(os.environ.get("EGOEMG_ROOT", ".")) / "data" / "mano_data" / "models"
+)
 
 warnings.filterwarnings(
     "ignore", message="The given NumPy array is not writable", category=UserWarning
