@@ -6,8 +6,8 @@
 # pre-crop LMDB shards, metadata/calibration, and a README.
 #
 # Two mirrored sources are supported:
-#   gdrive    (default) Google Drive folder, via gdown
-#   baidupcs  Baidu Netdisk path /EgoEMG_release/dataset_egoemg_preview (requires login)
+#   baidupcs  (default) Baidu Netdisk path /EgoEMG_release/dataset_egoemg_preview (official release path; requires login)
+#   gdrive    Google Drive folder, via gdown (legacy mirror, older version)
 #
 # Usage:
 #   bash scripts/download/download_egoemg_data.sh [--source gdrive|baidupcs] [outdir]
@@ -15,7 +15,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-SOURCE="gdrive"
+SOURCE="baidupcs"
 OUT_DIR=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -31,7 +31,7 @@ mkdir -p "$OUT_DIR"
 case "$SOURCE" in
   gdrive)
     GDRIVE_FOLDER_ID="12C6Q1CD1uihJhx4s0Rm2s7Um76Kh8rG1"
-    echo "Downloading EgoEMG dataset from Google Drive ..."
+    echo "Downloading EgoEMG dataset from Google Drive (legacy, older version) ..."
     gdown --folder "https://drive.google.com/drive/folders/${GDRIVE_FOLDER_ID}" -O "$OUT_DIR"
     ;;
   baidupcs)

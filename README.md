@@ -156,7 +156,7 @@ bash scripts/download/download_egoemg_data.sh --source baidupcs \
   "$EGOEMG_ROOT/data/dataset_egoemg_preview"
 
 # Google Drive — legacy mirror, older version (to be refreshed)
-bash scripts/download/download_egoemg_data.sh \
+bash scripts/download/download_egoemg_data.sh --source gdrive \
   "$EGOEMG_ROOT/data/dataset_egoemg_preview"
 ```
 
