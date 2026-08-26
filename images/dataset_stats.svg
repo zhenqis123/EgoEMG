@@ -18,11 +18,11 @@
       <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.24"/>
     </filter>
     <style>
-      .title { fill: #a855f7; font-family: Arial, Helvetica, sans-serif; font-size: 62px; font-weight: 700; letter-spacing: 1px; }
-      .value { fill: #f8fafc; font-family: Arial, Helvetica, sans-serif; font-size: 86px; font-weight: 700; }
-      .label { fill: #b8cae2; font-family: Arial, Helvetica, sans-serif; font-size: 31px; font-weight: 400; }
-      .detail { fill: #91a9c7; font-family: Arial, Helvetica, sans-serif; font-size: 25px; font-weight: 400; }
-      .footer { fill: #b8cae2; font-family: Arial, Helvetica, sans-serif; font-size: 29px; font-weight: 400; letter-spacing: 0.4px; }
+      .title { fill: #a855f7; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 62px; font-weight: 700; letter-spacing: 1px; }
+      .value { fill: #f8fafc; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 86px; font-weight: 700; }
+      .label { fill: #b8cae2; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 31px; font-weight: 400; }
+      .detail { fill: #91a9c7; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 25px; font-weight: 400; }
+      .footer { fill: #b8cae2; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 29px; font-weight: 400; letter-spacing: 0.4px; }
     </style>
   </defs>
 
