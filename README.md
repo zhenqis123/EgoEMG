@@ -123,11 +123,9 @@ video. The head-view overlay is inlined **[after you drag
 as a native video player when the file is uploaded via *Attach files*.
 
 <p align="center">
-  <b>episode_000020 · wmh · train / user / gesture / both</b><br>
-  <!-- 👉 drag `images/episode_000020_vision.mp4` onto this line in the README editor —
-       GitHub uploads it to user-attachments and renders an inline player here.
-       (The two thumbnails below already play in the browser.) -->
-  <br>
+
+https://github.com/user-attachments/assets/86ab0035-fccc-4117-a66d-f82a5a12e9e6
+
   <a href="images/episode_000020_left_crop.mp4"><img src="images/episode_000020_left_crop.jpg" width="22%" alt="left wrist crop"></a>
   <a href="images/episode_000020_right_crop.mp4"><img src="images/episode_000020_right_crop.jpg" width="22%" alt="right wrist crop"></a>
 </p>
