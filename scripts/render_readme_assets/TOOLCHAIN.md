@@ -42,9 +42,9 @@ pipeline silently corrupts output:
    pipeline is offline-repeatable.
 
 `dataset_stats.svg` was also updated to use a cross-platform font stack (the old
-`Arial, Helvetica, sans-serif` fell back to serif on Linux), and its orphaned
-sibling `dataset_stats.png` (a different 4.26:1 aspect) was regenerated to match
-the SVG's 3:1.
+`Arial, Helvetica, sans-serif` fell back to serif on Linux); its orphaned
+sibling `dataset_stats.png` was deleted — the preview script rasterizes the SVG
+at render time, so no checked-in raster is needed.
 
 ## The Chromium screenshot "unlock" on a headless GPU box
 

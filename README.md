@@ -30,7 +30,7 @@
 
 ## ✨ Highlights
 
-- **Multi-modal Dataset And Benchmark** — Provides synchronized bilateral surface EMG and egocentric webcam video for hand pose estimation.
+- **📦 Multi-modal Dataset and Benchmark** — Provides synchronized bilateral surface EMG and egocentric webcam video for hand pose estimation.
 - **🧠 EMG-to-pose** — EMGFormer (S/M/L): **13.8°** Avg MAE on EgoEMG (M);
   **12.3°** User+Stage MAE on the EMG2Pose benchmark (S) — **ahead of all prior methods**,
   including Position/Velocity MT (14.6°), CLDM (14.7°), and emg2pose (15.6°).
@@ -144,10 +144,11 @@ of the full `EgoEMG_full_memmap`. It is a 3-episode, **v3-schema** memmap in the
 same **flat** layout as the published `dataset_egoemg_unified`, so it drops in as
 a mini dataset root: point the same commands at its `data/memmap_data`.
 
-Download it once — **Baidu Netdisk is the official release path**. Open the
-share <https://pan.baidu.com/s/1aG2e-mHJkmP4KiYtYRcReA> (extraction code `8059`)
-and download the whole `dataset_egoemg_preview` folder under `/EgoEMG_release/`,
-then place it at `$EGOEMG_ROOT/data/dataset_egoemg_preview`.
+> [!IMPORTANT]
+> Download the shard once — **Baidu Netdisk is the official release path**.
+> Open the share <https://pan.baidu.com/s/1aG2e-mHJkmP4KiYtYRcReA> (extraction
+> code `8059`), download the whole `dataset_egoemg_preview` folder under
+> `/EgoEMG_release/`, and place it at `$EGOEMG_ROOT/data/dataset_egoemg_preview`.
 
 ```shell
 # EMG-to-pose eval (EMGFormer-M, 8-ch) on the shard

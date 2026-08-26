@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="800" viewBox="0 0 2400 800" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="600" viewBox="0 0 2400 600" role="img" aria-labelledby="title description">
   <title id="title">EgoEMG Dataset at a glance</title>
   <desc id="description">Dataset statistics: 53 participants, over 18 hours of synchronized recordings, 60 gesture classes, 2 kilohertz bilateral wristband EMG, 120 hertz IMU on each wrist, and five sensing modalities.</desc>
   <defs>
@@ -18,54 +18,51 @@
       <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.24"/>
     </filter>
     <style>
-      .title { fill: #a855f7; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 62px; font-weight: 700; letter-spacing: 1px; }
-      .value { fill: #f8fafc; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 86px; font-weight: 700; }
-      .label { fill: #b8cae2; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 31px; font-weight: 400; }
-      .detail { fill: #91a9c7; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 25px; font-weight: 400; }
-      .footer { fill: #b8cae2; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 29px; font-weight: 400; letter-spacing: 0.4px; }
+      .title { fill: #a855f7; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 46px; font-weight: 700; letter-spacing: 1px; }
+      .value { fill: #f8fafc; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 72px; font-weight: 700; }
+      .label { fill: #b8cae2; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 27px; font-weight: 400; }
+      .detail { fill: #91a9c7; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 22px; font-weight: 400; }
     </style>
   </defs>
 
-  <rect width="2400" height="800" fill="url(#background)"/>
-  <text x="1200" y="104" text-anchor="middle" class="title">EgoEMG Dataset at a glance</text>
+  <rect width="2400" height="600" fill="url(#background)"/>
+  <text x="1200" y="76" text-anchor="middle" class="title">EgoEMG Dataset at a glance</text>
 
   <g filter="url(#shadow)">
-    <rect x="76" y="156" width="680" height="258" rx="22" fill="url(#card)"/>
-    <rect x="76" y="156" width="680" height="15" rx="7.5" fill="url(#accent)"/>
-    <rect x="860" y="156" width="680" height="258" rx="22" fill="url(#card)"/>
-    <rect x="860" y="156" width="680" height="15" rx="7.5" fill="url(#accent)"/>
-    <rect x="1644" y="156" width="680" height="258" rx="22" fill="url(#card)"/>
-    <rect x="1644" y="156" width="680" height="15" rx="7.5" fill="url(#accent)"/>
-    <rect x="76" y="456" width="680" height="258" rx="22" fill="url(#card)"/>
-    <rect x="76" y="456" width="680" height="15" rx="7.5" fill="url(#accent)"/>
-    <rect x="860" y="456" width="680" height="258" rx="22" fill="url(#card)"/>
-    <rect x="860" y="456" width="680" height="15" rx="7.5" fill="url(#accent)"/>
-    <rect x="1644" y="456" width="680" height="258" rx="22" fill="url(#card)"/>
-    <rect x="1644" y="456" width="680" height="15" rx="7.5" fill="url(#accent)"/>
+    <rect x="76" y="104" width="680" height="224" rx="22" fill="url(#card)"/>
+    <rect x="76" y="104" width="680" height="13" rx="6.5" fill="url(#accent)"/>
+    <rect x="860" y="104" width="680" height="224" rx="22" fill="url(#card)"/>
+    <rect x="860" y="104" width="680" height="13" rx="6.5" fill="url(#accent)"/>
+    <rect x="1644" y="104" width="680" height="224" rx="22" fill="url(#card)"/>
+    <rect x="1644" y="104" width="680" height="13" rx="6.5" fill="url(#accent)"/>
+    <rect x="76" y="352" width="680" height="224" rx="22" fill="url(#card)"/>
+    <rect x="76" y="352" width="680" height="13" rx="6.5" fill="url(#accent)"/>
+    <rect x="860" y="352" width="680" height="224" rx="22" fill="url(#card)"/>
+    <rect x="860" y="352" width="680" height="13" rx="6.5" fill="url(#accent)"/>
+    <rect x="1644" y="352" width="680" height="224" rx="22" fill="url(#card)"/>
+    <rect x="1644" y="352" width="680" height="13" rx="6.5" fill="url(#accent)"/>
   </g>
 
   <g text-anchor="middle">
-    <text x="416" y="279" class="value">53</text>
-    <text x="416" y="364" class="label">participants</text>
+    <text x="416" y="212" class="value">53</text>
+    <text x="416" y="279" class="label">participants</text>
 
-    <text x="1200" y="279" class="value">18+ h</text>
-    <text x="1200" y="364" class="label">synchronized recordings</text>
+    <text x="1200" y="212" class="value">18+ h</text>
+    <text x="1200" y="279" class="label">synchronized recordings</text>
 
-    <text x="1984" y="267" class="value">60</text>
-    <text x="1984" y="338" class="label">gesture classes</text>
-    <text x="1984" y="374" class="detail">30 unimanual · 30 bimanual</text>
+    <text x="1984" y="199" class="value">60</text>
+    <text x="1984" y="254" class="label">gesture classes</text>
+    <text x="1984" y="290" class="detail">30 unimanual · 30 bimanual</text>
 
-    <text x="416" y="579" class="value">2 kHz</text>
-    <text x="416" y="664" class="label">bilateral wristband EMG</text>
+    <text x="416" y="460" class="value">2 kHz</text>
+    <text x="416" y="527" class="label">bilateral wristband EMG</text>
 
-    <text x="1200" y="579" class="value">120 Hz</text>
-    <text x="1200" y="664" class="label">IMU on each wrist</text>
+    <text x="1200" y="460" class="value">120 Hz</text>
+    <text x="1200" y="527" class="label">IMU on each wrist</text>
 
-    <text x="1984" y="567" class="value">5</text>
-    <text x="1984" y="618" class="label">sensing modalities</text>
-    <text x="1984" y="653" class="detail">sEMG · IMU · egocentric RGB</text>
-    <text x="1984" y="686" class="detail">RGB-D · motion capture</text>
-
-    <text x="1200" y="769" class="footer">bilateral sEMG · IMU · egocentric video · RGB-D · motion-capture joint angles</text>
+    <text x="1984" y="440" class="value">5</text>
+    <text x="1984" y="492" class="label">sensing modalities</text>
+    <text x="1984" y="528" class="detail">sEMG · IMU · egocentric RGB</text>
+    <text x="1984" y="559" class="detail">RGB-D · motion capture</text>
   </g>
 </svg>
