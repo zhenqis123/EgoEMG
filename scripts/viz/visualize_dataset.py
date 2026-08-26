@@ -728,21 +728,22 @@ def run_vision_video(args: argparse.Namespace) -> int:
                                   vu.HAND_COLORS_BGR[hand], args.line_width)
             bbox = _mesh_projected_bbox(
                 verts_px, valid, video_w, video_h, args.bbox_pad)
-            if bbox is not None:
+            if bbox is not None and not args.overlay_minimal:
                 frame = vu.draw_bbox(
                     frame, bbox, vu.HAND_COLORS_BGR[hand], 2)
 
-        for hand in ("left", "right"):
-            frame = vu.project_draw_keypoints_pinhole(
-                frame, hand_data[hand]["keypoints"][global_i],
-                hand_data[hand]["keypoints_valid"][global_i],
-                T_W_C, K_vid, vu.HAND_COLORS_BGR[hand],
-                label=hand[0].upper())
+        if not args.overlay_minimal:
+            for hand in ("left", "right"):
+                frame = vu.project_draw_keypoints_pinhole(
+                    frame, hand_data[hand]["keypoints"][global_i],
+                    hand_data[hand]["keypoints_valid"][global_i],
+                    T_W_C, K_vid, vu.HAND_COLORS_BGR[hand],
+                    label=hand[0].upper())
 
-        frame = vu.draw_text_block(frame, [
-            f"{args.episode_id}  frame={video_frame_idx}",
-            "mesh: R=orange L=blue  boxes: mesh bbox  dots: mocap markers",
-        ], line_height=25)
+            frame = vu.draw_text_block(frame, [
+                f"{args.episode_id}  frame={video_frame_idx}",
+                "mesh: R=orange L=blue  boxes: mesh bbox  dots: mocap markers",
+            ], line_height=25)
         writer.write(frame)
 
         for hand in ("left", "right"):
@@ -917,6 +918,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--line-width", type=int, default=1)
     p.add_argument("--mesh-alpha", type=float, default=0.7)
     p.add_argument("--bbox-pad", type=int, default=15)
+    p.add_argument(
+        "--overlay-minimal", action="store_true",
+        help="mesh render mode: pyrender meshes only — no bboxes, mocap "
+             "marker dots, or text legend (clean look for showcase videos)")
     p.add_argument("--mano-model-path", type=Path, default=None)
     p.add_argument("--calibration-json", type=Path, default=None)
     p.add_argument("--crops-dir", type=Path, default=Path("data/EgoEMG_crops"),

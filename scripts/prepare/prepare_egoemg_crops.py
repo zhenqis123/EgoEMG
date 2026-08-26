@@ -34,7 +34,15 @@ WILOR_PATH = Path(__file__).resolve().parents[1] / "WiLoR"
 if str(WILOR_PATH) not in sys.path:
     sys.path.insert(0, str(WILOR_PATH))
 
-from decord import VideoReader, gpu
+from decord import VideoReader, cpu, gpu
+
+
+def _open_video(path, gpu_id: int):
+    """GPU decode when this decord build supports it, else CPU."""
+    try:
+        return VideoReader(str(path), ctx=gpu(gpu_id))
+    except Exception:
+        return VideoReader(str(path), ctx=cpu(0))
 
 from egoemg.datasets.egoemg_vision_dataset import (
     _build_intrinsics_and_frame_mapper,
@@ -72,6 +80,32 @@ def _compute_intrinsics(frame_bgr, K_calib, dist_calib, calib_w, calib_h):
     video_h, video_w = frame_bgr.shape[:2]
     return _build_intrinsics_and_frame_mapper(
         K_calib, dist_calib, calib_w, calib_h, video_w, video_h, frame_bgr,
+    )
+
+
+def _load_showee_head_calibration(showee_root: Path, session: str):
+    """Per-session head-camera calibration from a ShowEE session's metadata.
+
+    ShowEE records its own intrinsics (no distortion) per session; using the
+    global EgoEMG calibration for these episodes offsets every projected
+    keypoint and therefore every crop box.
+    """
+    session_dir = showee_root / session
+    task_dirs = sorted(
+        d for d in session_dir.iterdir()
+        if d.is_dir() and (d / "metadata.json").is_file()
+    )
+    if not task_dirs:
+        raise FileNotFoundError(f"no task metadata under {session_dir}")
+    meta = json.loads((task_dirs[0] / "metadata.json").read_text())
+    head = next(s for s in meta["sources"] if s["source_id"] == "showee_head")
+    calib = head["camera_calibration"]
+    size = calib.get("image_size") or calib.get("resolution")
+    return (
+        np.asarray(calib["camera_matrix"], dtype=np.float64),
+        np.zeros((5, 1), dtype=np.float64),
+        int(size[0]),
+        int(size[1]),
     )
 
 
@@ -207,7 +241,7 @@ def _process_episode(
         done_path.write_text(json.dumps({"num_crops": 0, "num_video_frames": n_video_frames}))
         return 0
 
-    vr = VideoReader(str(video_path), ctx=gpu(gpu_id))
+    vr = _open_video(video_path, gpu_id)
     n_actual_frames = len(vr)
 
     vfi_to_work: dict[int, list[tuple[int, int, str]]] = defaultdict(list)
@@ -271,6 +305,11 @@ def main():
     parser.add_argument("--allintra-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--calibration-path", type=Path, default=None)
+    parser.add_argument(
+        "--showee-root", type=Path, default=None,
+        help="ShowEE session root; when set, episodes whose source parquet "
+             "names a ShowEE session use that session's own head-camera "
+             "calibration instead of the global one")
     parser.add_argument("--gpu-id", type=int, default=0)
     parser.add_argument("--patch-size", type=int, default=256)
     parser.add_argument("--jpeg-quality", type=int, default=90)
@@ -295,6 +334,7 @@ def main():
     metadata = np.load(args.memmap_dir / "metadata.npz", allow_pickle=False)
     ep_ids = _decode_bytes(metadata["episode_id"])
     ep_video_paths = _decode_bytes(metadata["episode_head_video_path"])
+    ep_sources = _decode_bytes(metadata["episode_source_parquet"])
     ep_starts = metadata["episode_start_idx"].astype(np.int64)
     ep_ends = metadata["episode_end_idx"].astype(np.int64)
     num_episodes = len(ep_ids)
@@ -328,7 +368,7 @@ def main():
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    K, dist, intrinsics_info, video_w, video_h = None, None, None, None, None
+    intrinsics_cache: dict[str, tuple] = {}
     manifest_path = args.output_dir / "manifest.json"
 
     total_crops = 0
@@ -371,31 +411,51 @@ def main():
             print(f"[{ep_id}] missing video file, skipping: {video_path}", flush=True)
             continue
 
-        if K is None:
-            vr_tmp = VideoReader(str(video_path), ctx=gpu(args.gpu_id))
+        src = ep_sources[ep_idx]
+        showee_session = None
+        if args.showee_root is not None and src and not src.endswith(".parquet"):
+            if (args.showee_root / src).is_dir():
+                showee_session = src
+
+        if showee_session is not None:
+            calib_key = f"showee:{showee_session}"
+            Kc, dc, wc, hc = _load_showee_head_calibration(
+                args.showee_root, showee_session)
+        else:
+            calib_key = "global"
+            Kc, dc, wc, hc = K_calib, dist_calib, calib_w, calib_h
+
+        if calib_key not in intrinsics_cache:
+            vr_tmp = _open_video(video_path, args.gpu_id)
             first_frame = cv2.cvtColor(vr_tmp[0].asnumpy(), cv2.COLOR_RGB2BGR)
-            K, dist, intrinsics_info = _compute_intrinsics(
-                first_frame, K_calib, dist_calib, calib_w, calib_h,
+            K_ep, dist_ep, info_ep = _compute_intrinsics(
+                first_frame, Kc, dc, wc, hc,
             )
-            video_h, video_w = first_frame.shape[:2]
+            h_ep, w_ep = first_frame.shape[:2]
             del vr_tmp
-            global_manifest = {
-                "version": 2,
-                "format": "per_episode_crops",
-                "patch_size": args.patch_size,
-                "jpeg_quality": args.jpeg_quality,
-                "intrinsics": {
-                    "K": K.tolist(),
-                    "dist": dist.tolist(),
-                    "info": intrinsics_info,
-                    "video_w": video_w,
-                    "video_h": video_h,
-                },
-                "num_episodes": num_episodes,
-                "episode_ids": ep_ids,
-            }
-            with manifest_path.open("w", encoding="utf-8") as f:
-                json.dump(global_manifest, f, indent=2)
+            intrinsics_cache[calib_key] = (K_ep, dist_ep, info_ep, w_ep, h_ep)
+            print(f"  intrinsics[{calib_key}]: fx={K_ep[0,0]:.1f} "
+                  f"video {w_ep}x{h_ep}", flush=True)
+            if calib_key == "global" and not manifest_path.exists():
+                global_manifest = {
+                    "version": 2,
+                    "format": "per_episode_crops",
+                    "patch_size": args.patch_size,
+                    "jpeg_quality": args.jpeg_quality,
+                    "intrinsics": {
+                        "K": K_ep.tolist(),
+                        "dist": dist_ep.tolist(),
+                        "info": info_ep,
+                        "video_w": w_ep,
+                        "video_h": h_ep,
+                    },
+                    "num_episodes": num_episodes,
+                    "episode_ids": ep_ids,
+                }
+                with manifest_path.open("w", encoding="utf-8") as f:
+                    json.dump(global_manifest, f, indent=2)
+
+        K, dist, intrinsics_info, video_w, video_h = intrinsics_cache[calib_key]
 
         print(f"[{ep_id}] processing ...", flush=True)
         n = _process_episode(
