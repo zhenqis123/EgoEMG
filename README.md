@@ -116,8 +116,66 @@ python scripts/viz/visualize_dataset.py vision \
 ```
 
 <p align="center">
-  <img src="images/viz_example.jpg" width="70%" alt="vision-mode overlay: hand meshes, projected mocap markers, per-hand boxes">
+  <video src="images/episode_000020_vision.mp4" width="70%" controls muted playsinline>
+    <img src="images/viz_example.jpg" width="70%" alt="vision-mode overlay: hand meshes, projected mocap markers, per-hand boxes">
+  </video>
 </p>
+
+### Preview / small dataset
+
+Every workflow above also runs end-to-end on a small **preview shard** instead
+of the full `EgoEMG_full_memmap`. It is a 3-episode, **v3-schema** memmap in the
+same **flat** layout as the published `dataset_egoemg_unified`, so it drops in as
+a mini dataset root: point the same commands at its `data/memmap_data`.
+
+Download it once (two mirrors — Google Drive is the default and writes straight
+into the target dir; Baidu Netdisk drops the package under `./download/` and
+needs a logged-in `baidupcs`):
+
+```shell
+# Google Drive (default)
+bash scripts/download/download_egoemg_data.sh \
+  "$EGOEMG_ROOT/data/dataset_egoemg_preview"
+
+# Baidu Netdisk (/EgoEMG_release/dataset_egoemg_preview)
+bash scripts/download/download_egoemg_data.sh --source baidupcs \
+  "$EGOEMG_ROOT/data/dataset_egoemg_preview"
+```
+
+```shell
+# EMG-to-pose eval (EMGFormer-M, 8-ch) on the shard
+python -m egoemg.test_analysis \
+  experiment=emgformer/egoemg_emgformer_middle \
+  'checkpoint=checkpoints/egoemg_emgformer_middle.ckpt' \
+  egoemg_unified_memmap_dir=$EGOEMG_ROOT/data/dataset_egoemg_preview/data/memmap_data \
+  'trainer.devices=[0]' \
+  datamodule.per_dataset_norm_stats_path=assets/per_dataset_norm_stats_unified.json
+
+# Vision overlay (episode_000028 is in the shard; needs MANO model files per
+# docs/ASSET_SETUP.md §3 — set WILOR_PATH or pass --mano-model-path)
+python scripts/viz/visualize_dataset.py vision \
+  --memmap-dir $EGOEMG_ROOT/data/dataset_egoemg_preview/data/memmap_data \
+  --allintra-root $EGOEMG_ROOT/data/dataset_egoemg_preview/data/webcam_videos \
+  --crops-dir $EGOEMG_ROOT/data/dataset_egoemg_preview/data/pre-crop_webcam_videoframes \
+  --data-root $EGOEMG_ROOT/data/dataset_egoemg_preview/data \
+  --episode-id episode_000028 --stride 10 --max-frames 300 \
+  --mano-model-path $WILOR_PATH/mano_data/models
+
+# Smoke training (1 epoch, 2 batches; small batch_size for a single GPU)
+python -m egoemg.train experiment=emgformer/egoemg_emgformer_small \
+  egoemg_unified_memmap_dir=$EGOEMG_ROOT/data/dataset_egoemg_preview/data/memmap_data \
+  'trainer.devices=[0]' 'trainer.max_epochs=1' batch_size=8 \
+  '+trainer.limit_train_batches=2' '+trainer.limit_val_batches=0' \
+  datamodule.per_dataset_norm_stats_path=assets/per_dataset_norm_stats_unified.json
+```
+
+> **Why the replay may look static** — the `generated_mano_*_pose` labels are
+> zero-filled on rows where `generated_label_valid=false` (~32% of rows) and
+> also contain static plateaus, so replaying those MANO meshes does not track
+> the reference video. Replay the **supervised joint angles + wrist
+> (`generated_joint_angles_*`)** and filter to valid frames instead. Build or
+> inspect the shard with the [Asset Setup](docs/ASSET_SETUP.md#preview-package)
+> script.
 
 ## 📊 Results and evaluation
 

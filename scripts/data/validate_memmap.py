@@ -67,7 +67,7 @@ def _sample(n: int, full: bool) -> np.ndarray:
     return np.arange(0, n, step)
 
 
-def check_sources(root: Path, manifest: dict, full: bool) -> None:
+def check_sources(root: Path, manifest: dict, full: bool, allow_partial: bool = False) -> None:
     fields = manifest["fields"]
     n = manifest["total_rows"]
     idx = _sample(n, full)
@@ -98,7 +98,11 @@ def check_sources(root: Path, manifest: dict, full: bool) -> None:
     ego = src == 0
     if ego.any():
         splits = set(np.unique(arr("frame_split_id")[ego]).tolist())
-        report("EgoEMG: all four splits present", splits == {0, 1, 2, 3}, str(sorted(splits)))
+        if allow_partial:
+            # A preview shard may carry only a subset of the canonical splits.
+            report("EgoEMG: split subset present", splits <= {0, 1, 2, 3}, str(sorted(splits)))
+        else:
+            report("EgoEMG: all four splits present", splits == {0, 1, 2, 3}, str(sorted(splits)))
 
 
 def generate_checksums(root: Path) -> None:
@@ -190,6 +194,10 @@ def main() -> int:
                     help="verify against a checksums.json (defaults to <dir>/checksums.json if present)")
     ap.add_argument("--no-checksums", action="store_true",
                     help="skip checksum verification even if checksums.json exists")
+    ap.add_argument("--allow-partial-sources", action="store_true",
+                    help="relax source/split policy checks for a preview shard "
+                         "(accepts an EgoEMG subset of the four splits; non-EgoEMG "
+                         "sources may be absent)")
     args = ap.parse_args()
 
     root = args.memmap_dir
@@ -198,7 +206,7 @@ def main() -> int:
 
     check_schema(root, manifest)
     check_episodes(root, manifest, meta)
-    check_sources(root, manifest, args.full)
+    check_sources(root, manifest, args.full, args.allow_partial_sources)
 
     if args.generate_checksums:
         generate_checksums(root)

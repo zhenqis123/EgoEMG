@@ -71,12 +71,48 @@ The `vision` mode additionally resolves a camera-calibration JSON under
 
 ### Preview package
 
-For a visualization smoke test without the full download, a single
-self-contained episode is available:
+For a visualization / eval / smoke-train test without the full download, a
+small **preview shard** (3 episodes + vision, flat v3 layout) is published at
+`/EgoEMG_release/dataset_egoemg_preview` on the Baidu share and mirrored on
+Google Drive:
 
 ```shell
 bash scripts/download/download_egoemg_data.sh \
-  --source gdrive "$EGOEMG_ROOT/data/dataset_egoemg_preview"
+  --source baidupcs "$EGOEMG_ROOT/data/dataset_egoemg_preview"
+```
+
+The package keeps the same layout as the full dataset so the README commands
+drop in directly (point `--memmap-dir` at
+`$EGOEMG_ROOT/data/dataset_egoemg_preview/data/memmap_data`):
+
+```text
+data/
+  memmap_data/                    flat v3 memmap (manifest.json + *.dat + metadata.npz)
+  webcam_videos/                  episode_XXXXXX_head_allintra.mp4
+  pre-crop_webcam_videoframes/    episode_XXXXXX.lmdb + manifest.json (patch_size 256)
+  GX010023_standard_calibration.json
+```
+
+It can also be **built locally** by slicing whole episodes out of the full
+unified memmap (needs the same source the builder reads, i.e. not applicable
+to a fresh download):
+
+```shell
+python scripts/data/build_egoemg_preview_memmap.py \
+  --memmap-dir /path/to/EgoEMG_full_memmap \
+  --out /path/to/dataset_egoemg_preview \
+  --allintra-root /path/to/EgoEMG_videos \
+  --crops-root /path/to/EgoEMG_crops \
+  --copy-videos --copy-crops          # omit to symlink instead
+```
+
+Because the shard carries a single source and a subset of splits, validate it
+with the relaxed check:
+
+```shell
+python scripts/data/validate_memmap.py \
+  --memmap-dir /path/to/dataset_egoemg_preview/data/memmap_data \
+  --allow-partial-sources
 ```
 
 ## 2. Checkpoints

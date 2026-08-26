@@ -219,7 +219,7 @@ def run_mesh(args: argparse.Namespace) -> int:
     K_raw, dist_raw, calib_w, calib_h = (
         calib.K, calib.dist, calib.width, calib.height)
 
-    cam_tracked = vu.load_memmap(args.memmap_dir, manifest, "mocap_head_tracked")
+    cam_tracked = vu.load_memmap(args.memmap_dir, manifest, "mocap_head_valid")
     cam_transform = vu.load_memmap(args.memmap_dir, manifest, "mocap_head_transform")
     frame_idx_mm = vu.load_memmap(args.memmap_dir, manifest, "image_head_frame_index")
     ep_idx_mm = vu.load_memmap(args.memmap_dir, manifest, "episode_index")
@@ -805,11 +805,12 @@ def run_fk_vs_mano(args: argparse.Namespace) -> int:
         window_length=args.window_length, stride=args.stride,
         modalities=modalities,
         mano_npy_dir=args.mano_npy_dir,
+        emg_field_preference="filtered_paper",
         emg_layout="emg2pose_interpolate16",
         emg2pose_channel_indices=[10, 12, 0, 1, 2, 4, 5, 6],
         channel_interpolate=False,
         norm_mode="per-dataset",
-        norm_stats_path="./assets/per_dataset_norm_stats.json",
+        norm_stats_path="./assets/per_dataset_norm_stats_repro_filtered_paper_alias.json",
         jitter=False,
     )
     print(f"  {len(ds)} windows, {len(ds._episode_id)} episodes")
@@ -926,7 +927,7 @@ def build_parser() -> argparse.ArgumentParser:
                        description="EMG / joint angles / MANO time series -> PNG")
     p.add_argument("--episode", type=int, default=3)
     p.add_argument("--hand", default="right", choices=["left", "right"])
-    p.add_argument("--emg-preference", default="filtered",
+    p.add_argument("--emg-preference", default="filtered_paper",
                    choices=["raw", "filtered", "filtered_paper"],
                    help="EMG field preference (left-hand filtered is absent "
                         "from the unified memmap; use filtered_paper)")

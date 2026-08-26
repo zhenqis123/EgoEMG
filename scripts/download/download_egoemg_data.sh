@@ -2,8 +2,8 @@
 # Download the EgoEMG dataset package for the EgoEMG benchmark.
 #
 # The small preview package (dataset_egoemg_preview) contains a self-contained
-# single-episode subset: memmap_data, webcam all-intra video, pre-crop LMDB
-# shards, metadata/calibration, and a visualization tool.
+# three-episode v3 shard (flat layout): memmap_data, webcam all-intra videos,
+# pre-crop LMDB shards, metadata/calibration, and a README.
 #
 # Two mirrored sources are supported:
 #   gdrive    (default) Google Drive folder, via gdown
