@@ -43,14 +43,16 @@
 
 MAE in degrees. \* = released-checkpoint values (reproduce with the commands
 in [Results and evaluation](#-results-and-evaluation)); unstarred values are
-paper-reported.
+paper-reported. Avg = average over the Gesture/User/Both test splits
+(per-sample-weighted for EMG-to-pose, unweighted split mean for vision and
+fusion); the EMG2Pose row follows the benchmark's User+Stage protocol.
 
-| Task | Ours | Best baseline |
-|------|------|---------------|
-| EMG-to-pose on EgoEMG | **13.8°** (EMGFormer-M) \* | 15.8° ([emg2pose](https://arxiv.org/abs/2412.02725)) |
-| EMG-to-pose on EMG2Pose | **12.3°** (EMGFormer-S) | 14.6° ([Position/Velocity MT](https://arxiv.org/abs/2603.08212)) |
-| Vision-to-pose on EgoEMG | **5.85°** (ResNet-18) \* | — |
-| EMG+vision fusion on EgoEMG | **5.41°** (ResNet-18) \* | 5.85° (vision-only) |
+| Task | Split | Ours | Best baseline |
+|------|-------|------|---------------|
+| EMG-to-pose on EgoEMG | Avg (Gesture/User/Both) | **13.8°** (EMGFormer-M) \* | 15.8° ([emg2pose](https://arxiv.org/abs/2412.02725)) |
+| EMG-to-pose on EMG2Pose | User+Stage | **12.3°** (EMGFormer-S) | 14.6° ([Position/Velocity MT](https://arxiv.org/abs/2603.08212)) |
+| Vision-to-pose on EgoEMG | Avg (Gesture/User/Both) | **5.85°** (ResNet-18) \* | — |
+| EMG+vision fusion on EgoEMG | Avg (Gesture/User/Both) | **5.41°** (ResNet-18) \* | 5.85° (vision-only) |
 
 Full per-method and per-split breakdowns are in the
 [Results and evaluation](#-results-and-evaluation) section below.
