@@ -115,26 +115,37 @@ python scripts/viz/visualize_dataset.py vision \
   --episode-id episode_000000 --stride 10 --max-frames 300
 ```
 
+Sample predictions on the preview shard's three episodes. Each episode shows a
+**vision + MANO-mesh overlay**; the two thumbnails below it are the head-view
+wrist crops (left/right). Click a thumbnail to open GitHub's player for that
+video. The head-view overlay is inlined **[after you drag
+`images/episode_000020_vision.mp4` into the README editor]** — GitHub renders it
+as a native video player when the file is uploaded via *Attach files*.
+
 <p align="center">
   <b>episode_000020 · wmh · train / user / gesture / both</b><br>
-  <video src="https://github.com/zhenqis123/EgoEMG/raw/main/images/episode_000020_vision.mp4" width="70%" controls muted playsinline
-         poster="https://github.com/zhenqis123/EgoEMG/raw/main/images/viz_example.jpg"></video><br>
-  <video src="https://github.com/zhenqis123/EgoEMG/raw/main/images/episode_000020_left_crop.mp4" width="22%" controls muted playsinline></video>
-  <video src="https://github.com/zhenqis123/EgoEMG/raw/main/images/episode_000020_right_crop.mp4" width="22%" controls muted playsinline></video>
+  <!-- 👉 drag `images/episode_000020_vision.mp4` onto this line in the README editor —
+       GitHub uploads it to user-attachments and renders an inline player here.
+       (The two thumbnails below already play in the browser.) -->
+  <br>
+  <a href="images/episode_000020_left_crop.mp4"><img src="images/episode_000020_left_crop.jpg" width="22%" alt="left wrist crop"></a>
+  <a href="images/episode_000020_right_crop.mp4"><img src="images/episode_000020_right_crop.jpg" width="22%" alt="right wrist crop"></a>
 </p>
 
 <p align="center">
   <b>episode_000008 · zbk · user / both</b><br>
-  <video src="https://github.com/zhenqis123/EgoEMG/raw/main/images/episode_000008_vision.mp4" width="70%" controls muted playsinline></video><br>
-  <video src="https://github.com/zhenqis123/EgoEMG/raw/main/images/episode_000008_left_crop.mp4" width="22%" controls muted playsinline></video>
-  <video src="https://github.com/zhenqis123/EgoEMG/raw/main/images/episode_000008_right_crop.mp4" width="22%" controls muted playsinline></video>
+  <!-- 👉 drag `images/episode_000008_vision.mp4` onto this line in the README editor. -->
+  <br>
+  <a href="images/episode_000008_left_crop.mp4"><img src="images/episode_000008_left_crop.jpg" width="22%" alt="left wrist crop"></a>
+  <a href="images/episode_000008_right_crop.mp4"><img src="images/episode_000008_right_crop.jpg" width="22%" alt="right wrist crop"></a>
 </p>
 
 <p align="center">
   <b>episode_000028 · wsj · train / gesture</b><br>
-  <video src="https://github.com/zhenqis123/EgoEMG/raw/main/images/episode_000028_vision.mp4" width="70%" controls muted playsinline></video><br>
-  <video src="https://github.com/zhenqis123/EgoEMG/raw/main/images/episode_000028_left_crop.mp4" width="22%" controls muted playsinline></video>
-  <video src="https://github.com/zhenqis123/EgoEMG/raw/main/images/episode_000028_right_crop.mp4" width="22%" controls muted playsinline></video>
+  <!-- 👉 drag `images/episode_000028_vision.mp4` onto this line in the README editor. -->
+  <br>
+  <a href="images/episode_000028_left_crop.mp4"><img src="images/episode_000028_left_crop.jpg" width="22%" alt="left wrist crop"></a>
+  <a href="images/episode_000028_right_crop.mp4"><img src="images/episode_000028_right_crop.jpg" width="22%" alt="right wrist crop"></a>
 </p>
 
 ### Preview / small dataset
