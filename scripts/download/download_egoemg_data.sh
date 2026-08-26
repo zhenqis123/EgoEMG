@@ -36,8 +36,8 @@ case "$SOURCE" in
     ;;
   baidupcs)
     echo "Downloading EgoEMG dataset from Baidu Netdisk (/EgoEMG_release/dataset_egoemg_preview) ..."
-    baidupcs download /EgoEMG_release/dataset_egoemg_preview
-    echo "Saved under ./download/ by default; move the package into $OUT_DIR if needed."
+    baidupcs download --saveto "$OUT_DIR" /EgoEMG_release/dataset_egoemg_preview
+    echo "Downloaded to $OUT_DIR"
     ;;
   *)
     echo "Unknown source: '$SOURCE' (use 'gdrive' or 'baidupcs')" >&2
