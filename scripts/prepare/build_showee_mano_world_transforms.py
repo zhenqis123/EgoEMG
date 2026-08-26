@@ -82,7 +82,12 @@ def main() -> None:
                 with torch.no_grad():
                     vertices = mano(pose, beta).verts
                     if hand == "left":
-                        vertices = vertices * vertices.new_tensor([1.0, 1.0, -1.0])
+                        # Align in the x-mirrored frame the renderer and the
+                        # EgoEMG labels use for left hands (see
+                        # ManoMeshDecoder.decode). The previous z-mirror
+                        # ([1, 1, -1]) differed by a 180° local-y rotation,
+                        # so left meshes rendered upside-down.
+                        vertices = vertices * vertices.new_tensor([-1.0, 1.0, 1.0])
                     predicted = vertices[:, marker_indices]
                     _, rotation, translation = compute_aligned_error_batched(predicted, gt)
                 native[indices, :9] = rotation.cpu().numpy().reshape(-1, 9)
