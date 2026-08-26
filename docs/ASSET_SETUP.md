@@ -44,8 +44,9 @@ bash scripts/download/organize_downloads.sh /path/to/downloaded_folders \
 > download much smaller and avoids the share's per-user transfer quota.
 >
 > The data is distributed through the **Baidu Netdisk** share (public, no
-> per-user download quota) — Google Drive only carries the one-episode
-> preview package and the checkpoints. Use the Baidu link above.
+> per-user download quota). Google Drive is a **legacy mirror** that only
+> carries the one-episode preview package and the checkpoints — those are an
+> **older version** and will be refreshed. Use the Baidu link above.
 
 The share additionally carries `dataset_egoemg_zed_videos` (the ShowEE/Incre
 ZED recordings); no README workflow needs it.
@@ -73,8 +74,8 @@ The `vision` mode additionally resolves a camera-calibration JSON under
 
 For a visualization / eval / smoke-train test without the full download, a
 small **preview shard** (3 episodes + vision, flat v3 layout) is published at
-`/EgoEMG_release/dataset_egoemg_preview` on the Baidu share and mirrored on
-Google Drive:
+`/EgoEMG_release/dataset_egoemg_preview` on the Baidu share (the Google Drive
+copy is an older version, to be refreshed):
 
 ```shell
 bash scripts/download/download_egoemg_data.sh \

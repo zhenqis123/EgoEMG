@@ -144,17 +144,19 @@ of the full `EgoEMG_full_memmap`. It is a 3-episode, **v3-schema** memmap in the
 same **flat** layout as the published `dataset_egoemg_unified`, so it drops in as
 a mini dataset root: point the same commands at its `data/memmap_data`.
 
-Download it once (two mirrors — Google Drive is the default and writes straight
-into the target dir; Baidu Netdisk drops the package under `./download/` and
-needs a logged-in `baidupcs`):
+Download it once — **Baidu Netdisk is the official release path**
+(`/EgoEMG_release/dataset_egoemg_preview`). Google Drive is a **legacy mirror
+that still carries an older version**; its checkpoints and data will be
+refreshed later. Baidu drops the package under `./download/` and needs a
+logged-in `baidupcs`; the Drive mirror writes straight into the target dir:
 
 ```shell
-# Google Drive (default)
-bash scripts/download/download_egoemg_data.sh \
+# Baidu Netdisk — official release path (recommended)
+bash scripts/download/download_egoemg_data.sh --source baidupcs \
   "$EGOEMG_ROOT/data/dataset_egoemg_preview"
 
-# Baidu Netdisk (/EgoEMG_release/dataset_egoemg_preview)
-bash scripts/download/download_egoemg_data.sh --source baidupcs \
+# Google Drive — legacy mirror, older version (to be refreshed)
+bash scripts/download/download_egoemg_data.sh \
   "$EGOEMG_ROOT/data/dataset_egoemg_preview"
 ```
 
