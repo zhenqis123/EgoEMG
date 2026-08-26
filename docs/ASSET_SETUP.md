@@ -37,6 +37,16 @@ bash scripts/download/organize_downloads.sh /path/to/downloaded_folders \
 | `EgoEMG_videos` | `vision` visualization |
 | `EgoEMG_crops` | `vision` visualization |
 
+> **For the EMG-to-pose experiment you only need the two memmaps.** Download
+> `EgoEMG_full_memmap` (+ `emg2pose_memmap` for the EMG2Pose benchmark). The
+> `EgoEMG_videos` / `EgoEMG_crops` folders are used **only** by the `vision`
+> visualization mode — skip them for EMG training/eval. Doing so keeps the
+> download much smaller and avoids the share's per-user transfer quota.
+>
+> The data is distributed through the **Baidu Netdisk** share (public, no
+> per-user download quota) — Google Drive only carries the one-episode
+> preview package and the checkpoints. Use the Baidu link above.
+
 The share additionally carries `dataset_egoemg_zed_videos` (the ShowEE/Incre
 ZED recordings); no README workflow needs it.
 
@@ -77,14 +87,23 @@ bash scripts/download/download_checkpoints.sh            # Google Drive
 bash scripts/download/download_checkpoints.sh baidupcs   # Baidu Netdisk
 ```
 
-| README workflow | Checkpoints |
-| --- | --- |
-| EgoEMG EMGFormer eval (S/M/L) | `egoemg_emgformer_{small,middle,large}.ckpt` |
-| EMG2Pose EMGFormer eval (S/M/L) | `emg2pose_emgformer_{small,middle,large}.ckpt` |
-| Vision-only eval (ResNet-18 / ViT-S) | `vision_resnet18.ckpt` / `vision_vit_small.ckpt` |
-| Fusion eval (ResNet-18 / ViT-S) | `fusion_resnet18_emgfusion_center.ckpt` /
+| README workflow | EMG channels | Checkpoints |
+| --- | --- | --- |
+| EgoEMG EMGFormer eval (S/M/L) | 8 | `egoemg_emgformer_{small,middle,large}.ckpt` |
+| EMG2Pose EMGFormer eval (S/M/L) | 16 | `emg2pose_emgformer_{small,middle,large}.ckpt` |
+| Vision-only eval (ResNet-18 / ViT-S) | — | `vision_resnet18.ckpt` / `vision_vit_small.ckpt` |
+| Fusion eval (ResNet-18 / ViT-S) | 16 | `fusion_resnet18_emgfusion_center.ckpt` /
 `fusion_vit_emgfusion_center.ckpt` |
-| Fusion training init | `vision_resnet18.ckpt` + `egoemg_emgformer_small.ckpt` |
+| Fusion training init | — | `vision_resnet18.ckpt` + `egoemg_emgformer_small.ckpt` |
+
+> **Channels = the EMG input channel count, which is NOT uniform across
+> checkpoint families.** The EgoEMG EMGFormer checkpoints are **8-channel**
+> (single-hand `target_hand` layout); the EMG2Pose and fusion checkpoints are
+> **16-channel** (bilateral `emg2pose_interpolate16` layout). A config and its
+> checkpoint must come from the **same family** — pairing a 16-channel
+> checkpoint with an 8-channel config (or vice-versa) fails with a featurizer
+> shape mismatch. `egoemg_*` and `emg2pose_*` checkpoints are not
+> interchangeable even though both use `_small`/`_middle`/`_large` names.
 
 ## 3. MANO (visualization only)
 
