@@ -618,6 +618,21 @@ def run_vision_video(args: argparse.Namespace) -> int:
     # native speed, high strides fast-forward smoothly instead of becoming a
     # 1 fps slideshow or a 60x flash.
     out_fps = max(15.0, fps / args.stride)
+    if args.dump_frames_map:
+        # Sidecar for downstream signal extraction: which memmap row backs
+        # each output frame, so EMG/IMU/angle panels can sync exactly.
+        output.with_suffix(".frames.json").write_text(json.dumps({
+            "episode_id": args.episode_id,
+            "memmap_start": start,
+            "source_fps": float(fps),
+            "stride": int(args.stride),
+            "out_fps": float(out_fps),
+            "frames": [
+                {"out_idx": i, "video_frame": vfi,
+                 "memmap_row": int(start + off)}
+                for i, (vfi, off) in enumerate(strided_frames)
+            ],
+        }))
     crop_size = 256
     manifest_path = Path(args.crops_dir) / "manifest.json"
     if manifest_path.exists():
@@ -922,6 +937,10 @@ def build_parser() -> argparse.ArgumentParser:
         "--overlay-minimal", action="store_true",
         help="mesh render mode: pyrender meshes only — no bboxes, mocap "
              "marker dots, or text legend (clean look for showcase videos)")
+    p.add_argument(
+        "--dump-frames-map", action="store_true",
+        help="write <output>.frames.json mapping each output frame to its "
+             "backing memmap row (for synchronized signal extraction)")
     p.add_argument("--mano-model-path", type=Path, default=None)
     p.add_argument("--calibration-json", type=Path, default=None)
     p.add_argument("--crops-dir", type=Path, default=Path("data/EgoEMG_crops"),
