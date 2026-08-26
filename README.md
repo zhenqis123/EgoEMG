@@ -116,9 +116,25 @@ python scripts/viz/visualize_dataset.py vision \
 ```
 
 <p align="center">
-  <video src="images/episode_000020_vision.mp4" width="70%" controls muted playsinline>
-    <img src="images/viz_example.jpg" width="70%" alt="vision-mode overlay: hand meshes, projected mocap markers, per-hand boxes">
-  </video>
+  <b>episode_000020 · wmh · train / user / gesture / both</b><br>
+  <video src="images/episode_000020_vision.mp4" width="70%" controls muted playsinline
+         poster="images/viz_example.jpg"></video><br>
+  <video src="images/episode_000020_left_crop.mp4" width="22%" controls muted playsinline></video>
+  <video src="images/episode_000020_right_crop.mp4" width="22%" controls muted playsinline></video>
+</p>
+
+<p align="center">
+  <b>episode_000008 · zbk · user / both</b><br>
+  <video src="images/episode_000008_vision.mp4" width="70%" controls muted playsinline></video><br>
+  <video src="images/episode_000008_left_crop.mp4" width="22%" controls muted playsinline></video>
+  <video src="images/episode_000008_right_crop.mp4" width="22%" controls muted playsinline></video>
+</p>
+
+<p align="center">
+  <b>episode_000028 · wsj · train / gesture</b><br>
+  <video src="images/episode_000028_vision.mp4" width="70%" controls muted playsinline></video><br>
+  <video src="images/episode_000028_left_crop.mp4" width="22%" controls muted playsinline></video>
+  <video src="images/episode_000028_right_crop.mp4" width="22%" controls muted playsinline></video>
 </p>
 
 ### Preview / small dataset
