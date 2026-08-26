@@ -74,13 +74,10 @@ The `vision` mode additionally resolves a camera-calibration JSON under
 
 For a visualization / eval / smoke-train test without the full download, a
 small **preview shard** (3 episodes + vision, flat v3 layout) is published at
-`/EgoEMG_release/dataset_egoemg_preview` on the Baidu share (the Google Drive
-copy is an older version, to be refreshed):
-
-```shell
-bash scripts/download/download_egoemg_data.sh \
-  --source baidupcs "$EGOEMG_ROOT/data/dataset_egoemg_preview"
-```
+`/EgoEMG_release/dataset_egoemg_preview` on the Baidu share. Download that
+folder from the share <https://pan.baidu.com/s/1aG2e-mHJkmP4KiYtYRcReA>
+(extraction code `8059`) and place it at
+`$EGOEMG_ROOT/data/dataset_egoemg_preview`.
 
 The package keeps the same layout as the full dataset so the README commands
 drop in directly (point `--memmap-dir` at
@@ -118,11 +115,10 @@ python scripts/data/validate_memmap.py \
 
 ## 2. Checkpoints
 
-```shell
-pip install gdown
-bash scripts/download/download_checkpoints.sh            # Google Drive
-bash scripts/download/download_checkpoints.sh baidupcs   # Baidu Netdisk
-```
+Download the `checkpoints` folder under `/EgoEMG_release/` from the Baidu share
+<https://pan.baidu.com/s/1aG2e-mHJkmP4KiYtYRcReA> (extraction code `8059`) and
+place it in the repository-local `checkpoints/` directory (set
+`EGOEMG_CHECKPOINT_ROOT` to redirect it).
 
 | README workflow | EMG channels | Checkpoints |
 | --- | --- | --- |
