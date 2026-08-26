@@ -127,14 +127,24 @@ def main() -> int:
         }
 
     # ── Pack ───────────────────────────────────────────────────────────────
+    # EMG envelopes are 0..1 normalized -> uint8 (x255). IMU/joints keep
+    # float16. Keeps the payload ~75 KiB so it streams fast on slow CDN
+    # links (github.io from CN measured 6-8 s for the float32 blob).
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    blob = b"".join(s.astype("<f4").tobytes() for s in series.values())
-    (args.out_dir / f"{args.basename}.bin").write_bytes(blob)
-    offset = 0
+    parts, offset = [], 0
     for key, s in series.items():
+        if key.startswith("emg_"):
+            parts.append((np.clip(s, 0, 1) * 255.0).round().astype("<u1").tobytes())
+            dtype = "u1"
+        else:
+            parts.append(s.astype("<f2").tobytes())
+            dtype = "f2"
+        meta["series"][key]["dtype"] = dtype
         meta["series"][key]["offset"] = offset
         meta["series"][key]["samples"] = int(s.shape[0])
         offset += s.size
+    blob = b"".join(parts)
+    (args.out_dir / f"{args.basename}.bin").write_bytes(blob)
     (args.out_dir / f"{args.basename}.json").write_text(json.dumps(meta, indent=1))
     total_kb = len(blob) / 1024
     print(f"packed {len(series)} series, {total_kb:.0f} KiB, "
