@@ -30,12 +30,14 @@
 
 ## ✨ Highlights
 
-- **📦 Multi-modal Dataset and Benchmark** — Provides synchronized bilateral surface EMG and egocentric webcam video for hand pose estimation.
-- **🧠 EMG-to-pose** — EMGFormer (S/M/L): **13.8°** Avg MAE on EgoEMG (M);
-  **12.3°** User+Stage MAE on the EMG2Pose benchmark (S) — **ahead of all prior methods**,
-  including Position/Velocity MT (14.6°), CLDM (14.7°), and emg2pose (15.6°).
-- **👁️ Vision-to-pose** — ResNet / ViT on the egocentric webcam stream: **5.85°** with ResNet-18.
-- **🔀 Fusion** — EMG + vision on identical center frames: **5.41°** with ResNet-18 fusion, a 7.5% improvement with only 3M more parameters compared to ResNet-18 vision-only baseline.
+- **📦 Multi-modal dataset & benchmark** — 53 participants, 18+ h of synchronized
+  recordings: bilateral wristband EMG, IMU, egocentric RGB, RGB-D, and mocap
+  joint angles.
+- **🧠 EMG-to-pose** — EMGFormer: **13.8°** Avg MAE on EgoEMG (M); **12.3°**
+  User+Stage MAE on the EMG2Pose benchmark (S) — ahead of all prior methods.
+- **👁️ Vision-to-pose** — **5.85°** with ResNet-18 on the egocentric webcam stream.
+- **🔀 EMG+vision fusion** — **5.41°** with ResNet-18 fusion: 7.5% better than
+  vision-only at only +3M parameters.
 
 ## 🎯 Headline results
 
@@ -45,8 +47,8 @@ paper-reported.
 
 | Task | Ours | Best baseline |
 |------|------|---------------|
-| EMG-to-pose on EgoEMG | **13.8°** (EMGFormer-M) \* | 15.8° (emg2pose) |
-| EMG-to-pose on EMG2Pose | **12.3°** (EMGFormer-S) | 14.6° (Position/Velocity MT) |
+| EMG-to-pose on EgoEMG | **13.8°** (EMGFormer-M) \* | 15.8° ([emg2pose](https://arxiv.org/abs/2412.02725)) |
+| EMG-to-pose on EMG2Pose | **12.3°** (EMGFormer-S) | 14.6° ([Position/Velocity MT](https://arxiv.org/abs/2603.08212)) |
 | Vision-to-pose on EgoEMG | **5.85°** (ResNet-18) \* | — |
 | EMG+vision fusion on EgoEMG | **5.41°** (ResNet-18) \* | 5.85° (vision-only) |
 
