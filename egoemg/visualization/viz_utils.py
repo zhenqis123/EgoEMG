@@ -786,7 +786,6 @@ class ManoMeshDecoder:
         theta_aa: 3-axis-angle of the global orientation; tau: camera-frame
         translation (see mano_camera_params.py for the derivation).
         """
-        import torch
         torch = self._torch
         go = torch.tensor(np.asarray(theta_aa, dtype=np.float32),
                           device=self._device).unsqueeze(0)
@@ -808,7 +807,6 @@ class ManoMeshDecoder:
 
     def root_joint(self, pose_aa, beta):
         """Root joint of the orient=0 model — the LBS pivot for theta."""
-        import torch
         torch = self._torch
         hp = torch.tensor(np.asarray(pose_aa, dtype=np.float32)[3:48],
                           device=self._device).unsqueeze(0)
