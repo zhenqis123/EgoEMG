@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/dataset_stats.svg" width="100%" alt="EgoEMG dataset statistics">
+  <img src="images/dataset_stats.png" width="100%" alt="EgoEMG dataset statistics">
 </p>
 
 <h1 align="center">EgoEMG</h1>
