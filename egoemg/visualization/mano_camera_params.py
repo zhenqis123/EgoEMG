@@ -52,11 +52,15 @@ def mano_camera_params(head_t12: np.ndarray, world_t12: np.ndarray,
     t_w = np.asarray(world_t12[9:12], dtype=np.float64)
     theta = R_cw @ R_w
     b = R_cw @ t_w + t_cw
+    j0 = np.asarray(j0, dtype=np.float64)
     if left:
-        Mj = np.asarray(j0, dtype=np.float64) * MIRROR
-        tau = b * MIRROR + theta @ Mj - Mj
+        # The output mirror M conjugates the rotation: the mirrored mesh
+        # must be rotated by M theta M, NOT theta (un-conjugated theta
+        # flips the hand's orientation).
+        Md = np.diag(MIRROR)
+        theta = Md @ theta @ Md
+        tau = b * MIRROR + theta @ j0 - j0
     else:
-        j0 = np.asarray(j0, dtype=np.float64)
         tau = b + theta @ j0 - j0
     aa, _ = cv2.Rodrigues(theta)
     return {"theta_aa": aa.reshape(3), "tau": tau,
@@ -76,8 +80,9 @@ def batch_camera_params(head_t12: np.ndarray, world_t12: np.ndarray,
     b = np.einsum("nij,nj->ni", R_cw, t_w) + t_cw
     j0 = np.asarray(j0, dtype=np.float64)
     if left:
-        Mj = j0 * MIRROR
-        tau = b * MIRROR + np.einsum("nij,nj->ni", theta, Mj) - Mj
+        Md = np.diag(MIRROR)
+        theta = np.einsum("ik,nkj,jl->nij", Md, theta, Md)
+        tau = b * MIRROR + np.einsum("nij,nj->ni", theta, j0) - j0
     else:
         tau = b + np.einsum("nij,nj->ni", theta, j0) - j0
     return {"theta_rot": theta, "tau": tau, "R_cw": R_cw, "t_cw": t_cw}
