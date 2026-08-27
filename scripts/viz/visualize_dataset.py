@@ -182,9 +182,11 @@ def _render_mesh_overlay_camera(frame_bgr, hand_meshes, K_vid, renderer, alpha):
     cam = pyrender.IntrinsicsCamera(
         fx=K_vid[0, 0], fy=K_vid[1, 1],
         cx=K_vid[0, 2], cy=K_vid[1, 2], znear=0.01, zfar=100.0)
-    scene.add(cam, pose=np.eye(4))
+    # CV->GL convention (matches the legacy T_W_C @ FLIP_YZ leg): vertices
+    # arrive in CV camera space (+Z forward); the GL camera looks down -Z.
+    scene.add(cam, pose=FLIP_YZ)
     scene.add(pyrender.DirectionalLight(color=[1.0] * 3, intensity=3.0),
-              pose=np.eye(4))
+              pose=FLIP_YZ)
     color_rgb, depth = renderer.render(scene)
     mask = depth > 0
     if not mask.any():
