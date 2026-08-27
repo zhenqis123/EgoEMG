@@ -5,7 +5,7 @@
 <h1 align="center">EgoEMG</h1>
 
 <p align="center">
-  <b>A multimodal egocentric dataset with bilateral surface EMG and webcam vision
+  <b>A multimodal egocentric dataset with bilateral surface EMG and vision
   for hand pose estimation</b><br>
   EMG-to-pose · vision-to-pose · EMG+vision fusion
 </p>
@@ -303,7 +303,7 @@ repository and the exact commit — GitHub renders
 ```bibtex
 @misc{egoemg2026,
   title        = {EgoEMG: A multimodal egocentric dataset with bilateral surface
-                  EMG and webcam vision for hand pose estimation},
+                  EMG and vision for hand pose estimation},
   author       = {Zhenqi Shi and others},
   howpublished = {GitHub repository},
   note         = {https://github.com/zhenqis123/EgoEMG},
