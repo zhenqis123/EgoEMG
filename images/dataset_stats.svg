@@ -1,78 +1,99 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title description">
   <title id="title">EgoEMG Dataset at a glance</title>
   <desc id="description">Dataset statistics: 53 participants, over 18 hours of synchronized recordings, 60 gesture classes, 2 kilohertz bilateral wristband EMG, 120 hertz IMU on each wrist, and five sensing modalities.</desc>
 
-  <!-- paper card with ink border -->
-  <rect x="3" y="3" width="1194" height="674" rx="18" fill="#fbf9f4" stroke="#191c20" stroke-width="4"/>
+  <!-- paper card -->
+  <rect x="2" y="2" width="1196" height="556" rx="16" fill="#fbf9f4" stroke="#191c20" stroke-width="3.5"/>
 
-  <!-- header: mark + wordmark + trace -->
-  <g transform="translate(36,32)">
-    <rect x="0" y="0" width="44" height="44" rx="10" fill="none" stroke="#191c20" stroke-width="3"/>
-    <polyline points="8,32 12,32 14,26 16,36 18,29 20,32 24,32" fill="none" stroke="#1971c2" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <polyline points="26,32 30,32 32,36 34,25 36,31 38,29 42,29" fill="none" stroke="#e8590c" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <line x1="25" y1="29" x2="25" y2="10" stroke="#191c20" stroke-width="2.5" stroke-linecap="round"/>
-    <circle cx="25" cy="30" r="3" fill="#e8590c"/>
-
-    <text x="58" y="28" font-family="'Segoe UI', Roboto, Arial, sans-serif" font-size="26" font-weight="700" fill="#191c20">EgoEMG</text>
-    <text x="58" y="44" font-family="'Courier New', monospace" font-size="13" fill="#7a828b" letter-spacing="1.5">DATASET AT A GLANCE</text>
+  <!-- header strip -->
+  <g transform="translate(24,20)">
+    <rect x="0" y="0" width="36" height="36" rx="8" fill="none" stroke="#191c20" stroke-width="2.5"/>
+    <polyline points="6,26 10,26 12,21 14,29 16,24 18,26 21,26" fill="none" stroke="#1971c2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="23,26 27,26 29,29 31,21 33,25 35,24 38,24" fill="none" stroke="#e8590c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="22" y1="24" x2="22" y2="8" stroke="#191c20" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="22" cy="25" r="2.5" fill="#e8590c"/>
+    <text x="48" y="24" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#191c20">EgoEMG</text>
+    <text x="48" y="38" font-family="'Courier New', monospace" font-size="11" fill="#7a828b" letter-spacing="1">DATASET AT A GLANCE</text>
   </g>
 
-  <!-- 2×3 stat cards; card 340×248, gap 32; col x: 36, 408, 780; row y: 96, 372 -->
-  <!-- fonts: numeral 54px, label 22px, detail 15px -->
+  <!-- 3×2 grid: card 360×192, gap 24; col x: 24, 408, 792; row y: 76, 292 -->
+  <!-- each card: icon top-left 20×20 area, numeral right of icon, label+detail below -->
 
-  <!-- Row 1: 53 / 18+h / 60 -->
+  <!-- 1: 53 participants — people icon -->
   <g>
-    <rect x="36" y="96" width="340" height="248" rx="14" fill="#fff" stroke="#191c20" stroke-width="1.5"/>
-    <rect x="36" y="96" width="340" height="7" rx="3.5" fill="#191c20"/>
-    <text x="206" y="200" text-anchor="middle" font-family="Georgia, serif" font-size="54" font-weight="600" fill="#191c20">53</text>
-    <text x="206" y="234" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#454c54">participants</text>
-    <text x="206" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">106 hands · left &amp; right labelled</text>
+    <rect x="24" y="76" width="360" height="192" rx="12" fill="#fff" stroke="#191c20" stroke-width="1.3"/>
+    <rect x="24" y="76" width="360" height="6" rx="3" fill="#191c20"/>
+    <!-- people icon -->
+    <circle cx="56" cy="112" r="8" fill="none" stroke="#191c20" stroke-width="2"/>
+    <path d="M44,132 Q44,122 56,122 Q68,122 68,132 Z" fill="none" stroke="#191c20" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="76" cy="114" r="6" fill="none" stroke="#7a828b" stroke-width="1.8"/>
+    <path d="M68,132 Q68,124 76,124 Q84,124 84,132 Z" fill="none" stroke="#7a828b" stroke-width="1.8" stroke-linejoin="round"/>
+    <text x="204" y="150" text-anchor="middle" font-family="Georgia, serif" font-size="56" font-weight="600" fill="#191c20">53</text>
+    <text x="204" y="182" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="500" fill="#454c54">participants</text>
+    <text x="204" y="204" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">106 hands · left &amp; right labelled</text>
   </g>
 
+  <!-- 2: 18+ h — clock icon -->
   <g>
-    <rect x="408" y="96" width="340" height="248" rx="14" fill="#fff" stroke="#191c20" stroke-width="1.5"/>
-    <rect x="408" y="96" width="340" height="7" rx="3.5" fill="#e8590c"/>
-    <text x="578" y="200" text-anchor="middle" font-family="Georgia, serif" font-size="54" font-weight="600" fill="#191c20">18+ h</text>
-    <text x="578" y="234" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#454c54">synchronized recordings</text>
-    <text x="578" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">132M aligned frames @ 2 kHz</text>
+    <rect x="408" y="76" width="360" height="192" rx="12" fill="#fff" stroke="#191c20" stroke-width="1.3"/>
+    <rect x="408" y="76" width="360" height="6" rx="3" fill="#e8590c"/>
+    <!-- clock icon -->
+    <circle cx="440" cy="120" r="12" fill="none" stroke="#191c20" stroke-width="2"/>
+    <line x1="440" y1="120" x2="440" y2="112" stroke="#191c20" stroke-width="2" stroke-linecap="round"/>
+    <line x1="440" y1="120" x2="447" y2="123" stroke="#191c20" stroke-width="2" stroke-linecap="round"/>
+    <text x="588" y="150" text-anchor="middle" font-family="Georgia, serif" font-size="56" font-weight="600" fill="#191c20">18+ h</text>
+    <text x="588" y="182" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="500" fill="#454c54">synchronized recordings</text>
+    <text x="588" y="204" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">132M aligned frames @ 2 kHz</text>
   </g>
 
+  <!-- 3: 60 gestures — hand icon -->
   <g>
-    <rect x="780" y="96" width="340" height="248" rx="14" fill="#fff" stroke="#191c20" stroke-width="1.5"/>
-    <rect x="780" y="96" width="340" height="7" rx="3.5" fill="#1971c2"/>
-    <text x="950" y="196" text-anchor="middle" font-family="Georgia, serif" font-size="54" font-weight="600" fill="#191c20">60</text>
-    <text x="950" y="232" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#454c54">gesture classes</text>
-    <text x="950" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">30 unimanual · 30 bimanual</text>
+    <rect x="792" y="76" width="360" height="192" rx="12" fill="#fff" stroke="#191c20" stroke-width="1.3"/>
+    <rect x="792" y="76" width="360" height="6" rx="3" fill="#1971c2"/>
+    <!-- hand icon: palm + fingers -->
+    <path d="M822,130 L822,118 Q822,113 825,113 Q828,113 828,118 L828,108 Q828,103 831,103 Q834,103 834,108 L834,104 Q834,99 837,99 Q840,99 840,104 L840,108 Q840,104 843,104 Q846,104 846,109 L846,130 Q846,138 838,140 L830,140 Q824,140 822,130 Z"
+          fill="none" stroke="#191c20" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <text x="972" y="150" text-anchor="middle" font-family="Georgia, serif" font-size="56" font-weight="600" fill="#191c20">60</text>
+    <text x="972" y="182" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="500" fill="#454c54">gesture classes</text>
+    <text x="972" y="204" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">30 unimanual · 30 bimanual</text>
   </g>
 
-  <!-- Row 2: 2kHz / 120Hz / 5 -->
+  <!-- 4: 2 kHz EMG — signal trace icon -->
   <g>
-    <rect x="36" y="372" width="340" height="248" rx="14" fill="#fff" stroke="#191c20" stroke-width="1.5"/>
-    <rect x="36" y="372" width="340" height="7" rx="3.5" fill="#e8590c"/>
-    <polyline points="60,570 85,570 91,562 97,578 103,566 109,570 130,570" fill="none" stroke="#1971c2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <polyline points="140,570 165,570 171,578 177,562 183,572 189,568 210,568" fill="none" stroke="#e8590c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="240" y="480" text-anchor="middle" font-family="Georgia, serif" font-size="54" font-weight="600" fill="#191c20">2 kHz</text>
-    <text x="240" y="514" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#454c54">bilateral EMG</text>
-    <text x="240" y="540" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">8 channels per wrist</text>
+    <rect x="24" y="292" width="360" height="192" rx="12" fill="#fff" stroke="#191c20" stroke-width="1.3"/>
+    <rect x="24" y="292" width="360" height="6" rx="3" fill="#e8590c"/>
+    <!-- bilateral EMG trace icon -->
+    <polyline points="40,336 50,336 53,328 57,344 60,332 63,336 72,336" fill="none" stroke="#1971c2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="76,336 86,336 89,344 93,328 96,340 99,336 108,336" fill="none" stroke="#e8590c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="204" y="366" text-anchor="middle" font-family="Georgia, serif" font-size="56" font-weight="600" fill="#191c20">2 kHz</text>
+    <text x="204" y="398" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="500" fill="#454c54">bilateral EMG</text>
+    <text x="204" y="420" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">8 channels per wrist</text>
   </g>
 
+  <!-- 5: 120 Hz IMU — accel/gyro icon -->
   <g>
-    <rect x="408" y="372" width="340" height="248" rx="14" fill="#fff" stroke="#191c20" stroke-width="1.5"/>
-    <rect x="408" y="372" width="340" height="7" rx="3.5" fill="#191c20"/>
-    <line x1="435" y1="540" x2="475" y2="540" stroke="#1971c2" stroke-width="3" stroke-linecap="round"/>
-    <line x1="435" y1="552" x2="460" y2="552" stroke="#e8590c" stroke-width="3" stroke-linecap="round"/>
-    <line x1="435" y1="564" x2="420" y2="564" stroke="#1971c2" stroke-width="3" stroke-linecap="round"/>
-    <text x="612" y="480" text-anchor="middle" font-family="Georgia, serif" font-size="54" font-weight="600" fill="#191c20">120 Hz</text>
-    <text x="612" y="514" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#454c54">IMU on each wrist</text>
-    <text x="612" y="540" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">triaxial accel + gyro</text>
+    <rect x="408" y="292" width="360" height="192" rx="12" fill="#fff" stroke="#191c20" stroke-width="1.3"/>
+    <rect x="408" y="292" width="360" height="6" rx="3" fill="#191c20"/>
+    <!-- gyro/accel axes icon -->
+    <line x1="446" y1="348" x2="446" y2="324" stroke="#191c20" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="446" y1="348" x2="466" y2="348" stroke="#1971c2" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="446" y1="348" x2="434" y2="360" stroke="#e8590c" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="446" cy="348" r="3" fill="#191c20"/>
+    <text x="588" y="366" text-anchor="middle" font-family="Georgia, serif" font-size="56" font-weight="600" fill="#191c20">120 Hz</text>
+    <text x="588" y="398" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="500" fill="#454c54">IMU on each wrist</text>
+    <text x="588" y="420" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">triaxial accel + gyro</text>
   </g>
 
+  <!-- 6: 5 modalities — layers icon -->
   <g>
-    <rect x="780" y="372" width="340" height="248" rx="14" fill="#fff" stroke="#191c20" stroke-width="1.5"/>
-    <rect x="780" y="372" width="340" height="7" rx="3.5" fill="#e8590c"/>
-    <text x="950" y="470" text-anchor="middle" font-family="Georgia, serif" font-size="54" font-weight="600" fill="#191c20">5</text>
-    <text x="950" y="506" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#454c54">sensing modalities</text>
-    <text x="950" y="534" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">sEMG · IMU · RGB · RGB-D</text>
-    <text x="950" y="556" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">mocap joint angles</text>
+    <rect x="792" y="292" width="360" height="192" rx="12" fill="#fff" stroke="#191c20" stroke-width="1.3"/>
+    <rect x="792" y="292" width="360" height="6" rx="3" fill="#e8590c"/>
+    <!-- stacked layers icon -->
+    <ellipse cx="838" cy="322" rx="14" ry="5" fill="none" stroke="#191c20" stroke-width="2"/>
+    <path d="M824,322 L824,338 Q824,343 838,343 Q852,343 852,338 L852,322" fill="none" stroke="#191c20" stroke-width="2"/>
+    <path d="M824,330 Q824,335 838,335 Q852,335 852,330" fill="none" stroke="#7a828b" stroke-width="1.5"/>
+    <text x="972" y="362" text-anchor="middle" font-family="Georgia, serif" font-size="56" font-weight="600" fill="#191c20">5</text>
+    <text x="972" y="394" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="500" fill="#454c54">sensing modalities</text>
+    <text x="972" y="416" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" fill="#7a828b">sEMG · IMU · RGB · RGB-D · mocap</text>
   </g>
 </svg>
