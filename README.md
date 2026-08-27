@@ -15,10 +15,12 @@
   <a href="#-license"><img src="https://img.shields.io/badge/Code-MIT-blue" alt="Code license"></a>
   <a href="https://github.com/zhenqis123/EgoEMG/actions"><img src="https://img.shields.io/github/actions/workflow/status/zhenqis123/EgoEMG/main.yml?branch=main" alt="CI"></a>
   <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11-blue" alt="Python">
+  <a href="https://zhenqis123.github.io/egoemg-site/"><img src="https://img.shields.io/badge/project-page-1971c2" alt="Project Page"></a>
 </p>
 
 <p align="center">
-  [ <a href="#-setup">Setup</a> ·
+  [ <a href="https://zhenqis123.github.io/egoemg-site/">Web</a> ·
+    <a href="#-setup">Setup</a> ·
     <a href="#-training">Training</a> ·
     <a href="#-visualization">Visualization</a> ·
     <a href="#-results-and-evaluation">Results</a> ·
