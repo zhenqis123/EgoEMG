@@ -1,68 +1,96 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="600" viewBox="0 0 2400 600" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="620" viewBox="0 0 2400 620" role="img" aria-labelledby="title description">
   <title id="title">EgoEMG Dataset at a glance</title>
   <desc id="description">Dataset statistics: 53 participants, over 18 hours of synchronized recordings, 60 gesture classes, 2 kilohertz bilateral wristband EMG, 120 hertz IMU on each wrist, and five sensing modalities.</desc>
   <defs>
-    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0d2135"/>
-      <stop offset="1" stop-color="#071421"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbf9f4"/>
+      <stop offset="1" stop-color="#f0ece2"/>
     </linearGradient>
-    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#203b5c"/>
-      <stop offset="1" stop-color="#172f4c"/>
-    </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#8f2ee7"/>
-      <stop offset="1" stop-color="#b65cff"/>
-    </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
-      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.24"/>
-    </filter>
-    <style>
-      .title { fill: #a855f7; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 46px; font-weight: 700; letter-spacing: 1px; }
-      .value { fill: #f8fafc; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 72px; font-weight: 700; }
-      .label { fill: #b8cae2; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 27px; font-weight: 400; }
-      .detail { fill: #91a9c7; font-family: 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif; font-size: 22px; font-weight: 400; }
-    </style>
   </defs>
 
-  <rect width="2400" height="600" fill="url(#background)"/>
-  <text x="1200" y="76" text-anchor="middle" class="title">EgoEMG Dataset at a glance</text>
+  <!-- paper card with ink border -->
+  <rect x="3" y="3" width="2394" height="614" rx="22" fill="url(#bg)" stroke="#191c20" stroke-width="5"/>
 
-  <g filter="url(#shadow)">
-    <rect x="76" y="104" width="680" height="224" rx="22" fill="url(#card)"/>
-    <rect x="76" y="104" width="680" height="13" rx="6.5" fill="url(#accent)"/>
-    <rect x="860" y="104" width="680" height="224" rx="22" fill="url(#card)"/>
-    <rect x="860" y="104" width="680" height="13" rx="6.5" fill="url(#accent)"/>
-    <rect x="1644" y="104" width="680" height="224" rx="22" fill="url(#card)"/>
-    <rect x="1644" y="104" width="680" height="13" rx="6.5" fill="url(#accent)"/>
-    <rect x="76" y="352" width="680" height="224" rx="22" fill="url(#card)"/>
-    <rect x="76" y="352" width="680" height="13" rx="6.5" fill="url(#accent)"/>
-    <rect x="860" y="352" width="680" height="224" rx="22" fill="url(#card)"/>
-    <rect x="860" y="352" width="680" height="13" rx="6.5" fill="url(#accent)"/>
-    <rect x="1644" y="352" width="680" height="224" rx="22" fill="url(#card)"/>
-    <rect x="1644" y="352" width="680" height="13" rx="6.5" fill="url(#accent)"/>
+  <!-- title row: mark + wordmark + signal trace -->
+  <g transform="translate(60,52)">
+    <!-- mini mark -->
+    <rect x="0" y="0" width="56" height="56" rx="12" fill="none" stroke="#191c20" stroke-width="3.5"/>
+    <polyline points="10,40 15,40 17,33 20,45 22,37 24,40 30,40" fill="none" stroke="#1971c2" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="32,40 38,40 40,45 43,30 45,38 47,35 52,35" fill="none" stroke="#e8590c" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="31" y1="36" x2="31" y2="12" stroke="#191c20" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="31" cy="38" r="3.5" fill="#e8590c"/>
+
+    <text x="78" y="34" font-family="'Segoe UI', Roboto, 'Noto Sans', Arial, sans-serif" font-size="28" font-weight="700" fill="#191c20" letter-spacing="0.5">EgoEMG</text>
+    <text x="78" y="54" font-family="'IBM Plex Mono', 'Courier New', monospace" font-size="14" fill="#7a828b" letter-spacing="2">DATASET AT A GLANCE</text>
+    <line x1="320" y1="28" x2="580" y2="28" stroke="#7a828b" stroke-width="1" stroke-dasharray="4,6" opacity="0.4"/>
+    <polyline points="330,28 355,28 363,16 372,40 380,22 388,28 405,28 425,28 433,18 442,38 450,20 458,28 480,28 580,28" fill="none" stroke="#e8590c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>
   </g>
 
-  <g text-anchor="middle">
-    <text x="416" y="212" class="value">53</text>
-    <text x="416" y="279" class="label">participants</text>
+  <!-- stat cards: 2×3 grid, 8 top accent per card -->
+  <!-- Card geometry: w=680, h=196, gap=48; row1 y=140, row2 y=366 -->
+  <!-- col x: 76, 804, 1532 -->
 
-    <text x="1200" y="212" class="value">18+ h</text>
-    <text x="1200" y="279" class="label">synchronized recordings</text>
+  <!-- Row 1 -->
+  <!-- 53 participants -->
+  <g>
+    <rect x="76" y="140" width="680" height="196" rx="16" fill="#ffffff" stroke="#191c20" stroke-width="1.5"/>
+    <rect x="76" y="140" width="680" height="8" rx="4" fill="#191c20"/>
+    <text x="416" y="220" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-size="64" font-weight="600" fill="#191c20">53</text>
+    <text x="416" y="254" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="20" fill="#454c54" letter-spacing="1">participants</text>
+    <text x="416" y="280" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="14" fill="#7a828b">106 hands · left &amp; right independently labelled</text>
+  </g>
 
-    <text x="1984" y="199" class="value">60</text>
-    <text x="1984" y="254" class="label">gesture classes</text>
-    <text x="1984" y="290" class="detail">30 unimanual · 30 bimanual</text>
+  <!-- 18+ h -->
+  <g>
+    <rect x="804" y="140" width="680" height="196" rx="16" fill="#ffffff" stroke="#191c20" stroke-width="1.5"/>
+    <rect x="804" y="140" width="680" height="8" rx="4" fill="#e8590c"/>
+    <text x="1144" y="220" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-size="64" font-weight="600" fill="#191c20">18+ h</text>
+    <text x="1144" y="254" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="20" fill="#454c54" letter-spacing="1">synchronized recordings</text>
+    <text x="1144" y="280" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="14" fill="#7a828b">132 million aligned frames @ 2 kHz</text>
+  </g>
 
-    <text x="416" y="460" class="value">2 kHz</text>
-    <text x="416" y="527" class="label">bilateral wristband EMG</text>
+  <!-- 60 gestures -->
+  <g>
+    <rect x="1532" y="140" width="680" height="196" rx="16" fill="#ffffff" stroke="#191c20" stroke-width="1.5"/>
+    <rect x="1532" y="140" width="680" height="8" rx="4" fill="#1971c2"/>
+    <text x="1872" y="216" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-size="64" font-weight="600" fill="#191c20">60</text>
+    <text x="1872" y="252" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="20" fill="#454c54" letter-spacing="1">gesture classes</text>
+    <text x="1872" y="280" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="14" fill="#7a828b">30 unimanual · 30 bimanual</text>
+  </g>
 
-    <text x="1200" y="460" class="value">120 Hz</text>
-    <text x="1200" y="527" class="label">IMU on each wrist</text>
+  <!-- Row 2 -->
+  <!-- 2 kHz EMG with signal traces -->
+  <g>
+    <rect x="76" y="366" width="680" height="196" rx="16" fill="#ffffff" stroke="#191c20" stroke-width="1.5"/>
+    <rect x="76" y="366" width="680" height="8" rx="4" fill="#e8590c"/>
+    <!-- mini signal traces -->
+    <polyline points="120,490 155,490 162,478 170,500 178,484 186,490 215,490" fill="none" stroke="#1971c2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <polyline points="230,490 265,490 272,500 280,478 288,494 296,490 325,490" fill="none" stroke="#e8590c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="540" y="446" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-size="64" font-weight="600" fill="#191c20">2 kHz</text>
+    <text x="540" y="482" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="20" fill="#454c54" letter-spacing="1">bilateral wristband EMG</text>
+    <text x="540" y="508" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="14" fill="#7a828b">8 channels per wrist · filtered + raw</text>
+  </g>
 
-    <text x="1984" y="440" class="value">5</text>
-    <text x="1984" y="492" class="label">sensing modalities</text>
-    <text x="1984" y="528" class="detail">sEMG · IMU · egocentric RGB</text>
-    <text x="1984" y="559" class="detail">RGB-D · motion capture</text>
+  <!-- 120 Hz IMU -->
+  <g>
+    <rect x="804" y="366" width="680" height="196" rx="16" fill="#ffffff" stroke="#191c20" stroke-width="1.5"/>
+    <rect x="804" y="366" width="680" height="8" rx="4" fill="#191c20"/>
+    <!-- accel + gyro glyphs -->
+    <line x1="860" y1="470" x2="910" y2="470" stroke="#1971c2" stroke-width="3" stroke-linecap="round"/>
+    <line x1="860" y1="482" x2="890" y2="482" stroke="#e8590c" stroke-width="3" stroke-linecap="round"/>
+    <line x1="860" y1="494" x2="830" y2="494" stroke="#1971c2" stroke-width="3" stroke-linecap="round"/>
+    <text x="1272" y="446" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-size="64" font-weight="600" fill="#191c20">120 Hz</text>
+    <text x="1272" y="482" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="20" fill="#454c54" letter-spacing="1">IMU on each wrist</text>
+    <text x="1272" y="508" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="14" fill="#7a828b">triaxial accel + gyro · both wrists</text>
+  </g>
+
+  <!-- 5 modalities -->
+  <g>
+    <rect x="1532" y="366" width="680" height="196" rx="16" fill="#ffffff" stroke="#191c20" stroke-width="1.5"/>
+    <rect x="1532" y="366" width="680" height="8" rx="4" fill="#e8590c"/>
+    <text x="1872" y="438" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-size="64" font-weight="600" fill="#191c20">5</text>
+    <text x="1872" y="474" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="20" fill="#454c54" letter-spacing="1">sensing modalities</text>
+    <text x="1872" y="500" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="14" fill="#7a828b">sEMG · IMU · egocentric RGB · RGB-D · mocap</text>
+    <text x="1872" y="520" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="14" fill="#7a828b">joint angles</text>
   </g>
 </svg>
