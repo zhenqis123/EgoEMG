@@ -127,19 +127,19 @@ MANO-mesh overlay**, embedded for each as a native video player (uploaded via
   <b>episode_000020 · wmh · train / user / gesture / both</b>
 </p>
 
-https://github.com/user-attachments/assets/86ab0035-fccc-4117-a66d-f82a5a12e9e6
+assets/demo_videos/episode_000020.mp4
 
 <p align="center">
   <b>episode_000008 · zbk · user / both</b>
 </p>
 
-https://github.com/user-attachments/assets/80e4646c-51d2-43c4-9d1f-5d63b06e82f7
+assets/demo_videos/episode_000008.mp4
 
 <p align="center">
   <b>episode_000028 · wsj · train / gesture</b>
 </p>
 
-https://github.com/user-attachments/assets/66da0936-609e-4e83-9077-a626f9b1fe9b
+assets/demo_videos/episode_000028.mp4
 
 ### Preview / small dataset
 
