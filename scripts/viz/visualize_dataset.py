@@ -46,7 +46,8 @@ os.environ.setdefault("MPLBACKEND", "Agg")
 os.environ.setdefault(
     "MPLCONFIGDIR", str(Path(tempfile.gettempdir()) / "emg2pose_viz_runtime" / "mpl"))
 
-from egoemg.visualization import viz_utils as vu  # noqa: E402
+from egoemg.visualization import viz_utils as vu
+from egoemg.visualization import mano_camera_params as mcp  # noqa: E402
 
 # ── timeline mode ───────────────────────────────────────────────────────────
 
@@ -162,6 +163,40 @@ def run_timeline(args: argparse.Namespace) -> int:
 # ── mesh mode ───────────────────────────────────────────────────────────────
 
 FLIP_YZ = np.diag([1.0, -1.0, -1.0, 1.0])
+
+
+def _render_mesh_overlay_camera(frame_bgr, hand_meshes, K_vid, renderer, alpha):
+    """Render camera-space hand meshes over an undistorted frame.
+
+    Identical to _render_mesh_overlay minus the world->camera leg: meshes
+    arrive already in camera coordinates, so the camera pose is identity.
+    """
+    import pyrender
+    import trimesh
+    scene = pyrender.Scene(ambient_light=[0.4, 0.4, 0.4])
+    for verts, faces, color_rgb in hand_meshes:
+        tm = trimesh.Trimesh(
+            vertices=verts.astype(np.float32), faces=faces)
+        tm.visual.vertex_colors = list(color_rgb) + [255]
+        scene.add(pyrender.Mesh.from_trimesh(tm, smooth=True))
+    cam = pyrender.IntrinsicsCamera(
+        fx=K_vid[0, 0], fy=K_vid[1, 1],
+        cx=K_vid[0, 2], cy=K_vid[1, 2], znear=0.01, zfar=100.0)
+    scene.add(cam, pose=np.eye(4))
+    scene.add(pyrender.DirectionalLight(color=[1.0] * 3, intensity=3.0),
+              pose=np.eye(4))
+    color_rgb, depth = renderer.render(scene)
+    mask = depth > 0
+    if not mask.any():
+        return frame_bgr
+    import cv2
+    overlay_bgr = cv2.cvtColor(color_rgb, cv2.COLOR_RGB2BGR)
+    out = frame_bgr.copy()
+    mask_3 = mask[:, :, None]
+    return np.where(
+        mask_3,
+        (alpha * overlay_bgr + (1.0 - alpha) * frame_bgr).astype(np.uint8),
+        out).astype(np.uint8)
 
 
 def _render_mesh_overlay(frame_bgr: np.ndarray,
@@ -554,6 +589,8 @@ def run_vision_video(args: argparse.Namespace) -> int:
         }
 
     decoder = vu.ManoMeshDecoder(args.mano_model_path, args.device)
+    # Root joints are nearly constant per (pose-run, beta); cache lazily.
+    j0_cache: dict[str, np.ndarray | None] = {"left": None, "right": None}
     faces_right = decoder._faces
     faces_left = faces_right[:, [0, 2, 1]]
     hand_faces = {"right": faces_right, "left": faces_left}
@@ -706,9 +743,13 @@ def run_vision_video(args: argparse.Namespace) -> int:
                 K_vid, dist, None, K_vid, (video_w, video_h), cv2.CV_32FC1)
         frame = cv2.remap(frame, mapx, mapy, cv2.INTER_LINEAR)
 
-        T_W_C = vu.t12_to_matrix(np.asarray(cam_tf_mm[global_i]))
+        # Camera-frame MANO parameters: a single forward with
+        # (global_orient=theta, transl=tau) yields camera-space vertices
+        # directly (see egoemg/visualization/mano_camera_params.py).
+        head_t12 = np.asarray(cam_tf_mm[global_i])
+        T_W_C = vu.t12_to_matrix(head_t12)
         beta_idx = int(beta_idx_arr[ep_idx])
-        hand_verts: dict[str, np.ndarray] = {}
+        hand_verts_cam: dict[str, np.ndarray] = {}
         for hand in ("left", "right"):
             pose = np.asarray(hand_data[hand]["pose"][global_i],
                               dtype=np.float64)
@@ -719,9 +760,13 @@ def run_vision_video(args: argparse.Namespace) -> int:
                 continue  # no valid MANO supervision for this row
             beta = np.asarray(hand_data[hand]["beta"][beta_idx],
                               dtype=np.float64)
-            R_w, t_w = vu.t12_world_rt(t12_world)
-            verts_local, _ = decoder.decode(pose, beta, hand)
-            hand_verts[hand] = vu.verts_world_from_local(verts_local, R_w, t_w)
+            if j0_cache[hand] is None:
+                j0_cache[hand] = decoder.root_joint(pose, beta)
+            p = mcp.mano_camera_params(head_t12, t12_world, j0_cache[hand],
+                                       left=(hand == "left"))
+            verts_cam, _ = decoder.decode_with_camera(
+                p["theta_aa"], pose, beta, p["tau"], hand)
+            hand_verts_cam[hand] = verts_cam
 
         if args.render_mode == "mesh":
             if (video_w, video_h) != renderer_size:
@@ -730,14 +775,14 @@ def run_vision_video(args: argparse.Namespace) -> int:
                 renderer = vu.make_pyrender_renderer(video_w, video_h)
                 renderer_size = (video_w, video_h)
             meshes = [
-                (hand_verts[h], hand_faces[h], vu.HAND_COLORS_RGB[h])
-                for h in ("left", "right") if h in hand_verts
+                (hand_verts_cam[h], hand_faces[h], vu.HAND_COLORS_RGB[h])
+                for h in ("left", "right") if h in hand_verts_cam
             ]
-            frame = _render_mesh_overlay(frame, meshes, T_W_C, K_vid,
-                                         renderer, args.mesh_alpha)
+            frame = _render_mesh_overlay_camera(frame, meshes, K_vid,
+                                                renderer, args.mesh_alpha)
 
-        for hand, verts_w in hand_verts.items():
-            verts_px, depth_valid = vu.project_pinhole(verts_w, T_W_C, K_vid)
+        for hand, verts_cam in hand_verts_cam.items():
+            verts_px, depth_valid = vu.project_pinhole_K(verts_cam, K_vid)
             in_image = (
                 (verts_px[:, 0] >= 0) & (verts_px[:, 0] < video_w)
                 & (verts_px[:, 1] >= 0) & (verts_px[:, 1] < video_h))
@@ -773,14 +818,19 @@ def run_vision_video(args: argparse.Namespace) -> int:
                     f"hand={hand} from {crop_lmdb}")
             if crop.shape[:2] != (crop_size, crop_size):
                 crop = cv2.resize(crop, (crop_size, crop_size))
-            if hand in hand_verts:
+            if hand in hand_verts_cam:
                 affine = _precrop_affine(
                     hand_data[hand]["keypoints"][global_i],
                     hand_data[hand]["keypoints_valid"][global_i],
                     T_W_C, K, dist, intrinsics_info, video_w, hand, crop_size)
                 if affine is not None:
+                    # crop pipeline needs WORLD verts; back-project the
+                    # camera-space mesh (mathematically the inverse of the
+                    # canonical forward).
+                    verts_w = (np.linalg.inv(T_W_C[:3, :3])
+                               @ hand_verts_cam[hand].T).T + T_W_C[:3, 3]
                     mesh_px, mesh_depth = vu.project_and_map(
-                        hand_verts[hand], T_W_C, K, dist, intrinsics_info)
+                        verts_w, T_W_C, K, dist, intrinsics_info)
                     if hand == "left":
                         mesh_px[:, 0] = (video_w - 1) - mesh_px[:, 0]
                     mesh_crop_px = cv2.transform(

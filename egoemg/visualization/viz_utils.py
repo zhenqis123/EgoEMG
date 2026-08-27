@@ -211,6 +211,17 @@ def project_and_map(
     return raw, depth_valid
 
 
+def project_pinhole_K(verts_cam: np.ndarray, K: np.ndarray):
+    """Project camera-space vertices through a pinhole K (no pose leg)."""
+    v = np.asarray(verts_cam, dtype=np.float64)
+    z = v[:, 2]
+    u = (K[0, 0] * v[:, 0] / np.where(np.abs(z) < 1e-9, 1e-9, z)
+         + K[0, 2])
+    w = (K[1, 1] * v[:, 1] / np.where(np.abs(z) < 1e-9, 1e-9, z)
+         + K[1, 2])
+    return np.stack([u, w], axis=1), z > 0
+
+
 def project_pinhole(
     points_world: np.ndarray,
     T_W_C: np.ndarray,
@@ -766,6 +777,47 @@ class ManoMeshDecoder:
             verts = verts * _MIRROR_X_3.astype(verts.dtype, copy=False)
             faces = faces[:, [0, 2, 1]]
         return verts, faces
+
+    def decode_with_camera(self, theta_aa, pose_aa, beta, tau, hand):
+        """MANO forward with explicit camera placement.
+
+        Returns camera-space vertices (and faces via decoder semantics):
+        right hand direct; left hand output is x-mirrored (chirality).
+        theta_aa: 3-axis-angle of the global orientation; tau: camera-frame
+        translation (see mano_camera_params.py for the derivation).
+        """
+        import torch
+        torch = self._torch
+        go = torch.tensor(np.asarray(theta_aa, dtype=np.float32),
+                          device=self._device).unsqueeze(0)
+        hp = torch.tensor(np.asarray(pose_aa, dtype=np.float32)[3:48],
+                          device=self._device).unsqueeze(0)
+        bt = torch.tensor(np.asarray(beta, dtype=np.float32),
+                          device=self._device).unsqueeze(0)
+        tr = torch.tensor(np.asarray(tau, dtype=np.float32),
+                          device=self._device).unsqueeze(0)
+        with torch.no_grad():
+            out = self._mano(global_orient=go, hand_pose=hp, betas=bt,
+                             transl=tr)
+        verts = out.vertices[0].cpu().numpy()
+        faces = self._faces
+        if hand == "left":
+            verts = verts * _MIRROR_X_3.astype(verts.dtype, copy=False)
+            faces = faces[:, [0, 2, 1]]
+        return verts, faces
+
+    def root_joint(self, pose_aa, beta):
+        """Root joint of the orient=0 model — the LBS pivot for theta."""
+        import torch
+        torch = self._torch
+        hp = torch.tensor(np.asarray(pose_aa, dtype=np.float32)[3:48],
+                          device=self._device).unsqueeze(0)
+        bt = torch.tensor(np.asarray(beta, dtype=np.float32),
+                          device=self._device).unsqueeze(0)
+        go = torch.zeros(1, 3, dtype=torch.float32, device=self._device)
+        with torch.no_grad():
+            out = self._mano(global_orient=go, hand_pose=hp, betas=bt)
+        return out.joints[0, 0].cpu().numpy()
 
     def marker_vertices(self, verts_local: np.ndarray) -> np.ndarray:
         return verts_local[MARKER_VERT_INDICES]
