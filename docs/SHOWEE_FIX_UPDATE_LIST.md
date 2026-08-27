@@ -1,4 +1,6 @@
-# ShowEE + 右腕 IMU 修复：需更新到百度网盘的文件清单
+# 数据修复总清单：需更新到百度网盘的文件
+
+（本轮新增第 4 项：全库刚体变换修复+平滑）
 
 修复内容（详见 git log `5c0d46a`、`c3dcd38`、`cc7b5d2`）：
 1. ShowEE 左手 MANO 世界变换 180° 翻转修复（z 镜像 → x 镜像约定）
@@ -13,9 +15,15 @@
 
 | 网盘路径 | 大小 | 说明 |
 |---|---|---|
+| `EgoEMG_full_memmap/mocap_head/mocap_head_transform.dat` | 6.4 GB | 头部变换修复+6Hz 平滑（impossible 步进 全库→0） |
+| `EgoEMG_full_memmap/mano/mocap_mano_left_world_transform.dat` | 6.4 GB | 左手世界变换同款处理 |
+| `EgoEMG_full_memmap/mano/mocap_mano_right_world_transform.dat` | 6.4 GB | 右手世界变换同款处理 |
+| `EgoEMG_full_memmap/checksums.json` | ~10 KB | 含上述三个文件的新 sha256 |
+
+| 网盘路径 | 大小 | 说明 |
+|---|---|---|
 | `EgoEMG_full_memmap/imu/imu_band_right.dat` | 3.2 GB | 右腕 IMU 恢复（39/41 episodes，ShowEE/Incre 行不变） |
 | `EgoEMG_full_memmap/mano/mocap_mano_left_world_transform.dat` | 4.7 GB | 左手变换修正（R ← R·Rot_y(180°)，平移不变） |
-| `EgoEMG_full_memmap/checksums.json` | ~10 KB | 上述两个文件的 sha256 已同步更新 |
 | `EgoEMG_crops/episode_000041.lmdb` … `episode_000062.lmdb`（22 个目录） | 共 20.2 GB | 用 session 标定重建的 ShowEE crops |
 | `EgoEMG_crops/episode_000041.done` … `episode_000062.done`（22 个小文件） | <1 KB | 对应的完成标记 |
 
