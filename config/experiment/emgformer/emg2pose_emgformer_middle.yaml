@@ -48,7 +48,7 @@ dataset:
       padding: [0, 0]
       jitter: false
       skip_ik_failures: False
-      allowed_splits: [val, test]
+      allowed_splits: [val]
   test:
     - _target_: egoemg.datasets.emg2pose_dataset.Emg2PoseDataset
       root_dir: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus/emg2pose_v3
