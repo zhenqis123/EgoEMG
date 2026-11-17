@@ -1,0 +1,25 @@
+# @package _global_
+evaluation_partition_path: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_dataset/assets/egoemg_evaluation_protocol.json
+egoemg_test_splits: [user, gesture, both, recent_object]
+dataset:
+  train:
+    - _target_: egoemg.datasets.session.fullframe.EgoEmgSessionFullFrameDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [train]
+      sample_interval_us: 400000
+  val:
+    - _target_: egoemg.datasets.session.fullframe.EgoEmgSessionFullFrameDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [user, gesture, both, recent_object]
+      evaluation_partition_path: ${evaluation_partition_path}
+      evaluation_role: val
+      sample_interval_us: 400000
+  test:
+    - _target_: egoemg.datasets.session.fullframe.EgoEmgSessionFullFrameDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [user, gesture, both, recent_object]
+      evaluation_partition_path: ${evaluation_partition_path}
+      evaluation_role: test
+      sample_interval_us: 400000
+datamodule:
+  batch_fetch: true

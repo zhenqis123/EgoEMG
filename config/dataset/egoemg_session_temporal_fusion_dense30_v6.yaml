@@ -1,0 +1,47 @@
+# @package _global_
+defaults:
+  - egoemg_session_temporal_vision_dense30_v6
+  - _self_
+
+temporal_causal_context: false
+temporal_emg_past_only: false
+
+dataset:
+  train:
+    - _target_: egoemg.datasets.session.fusion.EgoEmgSessionTemporalFusionDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [train]
+      sample_interval_us: 0
+      target_fps: 30
+      cache_dir: ${dense_frame_cache}
+      context_cache_dir: ${dense_frame_cache}
+      context_partition_path: ${evaluation_partition_path}
+      num_frames: ${temporal_num_frames}
+      causal_context: ${temporal_causal_context}
+      emg_past_only: ${temporal_emg_past_only}
+      frame_interval_us: ${temporal_frame_interval_us}
+      max_open_sessions: 96
+      window_length: 8000
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      jitter: false
+  val:
+    - &temporal_emg_eval
+      _target_: egoemg.datasets.session.fusion.EgoEmgSessionTemporalFusionDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [user, gesture, both, recent_object]
+      sample_interval_us: 400000
+      context_cache_dir: ${dense_frame_cache}
+      context_partition_path: ${evaluation_partition_path}
+      evaluation_partition_path: ${evaluation_partition_path}
+      evaluation_role: val
+      num_frames: ${temporal_num_frames}
+      causal_context: ${temporal_causal_context}
+      emg_past_only: ${temporal_emg_past_only}
+      frame_interval_us: ${temporal_frame_interval_us}
+      max_open_sessions: 96
+      window_length: 8000
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      jitter: false
+  test:
+    - <<: *temporal_emg_eval
+      evaluation_role: test

@@ -1,0 +1,87 @@
+# @package _global_
+# 17-frame temporal vision settings used in the paper.
+defaults:
+- /lineage/fusion
+- /module: bimanual_temporal_vision
+- override /dataset: egoemg_session_temporal_vision_dense30_v6
+- override /transforms: noop
+- _self_
+egoemg_session_v2_dir: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_dataset
+temporal_num_frames: 17
+temporal_frame_interval_us: 250000
+temporal_vision_checkpoint: null
+checkpoint: null
+resume_ckpt: null
+train: true
+eval: false
+center_frame_eval: false
+enable_fingertip_loss: false
+bf16_gradient_communication: true
+batch_augmentation: null
+batch_size: 20
+val_batch_size: 20
+num_workers: 8
+component_lr_scales:
+  vision: 1.0
+  temporal: 1.0
+optimizer:
+  lr: 5.0e-05
+  weight_decay: 0.01
+lr_scheduler:
+  scheduler:
+    _target_: egoemg.training.schedulers.ProportionalCosineAnnealingLR
+    T_max: 200
+    eta_min: 5.0e-06
+loss_weights:
+  mae: 1.0
+  landmark/fingertip: 0.0
+datamodule:
+  _target_: egoemg.training.datamodule.WindowedEmgDataModule
+  window_length: 8000
+  val_test_window_length: 8000
+  norm_mode: null
+  dataset_repeat: 1
+  batch_fetch: true
+  train_samples_per_epoch: 33786
+  cuda_prefetch: true
+  pin_memory: true
+  persistent_workers: true
+  prefetch_factor: 2
+  eval_num_workers: 4
+trainer:
+  devices:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  strategy: ddp
+  max_epochs: 200
+  min_epochs: 0
+  accumulate_grad_batches: 1
+  check_val_every_n_epoch: 1
+  val_check_interval: 1.0
+  num_sanity_val_steps: 0
+callbacks:
+- _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  monitor: val_mae
+  mode: min
+  save_top_k: 1
+  save_last: true
+  save_on_train_epoch_end: false
+  filename: temporal-vision-{epoch:03d}-{val_mae:.6f}
+- _target_: pytorch_lightning.callbacks.LearningRateMonitor
+logger:
+  save_dir: ${hydra:runtime.output_dir}
+  name: ''
+  version: ''
+module:
+  vision_config:
+    _target_: egoemg.models.modules.bimanual_vision.BimanualVisionViTPose
+    backbone_type: vit_small
+    pretrained: true
+    freeze_backbone: false
+    head_hidden: 512
+    head_dropout: 0.1
+  feedforward_dim: 5504

@@ -1,0 +1,80 @@
+# @package _global_
+# Shared session training settings for the public paper recipes.
+defaults:
+- /lineage/vision_vit
+- override /dataset: egoemg_session_dense30_session_v6
+- _self_
+egoemg_session_v2_dir: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_dataset
+train: true
+eval: false
+center_frame_eval: false
+batch_augmentation: null
+batch_size: 320
+val_batch_size: 320
+trainer:
+  max_epochs: 50
+  devices:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  strategy: ddp
+  min_epochs: 0
+  check_val_every_n_epoch: 1
+  accumulate_grad_batches: 1
+  val_check_interval: 1.0
+  num_sanity_val_steps: 0
+num_workers: 8
+datamodule:
+  norm_mode: null
+  dataset_repeat: 1
+  pin_memory: true
+  session_shuffle: false
+  prefetch_factor: 2
+  cuda_prefetch: true
+  _target_: egoemg.training.datamodule.WindowedEmgDataModule
+  eval_num_workers: 4
+logger:
+  save_dir: ${hydra:runtime.output_dir}
+  name: ''
+  version: ''
+enable_fingertip_loss: false
+module:
+  _target_: egoemg.models.modules.bimanual_vision.BimanualVisionViTPose
+  backbone_type: vit_small
+  out_channels: 44
+  pretrained: false
+  freeze_backbone: false
+optimizer:
+  lr: 1.0e-05
+  weight_decay: 0.01
+lr_scheduler:
+  scheduler:
+    T_max: 50
+    eta_min: 1.0e-06
+callbacks:
+- _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  monitor: val_mae
+  mode: min
+  save_top_k: 3
+  save_last: true
+  save_on_train_epoch_end: false
+  filename: vision-converge-{epoch:03d}-{val_mae:.6f}
+- _target_: pytorch_lightning.callbacks.LearningRateMonitor
+- _target_: pytorch_lightning.callbacks.EarlyStopping
+  monitor: val_mae
+  mode: min
+  patience: 10
+  min_delta: 0.0
+  check_on_train_epoch_end: false
+vision_source_checkpoint: null
+checkpoint: null
+resume_ckpt: null
+pretrained_checkpoint: null
+pretrained_strict: true
+freeze_backbone: false
+loss_weights:
+  mae: 1.0
+  fingertip_distance: 0.0

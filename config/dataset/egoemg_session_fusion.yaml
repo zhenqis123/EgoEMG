@@ -1,0 +1,35 @@
+# @package _global_
+evaluation_partition_path: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_dataset/assets/egoemg_evaluation_protocol.json
+train_window_jitter: true
+egoemg_test_splits: [user, gesture, both, recent_object]
+dataset:
+  train:
+    - _target_: egoemg.datasets.session.fusion.EgoEmgSessionFullFrameFusionDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [train]
+      sample_interval_us: 400000
+      window_length: 8000
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      jitter: ${train_window_jitter}
+  val:
+    - _target_: egoemg.datasets.session.fusion.EgoEmgSessionFullFrameFusionDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [user, gesture, both, recent_object]
+      evaluation_partition_path: ${evaluation_partition_path}
+      evaluation_role: val
+      sample_interval_us: 400000
+      window_length: 8000
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      jitter: false
+  test:
+    - _target_: egoemg.datasets.session.fusion.EgoEmgSessionFullFrameFusionDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [user, gesture, both, recent_object]
+      evaluation_partition_path: ${evaluation_partition_path}
+      evaluation_role: test
+      sample_interval_us: 400000
+      window_length: 8000
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+      jitter: false
+datamodule:
+  batch_fetch: true

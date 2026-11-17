@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="560" viewBox="0 0 1440 560" role="img" aria-labelledby="title description">
+<title id="title">EgoEMG dataset at a glance</title>
+<desc id="description">68 participants, 25.9 hours in 81 recording sessions, 60 gesture classes, 10 object categories, 8 EMG channels per wrist, and 22 finger and wrist angles per hand. Synchronized EMG, IMU, RGB and RGB-D vision, and motion capture.</desc>
+<rect x="1" y="1" width="1438" height="558" rx="22" fill="#f5f7f4" stroke="#d5e0dc" stroke-width="2"/>
+<g font-family="Lato, Segoe UI, sans-serif">
+<rect x="32" y="30" width="4" height="43" rx="2" fill="#176879"/>
+<text x="52" y="49" fill="#176879" font-size="17" font-weight="800" letter-spacing="2.1">EGOEMG / DATASET AT A GLANCE</text>
+<text x="52" y="79" fill="#52636b" font-size="21">Synchronized muscle activity, vision and hand pose.</text>
+<text x="1408" y="51" text-anchor="end" fill="#52636b" font-size="17">BILATERAL · EGOCENTRIC</text>
+
+<g transform="translate(32 112)">
+<rect width="448" height="174" rx="14" fill="#ffffff" stroke="#dbe4e0"/>
+<circle cx="405" cy="38" r="23" fill="#edf4f1"/>
+<g transform="translate(387 20)" fill="none" stroke="#24727c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="10" r="5"/><path d="M4 29v-4c0-5 4-8 10-8s10 3 10 8v4M24 7a5 5 0 0 1 0 10M28 21c3 1 4 4 4 8"/></g>
+<text x="26" y="78" fill="#163d48" font-size="64" font-weight="800" letter-spacing="-1.6">68</text>
+<text x="28" y="116" fill="#20343e" font-size="24" font-weight="700">participants</text>
+<text x="28" y="146" fill="#52636b" font-size="18">Bilateral hand recordings</text>
+</g>
+<g transform="translate(496 112)">
+<rect width="448" height="174" rx="14" fill="#ffffff" stroke="#dbe4e0"/>
+<circle cx="405" cy="38" r="23" fill="#edf4f1"/>
+<g transform="translate(387 20)" fill="none" stroke="#24727c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="13"/><path d="M18 9v10l7 4"/></g>
+<text x="26" y="78" fill="#163d48" font-size="64" font-weight="800" letter-spacing="-1.6">25.9</text>
+<text x="28" y="116" fill="#20343e" font-size="24" font-weight="700">hours of recordings</text>
+<text x="28" y="146" fill="#52636b" font-size="18">81 recording sessions</text>
+</g>
+<g transform="translate(960 112)">
+<rect width="448" height="174" rx="14" fill="#ffffff" stroke="#dbe4e0"/>
+<circle cx="405" cy="38" r="23" fill="#edf4f1"/>
+<g transform="translate(387 20)" fill="none" stroke="#24727c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 28 5 19c-2-4 1-6 4-3l3 3V8c0-4 5-4 5 0v8-11c0-4 5-4 5 0v11-8c0-4 5-4 5 0v11-6c0-4 5-4 5 0v9c0 9-4 12-11 12-5 0-8-2-10-6Z"/></g>
+<text x="26" y="78" fill="#163d48" font-size="64" font-weight="800" letter-spacing="-1.6">60</text>
+<text x="28" y="116" fill="#20343e" font-size="24" font-weight="700">gesture classes</text>
+<text x="28" y="146" fill="#52636b" font-size="18">Bare-hand gesture sequences</text>
+</g>
+<g transform="translate(32 302)">
+<rect width="448" height="174" rx="14" fill="#ffffff" stroke="#dbe4e0"/>
+<circle cx="405" cy="38" r="23" fill="#edf4f1"/>
+<g transform="translate(387 20)" fill="none" stroke="#24727c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m18 3 14 8v16l-14 8-14-8V11l14-8Zm-14 8 14 8 14-8M18 19v16M11 7l14 8"/></g>
+<text x="26" y="78" fill="#163d48" font-size="64" font-weight="800" letter-spacing="-1.6">10</text>
+<text x="28" y="116" fill="#20343e" font-size="24" font-weight="700">object categories</text>
+<text x="28" y="146" fill="#52636b" font-size="18">Everyday hand–object interactions</text>
+</g>
+<g transform="translate(496 302)">
+<rect width="448" height="174" rx="14" fill="#ffffff" stroke="#dbe4e0"/>
+<circle cx="405" cy="38" r="23" fill="#edf4f1"/>
+<g transform="translate(387 20)" fill="none" stroke="#24727c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 19h6l4-12 6 23 5-18 4 7h7"/></g>
+<text x="26" y="78" fill="#163d48" font-size="64" font-weight="800" letter-spacing="-1.6">8</text>
+<text x="28" y="116" fill="#20343e" font-size="24" font-weight="700">EMG channels</text>
+<text x="28" y="146" fill="#52636b" font-size="18">8 channels on each wrist</text>
+</g>
+<g transform="translate(960 302)">
+<rect width="448" height="174" rx="14" fill="#ffffff" stroke="#dbe4e0"/>
+<circle cx="405" cy="38" r="23" fill="#edf4f1"/>
+<g transform="translate(387 20)" fill="none" stroke="#24727c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 30V5M5 30h27M5 30 29 7M5 17a13 13 0 0 1 9 4"/><circle cx="5" cy="30" r="2"/></g>
+<text x="26" y="78" fill="#163d48" font-size="64" font-weight="800" letter-spacing="-1.6">22</text>
+<text x="28" y="116" fill="#20343e" font-size="24" font-weight="700">angles per hand</text>
+<text x="28" y="146" fill="#52636b" font-size="18">20 finger + 2 wrist angles</text>
+</g>
+<path d="M32 505H1408" stroke="#d5e0dc"/>
+<text x="32" y="539" fill="#52636b" font-size="17" font-weight="700" letter-spacing="1">SYNCHRONIZED MODALITIES</text>
+<text x="1408" y="539" text-anchor="end" fill="#20343e" font-size="21">EMG · IMU · RGB / RGB-D · Motion capture</text>
+</g>
+</svg>

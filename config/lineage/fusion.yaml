@@ -1,0 +1,39 @@
+# @package _global_
+# L1 lineage: Fusion / Vision main line (vision → pose, EMG+vision fusion)
+#
+# Encapsulates ONLY the framework-level defaults uniformly shared across
+# config/experiment/fusion/*. Vision and fusion models have different module
+# architectures and supervision modes, so model parameters are NOT pinned.
+#
+# Shared training defaults:
+#   precision=bf16-mixed, gradient_clip_val=1, matmul_precision=high,
+#   ignore_head_tail_dims=0.
+#
+# NOT pinned (vary between vision-only baselines and EMG fusion experiments):
+#   module, transforms, datamodule.{wl,stride,repeat,norm_stats}, optimizer,
+#   loss_weights, center_target_only, skip_emg_loading, vision_num_frames,
+#   per_episode_crops_dir, max_epochs, devices.
+defaults:
+  - /lineage/_base
+  - override /dataset: default
+  - override /datamodule: default
+  - override /lr_scheduler: cosine
+  - _self_
+  # module NOT pinned. transforms NOT pinned. vision fields NOT pinned.
+
+# Lineage identifier.
+lineage: fusion
+
+
+# Session recipes supply normalization statistics for their data.
+datamodule:
+  per_dataset_norm_stats_path: null
+
+# Model-specific external assets are configured by the corresponding recipe.
+
+# ── Uniform training-framework defaults ──────────────────────────────────────
+
+trainer:
+  gradient_clip_val: 1
+  precision: bf16-mixed
+  # max_epochs, check_val_every_n_epoch, log_every_n_steps, devices: NOT pinned.

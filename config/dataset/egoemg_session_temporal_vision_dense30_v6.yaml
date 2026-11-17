@@ -1,0 +1,34 @@
+# @package _global_
+defaults:
+  - egoemg_session_dense30_session_v6
+  - _self_
+
+dataset:
+  train:
+    - _target_: egoemg.datasets.session.temporal.EgoEmgSessionTemporalVisionDataset
+      num_frames: ${temporal_num_frames}
+      frame_interval_us: ${temporal_frame_interval_us}
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [train]
+      sample_interval_us: 0
+      target_fps: 30
+      cache_dir: ${dense_frame_cache}
+      context_cache_dir: ${dense_frame_cache}
+      context_partition_path: ${evaluation_partition_path}
+      max_open_sessions: 96
+  val:
+    - &temporal_eval
+      _target_: egoemg.datasets.session.temporal.EgoEmgSessionTemporalVisionDataset
+      num_frames: ${temporal_num_frames}
+      frame_interval_us: ${temporal_frame_interval_us}
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [user, gesture, both, recent_object]
+      sample_interval_us: 400000
+      context_cache_dir: ${dense_frame_cache}
+      context_partition_path: ${evaluation_partition_path}
+      evaluation_partition_path: ${evaluation_partition_path}
+      evaluation_role: val
+      max_open_sessions: 96
+  test:
+    - <<: *temporal_eval
+      evaluation_role: test

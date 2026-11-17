@@ -1,0 +1,17 @@
+# @package _global_
+defaults:
+  - egoemg_session_dense30
+  - _self_
+evaluation_partition_path: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_dataset/assets/egoemg_evaluation_protocol.json
+dataset:
+  val:
+    - &axis_eval
+      _target_: egoemg.datasets.session.fullframe.EgoEmgSessionFullFrameDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [user, gesture, both, recent_object]
+      sample_interval_us: 400000
+      evaluation_partition_path: ${evaluation_partition_path}
+      evaluation_role: val
+  test:
+    - <<: *axis_eval
+      evaluation_role: test

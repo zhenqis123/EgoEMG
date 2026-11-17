@@ -1,0 +1,10 @@
+_target_: egoemg.models.modules.bimanual_simple_residual.BimanualSimpleResidualFusion
+vision_checkpoint: ${fusion_vision_checkpoint}
+emg_checkpoint: ${fusion_emg_checkpoint}
+fusion_dim: 256
+fusion_hidden_dim: 512
+head_hidden_dim: 512
+dropout: 0.1
+residual_init_std: 1.0e-5
+freeze_emg: false
+freeze_vision: true

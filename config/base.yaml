@@ -1,0 +1,101 @@
+defaults:
+  - _self_
+  - dataset: default
+  - datamodule: default
+  - optimizer: adamw
+  - lr_scheduler: cosine
+  - data_split: full_split
+  - transforms: rotation_augmentation
+  # Placeholder experiment so `experiment=<group>/<name>` overrides work. Always
+  # pass `experiment=...` explicitly on the CLI — this default only exists so
+  # Hydra's defaults-list has an `experiment` group entry to override.
+  - experiment: emgformer/emgformer_s
+
+data_location: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap
+manus_memmap_dir: data/manus_memmap
+
+seed: 42
+matmul_precision: high  # one of: highest, high, medium
+default_model_summary: True
+model_summary_max_depth: 2
+
+batch_size: 320
+num_workers: 4  # Number of workers for dataloading
+
+train: True  # Whether to run training
+eval: True  # Whether to run evaluation on validation and test splits
+checkpoint: null
+resume_ckpt: null  # Path to Lightning checkpoint to resume training from (ckpt_path for trainer.fit)
+pretrained_checkpoint: null  # For loading backbone from pretrained model
+pretrained_strict: false
+freeze_backbone: false
+stage2_vision_checkpoint: null  # For Stage 2: load vision_proj/fusion_proj/head from vision_only ckpt
+component_lr_scales: {}  # Per-component LR scales, e.g. {featurizer: 1.0, vision_proj: 0.0}
+ignore_head_tail_dims: 0
+
+batch_augmentation: null  # GPU batch augmentation config; null = disabled
+
+monitor_metric: val_mae
+monitor_mode: min
+
+loss_weights:
+  mae: 1
+  landmark/fingertip: 0.01
+
+# Trainer framework fields. precision is intentionally NOT set here — it must
+# be provided by a lineage or the experiment to avoid silent fp32-vs-bf16
+# fallbacks. devices defaults to a single GPU so the documented
+# `trainer.devices=[...]` overrides compose without `+`; multi-GPU runs must
+# override it explicitly. max_epochs is kept as a fallback because
+# lr_scheduler.cosine.T_max interpolates ${trainer.max_epochs}.
+trainer:
+  max_epochs: 200
+  devices: 1
+  log_every_n_steps: 1
+  enable_model_summary: False
+
+# By default: static learning rate
+callbacks:
+  - _target_: pytorch_lightning.callbacks.ModelSummary
+    max_depth: 2
+  - _target_: pytorch_lightning.callbacks.LearningRateMonitor
+  - _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    save_top_k: 3
+    save_last: True
+    verbose: True
+    filename: "best-${monitor_metric}={${monitor_metric}:.4f}"
+  - _target_: pytorch_lightning.callbacks.EarlyStopping
+    monitor: ${monitor_metric}
+    mode: ${monitor_mode}
+    patience: 200
+    check_on_train_epoch_end: False
+    verbose: True
+
+logger:
+  _target_: pytorch_lightning.loggers.TensorBoardLogger
+  save_dir: ${hydra:runtime.output_dir}
+  name: ""
+  version: ""
+  default_hp_metric: false
+
+# Customize hydra directory outputs
+# see: https://hydra.cc/docs/0.11/configure_hydra/workdir/
+hydra:
+  # Keep the launch cwd (repo root / EGOEMG_ROOT layout) instead of the
+  # per-run directory, so `${oc.env:EGOEMG_ROOT,.}` relative fallbacks for
+  # memmap/assets paths resolve identically before and after job start.
+  job:
+    chdir: false
+    name: egoemg
+    config:
+      override_dirname:
+        exclude_keys:
+          - seed
+  run:
+    dir: logs/${now:%Y-%m-%d}/${now:%H-%M-%S}_${hydra.job.name}
+  sweep:
+    dir: ${hydra.run.dir}
+    subdir: ${hydra.job.num}_${hydra.job.override_dirname}/seed=${seed}
+  output_subdir: hydra_configs

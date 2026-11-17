@@ -1,0 +1,85 @@
+# @package _global_
+evaluation_partition_path: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_dataset/assets/egoemg_evaluation_protocol.json
+# Independent-clock session-v2 EgoEMG archive, EMG-only angle regression.
+# Each hand is a separate training example; row split IDs are checked over the
+# entire EMG window by EgoEmgSessionDataset.
+train_window_jitter: true
+session_emg_field: emg_filtered
+egoemg_test_splits: [user, gesture, both, recent_object]
+
+dataset:
+  train:
+    - _target_: egoemg.datasets.session.emg.EgoEmgSessionDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      target_hand: left
+      allowed_splits: [train]
+      jitter: ${train_window_jitter}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      emg_field: ${session_emg_field}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+    - _target_: egoemg.datasets.session.emg.EgoEmgSessionDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      target_hand: right
+      allowed_splits: [train]
+      jitter: ${train_window_jitter}
+      window_length: ${datamodule.window_length}
+      stride: ${datamodule.stride}
+      emg_field: ${session_emg_field}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+  val:
+    - _target_: egoemg.datasets.session.emg.EgoEmgSessionDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      target_hand: left
+      allowed_splits: [user, gesture, both, recent_object]
+      evaluation_partition_path: ${evaluation_partition_path}
+      evaluation_role: val
+      jitter: false
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      emg_field: ${session_emg_field}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+    - _target_: egoemg.datasets.session.emg.EgoEmgSessionDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      target_hand: right
+      allowed_splits: [user, gesture, both, recent_object]
+      evaluation_partition_path: ${evaluation_partition_path}
+      evaluation_role: val
+      jitter: false
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      emg_field: ${session_emg_field}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+  test:
+    - _target_: egoemg.datasets.session.emg.EgoEmgSessionDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      target_hand: left
+      allowed_splits: [user, gesture, both, recent_object]
+      evaluation_partition_path: ${evaluation_partition_path}
+      evaluation_role: test
+      jitter: false
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      emg_field: ${session_emg_field}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+    - _target_: egoemg.datasets.session.emg.EgoEmgSessionDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      target_hand: right
+      allowed_splits: [user, gesture, both, recent_object]
+      evaluation_partition_path: ${evaluation_partition_path}
+      evaluation_role: test
+      jitter: false
+      window_length: ${datamodule.val_test_window_length}
+      stride: ${datamodule.val_test_stride}
+      emg_field: ${session_emg_field}
+      norm_mode: ${datamodule.norm_mode}
+      norm_stats_path: ${datamodule.per_dataset_norm_stats_path}
+
+# Fill session batches directly in final worker-shared buffers.
+datamodule:
+  batch_fetch: true

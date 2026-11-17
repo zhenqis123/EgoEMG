@@ -1,0 +1,14 @@
+# No-op transforms — EMG is skipped via skip_emg_loading in vision_only mode.
+# The Compose object is still required by the datamodule but never invoked.
+train:
+  - _target_: egoemg.augmentation.transforms.ExtractField
+    field: emg
+  - _target_: egoemg.augmentation.transforms.ToFloatTensor
+val:
+  - _target_: egoemg.augmentation.transforms.ExtractField
+    field: emg
+  - _target_: egoemg.augmentation.transforms.ToFloatTensor
+test:
+  - _target_: egoemg.augmentation.transforms.ExtractField
+    field: emg
+  - _target_: egoemg.augmentation.transforms.ToFloatTensor

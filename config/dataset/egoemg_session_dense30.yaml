@@ -1,0 +1,19 @@
+# @package _global_
+defaults:
+  - egoemg_session
+  - _self_
+
+dense_frame_cache: ${egoemg_session_v2_dir}/fullframe_256_30fps
+dataset:
+  train:
+    - _target_: egoemg.datasets.session.fullframe.EgoEmgSessionFullFrameDataset
+      dataset_dir: ${egoemg_session_v2_dir}
+      allowed_splits: [train]
+      cache_dir: ${dense_frame_cache}
+      sample_interval_us: 0
+      target_fps: 30
+      max_open_sessions: 96
+# Validation/test inherit separate session-v6 roles on the sparse grid.
+datamodule:
+  train_samples_per_epoch: 168928
+  session_shuffle: false

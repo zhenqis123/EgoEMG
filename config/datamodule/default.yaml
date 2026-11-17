@@ -1,0 +1,19 @@
+# @package _global_
+datamodule:
+  _target_: egoemg.training.datamodule.WindowedEmgDataModule
+  dataset_conf: ${dataset}
+  window_length: 2_000  # 1 second windows for 2kHz EMG
+  val_test_window_length: 10_000  # 20 sec windows for 2kHz EMG
+  stride: null
+  val_test_stride: null
+  eval_center_stride: null  # set to a fixed stride (e.g. 7790) for unified center-frame eval across WLs
+  padding: [0, 0]
+  pin_memory: true
+  persistent_workers: true
+  prefetch_factor: 4
+  skip_ik_failures: False
+  max_open_files: 32
+  norm_mode: null  # null | batch | instance | per-dataset
+  norm_stats_path: null
+  per_dataset_norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap/per_dataset_norm_stats.json
+  norm_eps: 1e-6

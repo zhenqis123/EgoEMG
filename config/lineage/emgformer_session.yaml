@@ -1,0 +1,27 @@
+# @package _global_
+# Shared session training settings for the public paper recipes.
+defaults:
+- /lineage/emgformer_regression
+- override /dataset: egoemg_session_v2_emgformer
+- override /module/decoder: transformer/preset/small
+- _self_
+egoemg_session_v2_dir: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_dataset
+batch_size: 600
+num_workers: 8
+train_monitor_interval: 10
+datamodule:
+  window_length: 8000
+  val_test_window_length: 8000
+  stride: 2000
+  val_test_stride: 8000
+  per_dataset_norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/egoemg_emg_normalization_filtered.json
+logger:
+  save_dir: ${hydra:runtime.output_dir}
+  name: ''
+  version: ''
+trainer:
+  max_epochs: 250
+val_batch_size: ${batch_size}
+module:
+  decoder:
+    dropout: 0.15

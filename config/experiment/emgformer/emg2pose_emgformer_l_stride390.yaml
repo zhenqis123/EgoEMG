@@ -1,0 +1,16 @@
+# @package _global_
+# Public counterpart of the recorded stride390 / FK0.01 experiment.
+defaults:
+  - /lineage/emgformer_emg2pose
+  - _self_
+
+train: true
+eval: false
+checkpoint: null
+resume_ckpt: null
+pretrained_checkpoint: null
+hydra:
+  job:
+    name: emg2pose_emgformer_l_stride390
+  run:
+    dir: logs/training/emg2pose_emgformer_l_stride390/${now:%Y-%m-%d_%H-%M-%S}

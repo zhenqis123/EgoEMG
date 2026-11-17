@@ -1,0 +1,21 @@
+# @package _global_
+# 17 RGB frames over four seconds, initialized with DINOv2.
+defaults:
+- /lineage/vision_temporal
+- _self_
+checkpoint: null
+resume_ckpt: null
+pretrained_checkpoint: null
+train: true
+eval: false
+batch_size: 16
+val_batch_size: 16
+num_workers: 4
+dense_frame_cache: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_dataset/fullframe_256_30fps
+trainer:
+  devices:
+  - 0
+  strategy: auto
+hydra:
+  run:
+    dir: logs/training/temporal_vision_vit_s/${now:%Y-%m-%d_%H-%M-%S}

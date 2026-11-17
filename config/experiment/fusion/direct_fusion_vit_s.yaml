@@ -1,0 +1,9 @@
+# @package _global_
+# Direct-fusion ablation with the same data and optimization as residual fusion.
+defaults:
+- /experiment/fusion/fusion_vit_s
+- override /module: bimanual_direct_fusion
+- _self_
+hydra:
+  run:
+    dir: logs/training/direct_fusion_vit_s/${now:%Y-%m-%d_%H-%M-%S}

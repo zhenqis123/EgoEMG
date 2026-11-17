@@ -1,0 +1,60 @@
+# @package _global_
+# Temporal residual fusion; supply validation-selected temporal vision and EMG branches.
+temporal_num_frames: 17
+temporal_frame_interval_us: 250000
+fusion_vision_checkpoint: ${oc.env:EGOEMG_CHECKPOINT_ROOT,pretrained_models/egoemg}/vision_vit_s_temporal_17f.ckpt
+module:
+  freeze_vision: false
+  freeze_emg: false
+  independent_hand_heads: true
+batch_size: 16
+val_batch_size: 16
+num_workers: 4
+bf16_gradient_communication: true
+component_lr_scales:
+  vision: 1.0
+  emg: 1.0
+  fusion: 1.0
+optimizer:
+  lr: 0.0001
+  weight_decay: 0.01
+lr_scheduler:
+  scheduler:
+    T_max: 100
+    eta_min: 1.0e-05
+datamodule:
+  train_samples_per_epoch: 33786
+  batch_fetch: true
+  cuda_prefetch: true
+  eval_num_workers: 4
+trainer:
+  devices:
+  - 0
+  max_epochs: 100
+  min_epochs: 0
+  accumulate_grad_batches: 1
+  check_val_every_n_epoch: 1
+  val_check_interval: 1.0
+  strategy: auto
+callbacks:
+- _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  monitor: val_mae
+  mode: min
+  save_top_k: 1
+  save_last: true
+  save_on_train_epoch_end: false
+  filename: temporal-emg-{epoch:03d}-{val_mae:.6f}
+- _target_: pytorch_lightning.callbacks.LearningRateMonitor
+- _target_: pytorch_lightning.callbacks.EarlyStopping
+  monitor: val_mae
+  mode: min
+  patience: 20
+  min_delta: 0.0
+  check_on_train_epoch_end: false
+defaults:
+- /experiment/fusion/fusion_vit_s
+- override /dataset: egoemg_session_temporal_fusion_dense30_v6
+- _self_
+hydra:
+  run:
+    dir: logs/training/temporal_fusion_vit_s/${now:%Y-%m-%d_%H-%M-%S}

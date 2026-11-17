@@ -1,0 +1,39 @@
+_target_: egoemg.models.featurizers.tds.TdsNetwork
+
+se:
+  enable: true
+  reduction: 4
+  residual: true
+  mode: global
+
+conv_blocks:
+  - _target_: egoemg.models.featurizers.tds.Conv1dBlock
+    in_channels: 16
+    out_channels: 256
+    kernel_size: 11
+    stride: 5
+  - _target_: egoemg.models.featurizers.tds.Conv1dBlock
+    in_channels: 256
+    out_channels: 256
+    kernel_size: 5
+    stride: 2
+
+tds_stages:
+  - _target_: egoemg.models.featurizers.tds.TdsStage
+    in_channels: 256
+    in_conv_kernel_width: 9
+    in_conv_stride: 5
+    num_blocks: 1
+    # Total channel depth is channels * feature_width = 8 * 32 = 256
+    channels: 8
+    feature_width: 32
+    kernel_width: 5
+  - _target_: egoemg.models.featurizers.tds.TdsStage
+    in_channels: 256
+    in_conv_kernel_width: 3
+    in_conv_stride: 1
+    num_blocks: 1
+    # Total channel depth is channels * feature_width = 8 * 32 = 256
+    channels: 8
+    feature_width: 32
+    kernel_width: 3

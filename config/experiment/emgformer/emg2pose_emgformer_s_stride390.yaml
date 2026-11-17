@@ -1,0 +1,12 @@
+# @package _global_
+# Matched stride390 / FK0.01 recipe; change only the EMGFormer size.
+defaults:
+  - /experiment/emgformer/emg2pose_emgformer_l_stride390
+  - override /module/decoder: transformer/preset/small
+  - _self_
+
+hydra:
+  job:
+    name: emg2pose_emgformer_s_stride390
+  run:
+    dir: logs/training/emg2pose_emgformer_s_stride390/${now:%Y-%m-%d_%H-%M-%S}

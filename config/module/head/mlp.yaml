@@ -1,0 +1,7 @@
+_target_: egoemg.models.heads.mlp.MLPHead
+
+in_channels: ${module.decoder.model_dim}
+out_channels: 22
+hidden_sizes: [512]
+activation: relu
+dropout: 0.1

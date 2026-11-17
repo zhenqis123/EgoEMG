@@ -1,0 +1,12 @@
+# @package _global_
+to_tensor:
+  _target_: egoemg.augmentation.transforms.ExtractToTensor
+  field: emg
+
+transforms:
+  train:
+    - ${to_tensor}
+    - _target_: egoemg.augmentation.transforms.RotationAugmentation
+  val:
+    - ${to_tensor}
+  test: ${transforms.val}

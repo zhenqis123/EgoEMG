@@ -1,0 +1,19 @@
+# @package _global_
+# EgoEMG datamodule preset shared by session EMGFormer recipes.
+datamodule:
+  _target_: egoemg.training.datamodule.WindowedEmgDataModule
+  dataset_conf: ${dataset}
+  window_length: 7_790
+  val_test_window_length: 7_790
+  stride: 780
+  val_test_stride: 7_790
+  padding: [0, 0]
+  pin_memory: false
+  persistent_workers: true
+  prefetch_factor: 2
+  skip_ik_failures: false
+  max_open_files: 32
+  norm_mode: per-dataset
+  norm_stats_path: null
+  per_dataset_norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/data/emg_corpus/emg2pose_v3_memmap/per_dataset_norm_stats.json
+  norm_eps: 1e-6

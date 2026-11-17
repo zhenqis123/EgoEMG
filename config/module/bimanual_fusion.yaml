@@ -1,0 +1,5 @@
+_target_: egoemg.models.modules.bimanual_fusion.BimanualResidualFusion
+vision_checkpoint: ${fusion_vision_checkpoint}
+emg_checkpoint: ${fusion_emg_checkpoint}
+hidden_dim: 256
+dropout: 0.2

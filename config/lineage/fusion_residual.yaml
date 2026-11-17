@@ -1,0 +1,96 @@
+# @package _global_
+# Shared session training settings for the public paper recipes.
+defaults:
+- /lineage/fusion
+- /module: bimanual_fusion
+- /augmentation: batch_aug
+- override /dataset: egoemg_session_fusion_dense30_session_v6
+- override /transforms: emgformer_regression_aug_extended
+- override /module: bimanual_simple_residual
+- _self_
+fusion_vision_checkpoint: ${oc.env:EGOEMG_CHECKPOINT_ROOT,pretrained_models/egoemg}/vision_vit_s.ckpt
+fusion_emg_checkpoint: ${oc.env:EGOEMG_CHECKPOINT_ROOT,pretrained_models/egoemg}/emgformer_s.ckpt
+egoemg_session_v2_dir: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_dataset
+train: true
+eval: false
+enable_fingertip_loss: false
+center_frame_eval: false
+batch_size: 160
+val_batch_size: 320
+num_workers: 8
+train_monitor_interval: 10
+logger:
+  save_dir: ${hydra:runtime.output_dir}
+  name: ''
+  version: ''
+component_lr_scales:
+  vision: 1.0
+  emg: 1.0
+  fusion: 1.0
+trainer:
+  devices:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  strategy: ddp_find_unused_parameters_true
+  check_val_every_n_epoch: 1
+  max_epochs: 50
+  min_epochs: 0
+  accumulate_grad_batches: 1
+  val_check_interval: 1.0
+  num_sanity_val_steps: 0
+  log_every_n_steps: 1
+optimizer:
+  lr: 0.0001
+  weight_decay: 0.01
+lr_scheduler:
+  scheduler:
+    T_max: 50
+    eta_min: 1.0e-05
+    _target_: egoemg.training.schedulers.ProportionalCosineAnnealingLR
+datamodule:
+  window_length: 8000
+  val_test_window_length: 8000
+  dataset_repeat: 1
+  pin_memory: true
+  cuda_prefetch: true
+  prefetch_factor: 2
+  norm_mode: per-dataset
+  per_dataset_norm_stats_path: ${oc.env:EGOEMG_ROOT,.}/assets/egoemg_emg_normalization_filtered.json
+  session_shuffle: false
+  _target_: egoemg.training.datamodule.WindowedEmgDataModule
+  eval_num_workers: 4
+loss_weights:
+  landmark/fingertip: 0.0
+  mae: 1.0
+  residual_l1: 0.0
+  fingertip_distance: 0.0
+  delta_reg: 0.0
+callbacks:
+- _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  monitor: val_mae
+  mode: min
+  save_top_k: 3
+  save_last: true
+  save_on_train_epoch_end: false
+  filename: fusion-converge-{epoch:03d}-{val_mae:.6f}
+- _target_: pytorch_lightning.callbacks.LearningRateMonitor
+- _target_: pytorch_lightning.callbacks.EarlyStopping
+  monitor: val_mae
+  mode: min
+  patience: 15
+  min_delta: 0.0
+  check_on_train_epoch_end: false
+module:
+  freeze_emg: false
+  freeze_vision: false
+  independent_hand_heads: true
+  emg_config: null
+checkpoint: null
+pretrained_checkpoint: null
+pretrained_emg_checkpoint: null
+resume_ckpt: null
+anchor_loss_weight: 0.0

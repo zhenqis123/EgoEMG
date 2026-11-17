@@ -1,0 +1,45 @@
+# Training source configuration, not an available/reproduced training recipe.
+# The processed mesh training corpus is not distributed with EgoEMG.
+seed: 42
+data:
+  root: null  # Explicit external processed corpus root; never the EgoEMG captures.
+  names: [GigaHand, hanco, HO3DV2, HO3DV3, interhand, dex_ycb, Freihand]
+  use_mmap: true
+mano_assets_root: null  # Licensed root containing models/MANO_RIGHT.pkl.
+model:
+  lr: 1.0e-5
+  dropout: 0.1
+  verts_loss_weight: 1.0
+  markers_loss_weight: 5.0
+  skip_augment_prob: 0.5
+  marker_neighbors_json: null  # Null derives one-ring neighbors from MANO topology.
+  augmentation:
+    marker_noise_std: 0.001
+    noise_dropout_prob: 0.1
+    swap_distance_threshold: 0.015
+    swap_prob: 0.3
+    max_swaps_per_frame: 3
+    marker_dropout_prob: 0.05
+    max_dropout: 3
+    marker_drift_magnitude: 0.005
+    num_drifted_markers: 3
+    bone_scale_range: 0.05
+    spike_prob: 0.1
+    spike_scale_min: 2.0
+    spike_scale_max: 5.0
+    marker_self_weight: 0.5
+    marker_scale_range: 0.4
+loader:
+  batch_size: 32
+  num_workers: 4
+# These execution settings are examples, not recovered historical run settings.
+trainer:
+  accelerator: gpu
+  devices: [0]
+  precision: bf16-mixed
+  max_epochs: 50
+  gradient_clip_val: 1.0
+  log_every_n_steps: 10
+output_dir: logs/markers2mano
+warm_start_checkpoint: null  # Strict network-only load; resets optimizer/scheduler.
+resume_checkpoint: null  # Full resume of a run created by this migrated trainer.

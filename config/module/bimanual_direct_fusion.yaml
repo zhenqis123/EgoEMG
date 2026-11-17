@@ -1,0 +1,5 @@
+defaults:
+  - bimanual_simple_residual
+  - _self_
+
+_target_: egoemg.models.modules.bimanual_direct_fusion.BimanualDirectFusion

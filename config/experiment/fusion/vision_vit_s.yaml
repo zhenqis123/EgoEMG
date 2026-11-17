@@ -1,0 +1,24 @@
+# @package _global_
+# Public training entrypoint; fit train and select checkpoints on val only.
+defaults:
+- /lineage/vision
+- _self_
+vision_source_checkpoint: null
+checkpoint: null
+resume_ckpt: null
+pretrained_checkpoint: null
+module:
+  pretrained: true
+train: true
+eval: false
+batch_size: 16
+val_batch_size: 16
+num_workers: 4
+dense_frame_cache: ${oc.env:EGOEMG_ROOT,.}/data/EgoEMG_dataset/fullframe_256_30fps
+trainer:
+  devices:
+  - 0
+  strategy: auto
+hydra:
+  run:
+    dir: logs/training/vision_vit_s/${now:%Y-%m-%d_%H-%M-%S}

@@ -1,0 +1,7 @@
+_target_: egoemg.models.modules.bimanual_temporal_vision.BimanualTemporalVisionPose
+vision_checkpoint: ${temporal_vision_checkpoint}
+hidden_dim: 1024
+heads: 8
+feedforward_dim: 5120
+dropout: 0.1
+num_frames: ${temporal_num_frames}

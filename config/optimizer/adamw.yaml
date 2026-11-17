@@ -1,0 +1,17 @@
+# @package optimizer
+_target_: torch.optim.AdamW
+
+# Learning rate
+lr: 0.001
+
+# Adam betas
+betas: [0.9, 0.999]
+
+# Numerical stability
+eps: 1e-08
+
+# Weight decay for decoupled AdamW
+weight_decay: 0.01
+
+# Use AMSGrad variant
+amsgrad: false
